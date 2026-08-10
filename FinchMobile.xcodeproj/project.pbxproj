@@ -26,6 +26,8 @@
 		63AFAD964CBB41779F15ACD3 /* VaultManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DF325136CF4B9A9A6D0E38 /* VaultManager.swift */; };
 		532316BDD44D4B5696385458 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB4115DBEE143DCA142374A /* DesignSystem.swift */; };
 		144862AD262B4554B2DDAF18 /* BLERadarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F224C0BC46D14CEE939B03B9 /* BLERadarView.swift */; };
+		E1A2B3C4D5E60718293A4B5D /* LiveProximityMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E60718293A4B5D /* LiveProximityMapView.swift */; };
+		E2A2B3C4D5E60718293A4B5E /* LocationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A2B3C4D5E60718293A4B5E /* LocationProvider.swift */; };
 		594D54CCD7EB40BAADF044C1 /* EngageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA483931D2B424DAAA4F86F /* EngageView.swift */; };
 		54203165E1A149108021D324 /* LatticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80278AA587C341558CE78ED4 /* LatticeView.swift */; };
 		D7E8EF39A11F4370BC8B9E8C /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC2A8461CDF948AB9EBB059F /* RootTabView.swift */; };
@@ -58,6 +60,8 @@
 		10DF325136CF4B9A9A6D0E38 /* VaultManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultManager.swift; sourceTree = "<group>"; };
 		2AB4115DBEE143DCA142374A /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		F224C0BC46D14CEE939B03B9 /* BLERadarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLERadarView.swift; sourceTree = "<group>"; };
+		F1A2B3C4D5E60718293A4B5D /* LiveProximityMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveProximityMapView.swift; sourceTree = "<group>"; };
+		F2A2B3C4D5E60718293A4B5E /* LocationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationProvider.swift; sourceTree = "<group>"; };
 		AAA483931D2B424DAAA4F86F /* EngageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngageView.swift; sourceTree = "<group>"; };
 		80278AA587C341558CE78ED4 /* LatticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LatticeView.swift; sourceTree = "<group>"; };
 		DC2A8461CDF948AB9EBB059F /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
@@ -136,10 +140,19 @@
 			children = (
 				04ACB68674854586B13FC474 /* BLE */,
 				6408515A77C8445499437B69 /* Glass */,
+				A3LOC4T10N5ERV1CE0000001 /* Location */,
 				8AAD2C9AACFC48B1A16B9738 /* Network */,
 				083278C791D64609BF8A3DAD /* Vault */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		A3LOC4T10N5ERV1CE0000001 /* Location */ = {
+			isa = PBXGroup;
+			children = (
+				F2A2B3C4D5E60718293A4B5E /* LocationProvider.swift */,
+			);
+			path = Location;
 			sourceTree = "<group>";
 		};
 		724136255D4E442F83934AC4 /* Theme */ = {
@@ -155,11 +168,20 @@
 			children = (
 				1673A05CC2DE4F008E19D38F /* BLE */,
 				19BA323DEFE14A3BA9E60771 /* Engage */,
+				A3MAPV1EW5GRP00000000001 /* Map */,
 				6E330D9527E04D9F9EC79FD8 /* Settings */,
 				2C90BBC780934B87B11956A2 /* Vault */,
 				DC2A8461CDF948AB9EBB059F /* RootTabView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		A3MAPV1EW5GRP00000000001 /* Map */ = {
+			isa = PBXGroup;
+			children = (
+				F1A2B3C4D5E60718293A4B5D /* LiveProximityMapView.swift */,
+			);
+			path = Map;
 			sourceTree = "<group>";
 		};
 		04ACB68674854586B13FC474 /* BLE */ = {
@@ -327,6 +349,8 @@
 				63AFAD964CBB41779F15ACD3 /* VaultManager.swift in Sources */,
 				532316BDD44D4B5696385458 /* DesignSystem.swift in Sources */,
 				144862AD262B4554B2DDAF18 /* BLERadarView.swift in Sources */,
+				E1A2B3C4D5E60718293A4B5D /* LiveProximityMapView.swift in Sources */,
+				E2A2B3C4D5E60718293A4B5E /* LocationProvider.swift in Sources */,
 				594D54CCD7EB40BAADF044C1 /* EngageView.swift in Sources */,
 				54203165E1A149108021D324 /* LatticeView.swift in Sources */,
 				D7E8EF39A11F4370BC8B9E8C /* RootTabView.swift in Sources */,

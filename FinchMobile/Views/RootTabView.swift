@@ -12,6 +12,9 @@ struct RootTabView: View {
             BLERadarView()
                 .tabItem { Label("Nearby", systemImage: "antenna.radiowaves.left.and.right") }
 
+            LiveProximityMapView()
+                .tabItem { Label("Map", systemImage: "map") }
+
             VaultView()
                 .tabItem { Label("Vault", systemImage: "lock.square.stack") }
 

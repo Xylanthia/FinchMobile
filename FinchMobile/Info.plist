@@ -17,15 +17,17 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>1.1</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>2</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Finch continuously scans for BLE devices to provide live radar even while you move.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>Finch scans nearby BLE advertisers for authorized IoT assessment.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Finch uses your location to center the live proximity map and show approximate distances to nearby Bluetooth devices from this phone.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Finch scans your local network to discover IoT devices and assess security.</string>
 	<key>NSBonjourServices</key>

@@ -95,8 +95,9 @@ enum CVEEnricher {
             break
         }
 
-        // Banner/fingerprint keywords always considered
-        if src.contains("http") || src.contains("rtsp") || src.contains("onvif") || family == "http" {
+        // Camera packs only when evidence looks like a camera/DVR — not every HTTP port
+        if src.contains("rtsp") || src.contains("onvif")
+            || (src.contains("http") && cameraEvidence(blob: blob, fingerprint: fingerprint)) {
             add(cameraSurface(blob: blob, fingerprint: fingerprint))
         }
 
@@ -455,16 +456,52 @@ enum CVEEnricher {
         return dedupe(list)
     }
 
-    private static func cameraSurface(blob: String, fingerprint: FingerprintMatch?) -> [CVERef] {
-        var list: [CVERef] = [
-            ref("CVE-2018-9995", "TBK DVR / TVT credential disclosure",
-                "Many white-label DVRs leak credentials via `/device.rsp`.", "exposure", "likely"),
-            ref("CVE-2020-25078", "HiSilicon-based DVR credential disclosure",
-                "Unauth credential dump on some HiSilicon DVR/camera OEMs.", "exposure", "likely")
+    private static func cameraEvidence(blob: String, fingerprint: FingerprintMatch?) -> Bool {
+        let v = ((fingerprint?.vendor ?? "") + " " + (fingerprint?.deviceType ?? "") + " " + blob).lowercased()
+        let needles = [
+            "hikvision", "dahua", "amcrest", "reolink", "axis", "onvif", "rtsp", "isapi",
+            "ipcam", "ip camera", "dvr", "nvr", "hisilicon", "goahead", "vacron", "tvt", "tbk"
         ]
+        return needles.contains { v.contains($0) }
+            || (fingerprint?.deviceType.lowercased().contains("camera") ?? false)
+            || (fingerprint?.deviceType.lowercased().contains("dvr") ?? false)
+    }
+
+    private static func cameraSurface(blob: String, fingerprint: FingerprintMatch?) -> [CVERef] {
+        var list: [CVERef] = []
         let v = ((fingerprint?.vendor ?? "") + " " + blob).lowercased()
+        // White-label DVR packs only when evidence points at that class — not every camera
+        if v.contains("tbk") || v.contains("tvt") || v.contains("vacron") || v.contains("device.rsp")
+            || v.contains("login.rsp") {
+            list.append(
+                ref("CVE-2018-9995", "TBK DVR / TVT credential disclosure",
+                    "Many white-label DVRs leak credentials via `/device.rsp`.", "exposure", "likely")
+            )
+        }
+        if v.contains("hisilicon") || v.contains("hi35") || v.contains("xm") && v.contains("dvr") {
+            list.append(
+                ref("CVE-2020-25078", "HiSilicon-based DVR credential disclosure",
+                    "Unauth credential dump on some HiSilicon DVR/camera OEMs.", "exposure", "likely")
+            )
+        }
         if v.contains("hikvision") { list.append(contentsOf: hikvisionAuth) }
         if v.contains("dahua") || v.contains("amcrest") { list.append(contentsOf: dahuaAuth) }
+        if v.contains("reolink") {
+            list.append(contentsOf: [
+                ref("CVE-2021-40149", "Reolink E1 Zoom SSL private key disclosure",
+                    "Web root can expose /self.key — pull cert/key if present.", "fingerprint", "likely"),
+                ref("CVE-2020-25169", "Reolink P2P cleartext sensitive data",
+                    "P2P path may leak camera feeds / sensitive data in transit.", "fingerprint", "likely")
+            ])
+        }
+        if v.contains("axis") {
+            list.append(contentsOf: [
+                ref("CVE-2018-10660", "Axis IP camera shell command injection",
+                    "Unauth/low-auth command injection on multiple Axis models.", "fingerprint", "likely"),
+                ref("CVE-2018-10661", "Axis IP camera access-control bypass",
+                    "Companion Axis flaw from the same 2018 advisory set.", "fingerprint", "likely")
+            ])
+        }
         return dedupe(list)
     }
 
@@ -472,14 +509,14 @@ enum CVEEnricher {
         var list: [CVERef] = []
         let b = blob.lowercased()
         if b.contains("hikvision") || b.contains("isapi") { list.append(contentsOf: hikvisionAuth) }
-        if b.contains("dahua") { list.append(contentsOf: dahuaAuth) }
-        if b.contains("onvif") {
+        if b.contains("dahua") || b.contains("amcrest") { list.append(contentsOf: dahuaAuth) }
+        if cameraEvidence(blob: blob, fingerprint: fingerprint) {
             list.append(contentsOf: cameraSurface(blob: blob, fingerprint: fingerprint))
         }
         if port == 9200 || b.contains("elasticsearch") {
             list.append(contentsOf: elasticsearchExposed)
         }
-        if b.contains("goahead") {
+        if b.contains("goahead") && cameraEvidence(blob: blob, fingerprint: fingerprint) {
             list.append(
                 ref("CVE-2017-8225", "Wireless IP camera GoAhead — hardcoded creds / backdoor class",
                     "GoAhead-based OEM cameras often ship with default/hardcoded accounts.", "banner", "likely")
@@ -559,11 +596,11 @@ enum BLECVEEnricher {
             }
         }
 
-        // Always relevant BLE stack classes for any advertising device
-        add(bleStackBaseline)
+        // Only emit CVEs when this device's identity actually matches.
+        // Do NOT stamp a generic BLE-stack pack onto every advertiser.
 
         // TPMS / tire pressure — priority for physical vehicle engagements
-        if cat.contains("tpms") || title.contains("tire") || name.contains("tpms")
+        if cat.contains("tpms") || cat.contains("car") || title.contains("tire") || name.contains("tpms")
             || name.contains("tire") || name.contains("tyre") || device.manufacturerCompanyId == 0x0A7C
             || blob.contains("tire pressure") {
             add(tpmsCVEs)
@@ -582,14 +619,15 @@ enum BLECVEEnricher {
         }
 
         // Apple Continuity / phones / AirPods
-        if cat.contains("apple") || brand.contains("apple") || device.manufacturerCompanyId == 0x004C
+        let isApple = brand.contains("apple") || device.manufacturerCompanyId == 0x004C
             || title.contains("iphone") || title.contains("airpods") || title.contains("ipad")
-            || cat.contains("headphones") && brand.contains("apple") {
+            || title.contains("apple watch") || title.contains("airtag") || title.contains("find my")
+        if isApple {
             add(appleBLE)
         }
 
-        // Headphones / audio (incl. non-Apple)
-        if cat.contains("headphones") || title.contains("buds") || title.contains("headset") {
+        // Headphones / audio (incl. non-Apple) — skip if already handled as Apple
+        if !isApple && (cat.contains("headphones") || title.contains("buds") || title.contains("headset")) {
             add(audioBLE)
         }
 
@@ -600,36 +638,38 @@ enum BLECVEEnricher {
         }
 
         // HID / keyboard / mouse / remote
-        if cat.contains("accessory") || title.contains("keyboard") || title.contains("mouse")
-            || title.contains("remote") || identity.serviceLabels.contains(where: { $0.lowercased().contains("keyboard") }) {
+        if title.contains("keyboard") || title.contains("mouse") || title.contains("remote")
+            || identity.serviceLabels.contains(where: {
+                let s = $0.lowercased()
+                return s.contains("keyboard") || s.contains("hid") || s.contains("human interface")
+            }) {
             add(hidBLE)
         }
 
-        // Nordic / Espressif chip vendors (Sweyntooth class)
+        // Nordic SoftDevice (Sweyntooth) — company ID / brand only, never "IoT" catch-all
         if brand.contains("nordic") || device.manufacturerCompanyId == 0x0059 {
             add(sweyntooth)
         }
-        if brand.contains("espressif") || device.manufacturerCompanyId == 0x02E5 || cat.contains("iot") {
+        // Espressif — company ID / brand only
+        if brand.contains("espressif") || device.manufacturerCompanyId == 0x02E5 {
             add(espressifBLE)
             add(sweyntooth)
         }
 
-        // Connectable GATT surface — BlueBorne / pairing classes more relevant
+        // Connectable + explicit Android/Linux host clues only (BlueBorne is not for every GATT bulb)
         if device.connectable {
-            add(connectableBLE)
+            let hostish = brand.contains("google") || brand.contains("samsung") || brand.contains("xiaomi")
+                || name.contains("android") || name.contains("pixel") || name.contains("galaxy")
+                || blob.contains("raspberry") || blob.contains("linux")
+            if hostish {
+                add(connectableBLE)
+            }
         }
 
         return out
     }
 
     // MARK: Packs (real CVE-IDs only)
-
-    private static let bleStackBaseline: [CVERef] = [
-        ref("CVE-2019-9506", "KNOB — Bluetooth key negotiation of Bluetooth",
-            "Forces weak encryption keys on many Bluetooth stacks — decrypt/inject risk.", "ble-stack", "exposure"),
-        ref("CVE-2020-10134", "BIAS — Bluetooth Impersonation AttackS",
-            "Role-switch impersonation during secure connections on legacy stacks.", "ble-stack", "exposure")
-    ]
 
     private static let tpmsCVEs: [CVERef] = [
         ref("CVE-2024-39081", "SMART TYRE / BLE TPMS capture-replay MITM",
