@@ -10,12 +10,13 @@ actor TCPProbe {
                 using: .tcp
             )
             let lock = NSLock()
-            var resumed = false
+            final class FlagBox: @unchecked Sendable { var resumed = false }
+            let flag = FlagBox()
             func finish(_ value: Bool) {
                 lock.lock()
                 defer { lock.unlock() }
-                guard !resumed else { return }
-                resumed = true
+                guard !flag.resumed else { return }
+                flag.resumed = true
                 connection.cancel()
                 continuation.resume(returning: value)
             }
@@ -51,17 +52,17 @@ actor TCPProbe {
                 using: .tcp
             )
             let lock = NSLock()
-            var resumed = false
             final class BufferBox: @unchecked Sendable {
                 var data = Data()
+                var resumed = false
             }
             let buffer = BufferBox()
 
             @Sendable func finish(_ value: Data?) {
                 lock.lock()
                 defer { lock.unlock() }
-                guard !resumed else { return }
-                resumed = true
+                guard !buffer.resumed else { return }
+                buffer.resumed = true
                 connection.cancel()
                 continuation.resume(returning: value)
             }
