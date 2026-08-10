@@ -1,0 +1,3060 @@
+[
+  {
+    "id": "fp-001",
+    "deviceType": "camera",
+    "vendor": "Hikvision",
+    "model": "DS-2CD",
+    "confidence": 0.85,
+    "tags": [
+      "camera",
+      "hikvision"
+    ],
+    "patterns": [
+      "hikvision",
+      "dvrdvs",
+      "isapi",
+      "/PSIA/"
+    ]
+  },
+  {
+    "id": "fp-002",
+    "deviceType": "camera",
+    "vendor": "Dahua",
+    "model": "HCVR",
+    "confidence": 0.85,
+    "tags": [
+      "camera",
+      "dahua"
+    ],
+    "patterns": [
+      "dahua",
+      "dh-",
+      "webservice",
+      "cgi-bin"
+    ]
+  },
+  {
+    "id": "fp-003",
+    "deviceType": "camera",
+    "vendor": "Axis",
+    "model": "M30",
+    "confidence": 0.85,
+    "tags": [
+      "camera",
+      "axis"
+    ],
+    "patterns": [
+      "axis",
+      "vapix",
+      "acap"
+    ]
+  },
+  {
+    "id": "fp-004",
+    "deviceType": "camera",
+    "vendor": "Amcrest",
+    "model": "IP2M",
+    "confidence": 0.85,
+    "tags": [
+      "camera",
+      "amcrest"
+    ],
+    "patterns": [
+      "amcrest",
+      "amcrest"
+    ]
+  },
+  {
+    "id": "fp-005",
+    "deviceType": "camera",
+    "vendor": "Reolink",
+    "model": "RLC",
+    "confidence": 0.85,
+    "tags": [
+      "camera",
+      "reolink"
+    ],
+    "patterns": [
+      "reolink",
+      "baichuan"
+    ]
+  },
+  {
+    "id": "fp-006",
+    "deviceType": "camera",
+    "vendor": "Foscam",
+    "model": "FI9821",
+    "confidence": 0.85,
+    "tags": [
+      "camera",
+      "foscam"
+    ],
+    "patterns": [
+      "foscam",
+      "cgi-bin/CGIProxy"
+    ]
+  },
+  {
+    "id": "fp-007",
+    "deviceType": "camera",
+    "vendor": "Ubiquiti",
+    "model": "UniFi Protect",
+    "confidence": 0.85,
+    "tags": [
+      "camera",
+      "ubiquiti"
+    ],
+    "patterns": [
+      "unifi",
+      "ubiquiti",
+      "unvr"
+    ]
+  },
+  {
+    "id": "fp-008",
+    "deviceType": "camera",
+    "vendor": "Nest",
+    "model": "Cam",
+    "confidence": 0.85,
+    "tags": [
+      "camera",
+      "nest"
+    ],
+    "patterns": [
+      "nest",
+      "dropcam"
+    ]
+  },
+  {
+    "id": "fp-009",
+    "deviceType": "camera",
+    "vendor": "Wyze",
+    "model": "Cam v3",
+    "confidence": 0.85,
+    "tags": [
+      "camera",
+      "wyze"
+    ],
+    "patterns": [
+      "wyze",
+      "wyzecam"
+    ]
+  },
+  {
+    "id": "fp-010",
+    "deviceType": "camera",
+    "vendor": "Ring",
+    "model": "Stick Up",
+    "confidence": 0.85,
+    "tags": [
+      "camera",
+      "ring"
+    ],
+    "patterns": [
+      "ring",
+      "doorbot"
+    ]
+  },
+  {
+    "id": "fp-011",
+    "deviceType": "camera",
+    "vendor": "Arlo",
+    "model": "Pro",
+    "confidence": 0.85,
+    "tags": [
+      "camera",
+      "arlo"
+    ],
+    "patterns": [
+      "arlo",
+      "netgear arlo"
+    ]
+  },
+  {
+    "id": "fp-012",
+    "deviceType": "camera",
+    "vendor": "TP-Link",
+    "model": "Tapo",
+    "confidence": 0.85,
+    "tags": [
+      "camera",
+      "tp-link"
+    ],
+    "patterns": [
+      "tapo",
+      "tplink",
+      "tp-link"
+    ]
+  },
+  {
+    "id": "fp-013",
+    "deviceType": "camera",
+    "vendor": "Xiaomi",
+    "model": "Mi Cam",
+    "confidence": 0.85,
+    "tags": [
+      "camera",
+      "xiaomi"
+    ],
+    "patterns": [
+      "xiaomi",
+      "mijia",
+      "chuangmi"
+    ]
+  },
+  {
+    "id": "fp-014",
+    "deviceType": "smart-home",
+    "vendor": "Sonoff",
+    "model": "BASIC",
+    "confidence": 0.85,
+    "tags": [
+      "smart-home",
+      "sonoff"
+    ],
+    "patterns": [
+      "sonoff",
+      "itead",
+      "ewelink"
+    ]
+  },
+  {
+    "id": "fp-015",
+    "deviceType": "smart-home",
+    "vendor": "Tuya",
+    "model": "Smart Plug",
+    "confidence": 0.85,
+    "tags": [
+      "smart-home",
+      "tuya"
+    ],
+    "patterns": [
+      "tuya",
+      "smartlife"
+    ]
+  },
+  {
+    "id": "fp-016",
+    "deviceType": "smart-home",
+    "vendor": "Philips",
+    "model": "Hue Bridge",
+    "confidence": 0.85,
+    "tags": [
+      "smart-home",
+      "philips"
+    ],
+    "patterns": [
+      "philips",
+      "hue",
+      "_hap._tcp"
+    ]
+  },
+  {
+    "id": "fp-017",
+    "deviceType": "hub",
+    "vendor": "Home Assistant",
+    "model": "Core",
+    "confidence": 0.85,
+    "tags": [
+      "hub",
+      "home-assistant"
+    ],
+    "patterns": [
+      "home.?assistant",
+      "hassio",
+      "hass-"
+    ]
+  },
+  {
+    "id": "fp-018",
+    "deviceType": "hub",
+    "vendor": "OpenHAB",
+    "model": "Runtime",
+    "confidence": 0.72,
+    "tags": [
+      "hub",
+      "openhab"
+    ],
+    "patterns": [
+      "openhab"
+    ]
+  },
+  {
+    "id": "fp-019",
+    "deviceType": "hub",
+    "vendor": "Node-RED",
+    "model": "Editor",
+    "confidence": 0.85,
+    "tags": [
+      "hub",
+      "node-red"
+    ],
+    "patterns": [
+      "node-red",
+      "nodered"
+    ]
+  },
+  {
+    "id": "fp-020",
+    "deviceType": "broker",
+    "vendor": "Mosquitto",
+    "model": "MQTT",
+    "confidence": 0.85,
+    "tags": [
+      "broker",
+      "mosquitto"
+    ],
+    "patterns": [
+      "mosquitto",
+      "mqtt"
+    ]
+  },
+  {
+    "id": "fp-021",
+    "deviceType": "broker",
+    "vendor": "EMQX",
+    "model": "MQTT",
+    "confidence": 0.72,
+    "tags": [
+      "broker",
+      "emqx"
+    ],
+    "patterns": [
+      "emqx"
+    ]
+  },
+  {
+    "id": "fp-022",
+    "deviceType": "broker",
+    "vendor": "RabbitMQ",
+    "model": "AMQP/MQTT",
+    "confidence": 0.85,
+    "tags": [
+      "broker",
+      "rabbitmq"
+    ],
+    "patterns": [
+      "rabbitmq",
+      "amqp"
+    ]
+  },
+  {
+    "id": "fp-023",
+    "deviceType": "embedded",
+    "vendor": "Espressif",
+    "model": "ESP32",
+    "confidence": 0.85,
+    "tags": [
+      "embedded",
+      "espressif"
+    ],
+    "patterns": [
+      "espressif",
+      "esp32",
+      "esp8266"
+    ]
+  },
+  {
+    "id": "fp-024",
+    "deviceType": "sbc",
+    "vendor": "Raspberry Pi",
+    "model": "Linux",
+    "confidence": 0.85,
+    "tags": [
+      "sbc",
+      "raspberry-pi"
+    ],
+    "patterns": [
+      "raspberry",
+      "raspbian",
+      "raspberrypi"
+    ]
+  },
+  {
+    "id": "fp-025",
+    "deviceType": "nas",
+    "vendor": "Synology",
+    "model": "DSM",
+    "confidence": 0.85,
+    "tags": [
+      "nas",
+      "synology"
+    ],
+    "patterns": [
+      "synology",
+      "diskstation"
+    ]
+  },
+  {
+    "id": "fp-026",
+    "deviceType": "nas",
+    "vendor": "QNAP",
+    "model": "QTS",
+    "confidence": 0.85,
+    "tags": [
+      "nas",
+      "qnap"
+    ],
+    "patterns": [
+      "qnap",
+      "qts"
+    ]
+  },
+  {
+    "id": "fp-027",
+    "deviceType": "nas",
+    "vendor": "TrueNAS",
+    "model": "CORE",
+    "confidence": 0.85,
+    "tags": [
+      "nas",
+      "truenas"
+    ],
+    "patterns": [
+      "truenas",
+      "freenas"
+    ]
+  },
+  {
+    "id": "fp-028",
+    "deviceType": "media",
+    "vendor": "Plex",
+    "model": "Media Server",
+    "confidence": 0.72,
+    "tags": [
+      "media",
+      "plex"
+    ],
+    "patterns": [
+      "plex"
+    ]
+  },
+  {
+    "id": "fp-029",
+    "deviceType": "media",
+    "vendor": "Kodi",
+    "model": "XBMC",
+    "confidence": 0.85,
+    "tags": [
+      "media",
+      "kodi"
+    ],
+    "patterns": [
+      "kodi",
+      "xbmc"
+    ]
+  },
+  {
+    "id": "fp-030",
+    "deviceType": "printer",
+    "vendor": "Printer",
+    "model": "IPP",
+    "confidence": 0.85,
+    "tags": [
+      "printer",
+      "printer"
+    ],
+    "patterns": [
+      "_printer._tcp",
+      "ipp",
+      "jetdirect",
+      "cups"
+    ]
+  },
+  {
+    "id": "fp-031",
+    "deviceType": "printer",
+    "vendor": "HP",
+    "model": "LaserJet",
+    "confidence": 0.85,
+    "tags": [
+      "printer",
+      "hp"
+    ],
+    "patterns": [
+      "hp",
+      "hewlett",
+      "laserjet"
+    ]
+  },
+  {
+    "id": "fp-032",
+    "deviceType": "printer",
+    "vendor": "Epson",
+    "model": "EcoTank",
+    "confidence": 0.72,
+    "tags": [
+      "printer",
+      "epson"
+    ],
+    "patterns": [
+      "epson"
+    ]
+  },
+  {
+    "id": "fp-033",
+    "deviceType": "printer",
+    "vendor": "Canon",
+    "model": "PIXMA",
+    "confidence": 0.85,
+    "tags": [
+      "printer",
+      "canon"
+    ],
+    "patterns": [
+      "canon",
+      "pixma"
+    ]
+  },
+  {
+    "id": "fp-034",
+    "deviceType": "printer",
+    "vendor": "Brother",
+    "model": "HL",
+    "confidence": 0.72,
+    "tags": [
+      "printer",
+      "brother"
+    ],
+    "patterns": [
+      "brother"
+    ]
+  },
+  {
+    "id": "fp-035",
+    "deviceType": "apple",
+    "vendor": "Apple",
+    "model": "AirPlay",
+    "confidence": 0.85,
+    "tags": [
+      "apple",
+      "apple"
+    ],
+    "patterns": [
+      "_raop._tcp",
+      "_airplay",
+      "_companion-link"
+    ]
+  },
+  {
+    "id": "fp-036",
+    "deviceType": "apple",
+    "vendor": "Apple",
+    "model": "HomeKit",
+    "confidence": 0.85,
+    "tags": [
+      "apple",
+      "apple"
+    ],
+    "patterns": [
+      "_hap._tcp",
+      "homekit"
+    ]
+  },
+  {
+    "id": "fp-037",
+    "deviceType": "tv",
+    "vendor": "Samsung",
+    "model": "Tizen",
+    "confidence": 0.85,
+    "tags": [
+      "tv",
+      "samsung"
+    ],
+    "patterns": [
+      "samsung",
+      "tizen",
+      "smart.?tv"
+    ]
+  },
+  {
+    "id": "fp-038",
+    "deviceType": "tv",
+    "vendor": "LG",
+    "model": "webOS",
+    "confidence": 0.85,
+    "tags": [
+      "tv",
+      "lg"
+    ],
+    "patterns": [
+      "webos",
+      "lg electronics"
+    ]
+  },
+  {
+    "id": "fp-039",
+    "deviceType": "media",
+    "vendor": "Roku",
+    "model": "Player",
+    "confidence": 0.85,
+    "tags": [
+      "media",
+      "roku"
+    ],
+    "patterns": [
+      "roku",
+      "ecp"
+    ]
+  },
+  {
+    "id": "fp-040",
+    "deviceType": "media",
+    "vendor": "Fire TV",
+    "model": "Amazon",
+    "confidence": 0.85,
+    "tags": [
+      "media",
+      "fire-tv"
+    ],
+    "patterns": [
+      "firetv",
+      "amazontv"
+    ]
+  },
+  {
+    "id": "fp-041",
+    "deviceType": "media",
+    "vendor": "Chromecast",
+    "model": "Google",
+    "confidence": 0.85,
+    "tags": [
+      "media",
+      "chromecast"
+    ],
+    "patterns": [
+      "chromecast",
+      "googlecast",
+      "_googlecast"
+    ]
+  },
+  {
+    "id": "fp-042",
+    "deviceType": "speaker",
+    "vendor": "Sonos",
+    "model": "Play",
+    "confidence": 0.85,
+    "tags": [
+      "speaker",
+      "sonos"
+    ],
+    "patterns": [
+      "sonos",
+      "_sonos"
+    ]
+  },
+  {
+    "id": "fp-043",
+    "deviceType": "speaker",
+    "vendor": "Bose",
+    "model": "SoundTouch",
+    "confidence": 0.85,
+    "tags": [
+      "speaker",
+      "bose"
+    ],
+    "patterns": [
+      "bose",
+      "soundtouch"
+    ]
+  },
+  {
+    "id": "fp-044",
+    "deviceType": "av",
+    "vendor": "Yamaha",
+    "model": "AVR",
+    "confidence": 0.85,
+    "tags": [
+      "av",
+      "yamaha"
+    ],
+    "patterns": [
+      "yamaha",
+      "musiccast"
+    ]
+  },
+  {
+    "id": "fp-045",
+    "deviceType": "av",
+    "vendor": "Denon",
+    "model": "HEOS",
+    "confidence": 0.85,
+    "tags": [
+      "av",
+      "denon"
+    ],
+    "patterns": [
+      "denon",
+      "heos",
+      "marantz"
+    ]
+  },
+  {
+    "id": "fp-046",
+    "deviceType": "network",
+    "vendor": "Cisco",
+    "model": "IOS",
+    "confidence": 0.85,
+    "tags": [
+      "network",
+      "cisco"
+    ],
+    "patterns": [
+      "cisco",
+      "ios xe",
+      "catalyst"
+    ]
+  },
+  {
+    "id": "fp-047",
+    "deviceType": "router",
+    "vendor": "MikroTik",
+    "model": "RouterOS",
+    "confidence": 0.85,
+    "tags": [
+      "router",
+      "mikrotik"
+    ],
+    "patterns": [
+      "mikrotik",
+      "routeros"
+    ]
+  },
+  {
+    "id": "fp-048",
+    "deviceType": "router",
+    "vendor": "OpenWrt",
+    "model": "Linux",
+    "confidence": 0.85,
+    "tags": [
+      "router",
+      "openwrt"
+    ],
+    "patterns": [
+      "openwrt",
+      "luci"
+    ]
+  },
+  {
+    "id": "fp-049",
+    "deviceType": "firewall",
+    "vendor": "pfSense",
+    "model": "FreeBSD",
+    "confidence": 0.85,
+    "tags": [
+      "firewall",
+      "pfsense"
+    ],
+    "patterns": [
+      "pfsense",
+      "opnsense"
+    ]
+  },
+  {
+    "id": "fp-050",
+    "deviceType": "network",
+    "vendor": "Ubiquiti",
+    "model": "EdgeOS",
+    "confidence": 0.85,
+    "tags": [
+      "network",
+      "ubiquiti"
+    ],
+    "patterns": [
+      "edgeos",
+      "edgerouter",
+      "unifi"
+    ]
+  },
+  {
+    "id": "fp-051",
+    "deviceType": "router",
+    "vendor": "ASUS",
+    "model": "ASUSWRT",
+    "confidence": 0.85,
+    "tags": [
+      "router",
+      "asus"
+    ],
+    "patterns": [
+      "asuswrt",
+      "asus"
+    ]
+  },
+  {
+    "id": "fp-052",
+    "deviceType": "router",
+    "vendor": "Netgear",
+    "model": "Orbi",
+    "confidence": 0.85,
+    "tags": [
+      "router",
+      "netgear"
+    ],
+    "patterns": [
+      "netgear",
+      "orbi"
+    ]
+  },
+  {
+    "id": "fp-053",
+    "deviceType": "router",
+    "vendor": "Linksys",
+    "model": "Velop",
+    "confidence": 0.85,
+    "tags": [
+      "router",
+      "linksys"
+    ],
+    "patterns": [
+      "linksys",
+      "velop"
+    ]
+  },
+  {
+    "id": "fp-054",
+    "deviceType": "router",
+    "vendor": "Google",
+    "model": "Nest Wifi",
+    "confidence": 0.85,
+    "tags": [
+      "router",
+      "google"
+    ],
+    "patterns": [
+      "google.?wifi",
+      "nest.?wifi"
+    ]
+  },
+  {
+    "id": "fp-055",
+    "deviceType": "router",
+    "vendor": "Eero",
+    "model": "Mesh",
+    "confidence": 0.72,
+    "tags": [
+      "router",
+      "eero"
+    ],
+    "patterns": [
+      "eero"
+    ]
+  },
+  {
+    "id": "fp-056",
+    "deviceType": "embedded",
+    "vendor": "Dropbear",
+    "model": "SSH",
+    "confidence": 0.72,
+    "tags": [
+      "embedded",
+      "dropbear"
+    ],
+    "patterns": [
+      "dropbear"
+    ]
+  },
+  {
+    "id": "fp-057",
+    "deviceType": "server",
+    "vendor": "OpenSSH",
+    "model": "sshd",
+    "confidence": 0.72,
+    "tags": [
+      "server",
+      "openssh"
+    ],
+    "patterns": [
+      "openssh"
+    ]
+  },
+  {
+    "id": "fp-058",
+    "deviceType": "embedded",
+    "vendor": "Telnet",
+    "model": "BusyBox",
+    "confidence": 0.85,
+    "tags": [
+      "embedded",
+      "telnet"
+    ],
+    "patterns": [
+      "busybox",
+      "login:"
+    ]
+  },
+  {
+    "id": "fp-059",
+    "deviceType": "database",
+    "vendor": "Redis",
+    "model": "Redis",
+    "confidence": 0.85,
+    "tags": [
+      "database",
+      "redis"
+    ],
+    "patterns": [
+      "redis_version",
+      "-ERR wrong",
+      "REDIS"
+    ]
+  },
+  {
+    "id": "fp-060",
+    "deviceType": "database",
+    "vendor": "MongoDB",
+    "model": "mongod",
+    "confidence": 0.85,
+    "tags": [
+      "database",
+      "mongodb"
+    ],
+    "patterns": [
+      "mongodb",
+      "ismaster"
+    ]
+  },
+  {
+    "id": "fp-061",
+    "deviceType": "database",
+    "vendor": "Elasticsearch",
+    "model": "ES",
+    "confidence": 0.85,
+    "tags": [
+      "database",
+      "elasticsearch"
+    ],
+    "patterns": [
+      "elasticsearch",
+      "lucene",
+      "\"tagline\""
+    ]
+  },
+  {
+    "id": "fp-062",
+    "deviceType": "database",
+    "vendor": "Memcached",
+    "model": "memcached",
+    "confidence": 0.85,
+    "tags": [
+      "database",
+      "memcached"
+    ],
+    "patterns": [
+      "VERSION",
+      "STAT pid",
+      "memcached"
+    ]
+  },
+  {
+    "id": "fp-063",
+    "deviceType": "database",
+    "vendor": "MySQL",
+    "model": "mysqld",
+    "confidence": 0.85,
+    "tags": [
+      "database",
+      "mysql"
+    ],
+    "patterns": [
+      "mysql",
+      "mariadb"
+    ]
+  },
+  {
+    "id": "fp-064",
+    "deviceType": "database",
+    "vendor": "PostgreSQL",
+    "model": "postgres",
+    "confidence": 0.85,
+    "tags": [
+      "database",
+      "postgresql"
+    ],
+    "patterns": [
+      "postgresql",
+      "postgres"
+    ]
+  },
+  {
+    "id": "fp-065",
+    "deviceType": "container",
+    "vendor": "Docker",
+    "model": "API",
+    "confidence": 0.85,
+    "tags": [
+      "container",
+      "docker"
+    ],
+    "patterns": [
+      "docker",
+      "libcontainer"
+    ]
+  },
+  {
+    "id": "fp-066",
+    "deviceType": "container",
+    "vendor": "Portainer",
+    "model": "UI",
+    "confidence": 0.72,
+    "tags": [
+      "container",
+      "portainer"
+    ],
+    "patterns": [
+      "portainer"
+    ]
+  },
+  {
+    "id": "fp-067",
+    "deviceType": "container",
+    "vendor": "Kubernetes",
+    "model": "API",
+    "confidence": 0.85,
+    "tags": [
+      "container",
+      "kubernetes"
+    ],
+    "patterns": [
+      "kubernetes",
+      "k8s"
+    ]
+  },
+  {
+    "id": "fp-068",
+    "deviceType": "monitor",
+    "vendor": "Grafana",
+    "model": "UI",
+    "confidence": 0.72,
+    "tags": [
+      "monitor",
+      "grafana"
+    ],
+    "patterns": [
+      "grafana"
+    ]
+  },
+  {
+    "id": "fp-069",
+    "deviceType": "monitor",
+    "vendor": "Prometheus",
+    "model": "TSDB",
+    "confidence": 0.72,
+    "tags": [
+      "monitor",
+      "prometheus"
+    ],
+    "patterns": [
+      "prometheus"
+    ]
+  },
+  {
+    "id": "fp-070",
+    "deviceType": "monitor",
+    "vendor": "Zabbix",
+    "model": "Agent",
+    "confidence": 0.72,
+    "tags": [
+      "monitor",
+      "zabbix"
+    ],
+    "patterns": [
+      "zabbix"
+    ]
+  },
+  {
+    "id": "fp-071",
+    "deviceType": "monitor",
+    "vendor": "Nagios",
+    "model": "Core",
+    "confidence": 0.72,
+    "tags": [
+      "monitor",
+      "nagios"
+    ],
+    "patterns": [
+      "nagios"
+    ]
+  },
+  {
+    "id": "fp-072",
+    "deviceType": "monitor",
+    "vendor": "PRTG",
+    "model": "Sensor",
+    "confidence": 0.72,
+    "tags": [
+      "monitor",
+      "prtg"
+    ],
+    "patterns": [
+      "prtg"
+    ]
+  },
+  {
+    "id": "fp-073",
+    "deviceType": "camera",
+    "vendor": "Camera",
+    "model": "ONVIF",
+    "confidence": 0.85,
+    "tags": [
+      "camera",
+      "camera"
+    ],
+    "patterns": [
+      "onvif",
+      "device_service"
+    ]
+  },
+  {
+    "id": "fp-074",
+    "deviceType": "camera",
+    "vendor": "RTSP",
+    "model": "Stream",
+    "confidence": 0.85,
+    "tags": [
+      "camera",
+      "rtsp"
+    ],
+    "patterns": [
+      "rtsp/1.0",
+      "public:.*options"
+    ]
+  },
+  {
+    "id": "fp-075",
+    "deviceType": "camera",
+    "vendor": "Go2RTC",
+    "model": "Gateway",
+    "confidence": 0.72,
+    "tags": [
+      "camera",
+      "go2rtc"
+    ],
+    "patterns": [
+      "go2rtc"
+    ]
+  },
+  {
+    "id": "fp-076",
+    "deviceType": "camera",
+    "vendor": "Frigate",
+    "model": "NVR",
+    "confidence": 0.72,
+    "tags": [
+      "camera",
+      "frigate"
+    ],
+    "patterns": [
+      "frigate"
+    ]
+  },
+  {
+    "id": "fp-077",
+    "deviceType": "camera",
+    "vendor": "Shinobi",
+    "model": "NVR",
+    "confidence": 0.72,
+    "tags": [
+      "camera",
+      "shinobi"
+    ],
+    "patterns": [
+      "shinobi"
+    ]
+  },
+  {
+    "id": "fp-078",
+    "deviceType": "camera",
+    "vendor": "ZoneMinder",
+    "model": "NVR",
+    "confidence": 0.72,
+    "tags": [
+      "camera",
+      "zoneminder"
+    ],
+    "patterns": [
+      "zoneminder"
+    ]
+  },
+  {
+    "id": "fp-079",
+    "deviceType": "camera",
+    "vendor": "MotionEye",
+    "model": "NVR",
+    "confidence": 0.85,
+    "tags": [
+      "camera",
+      "motioneye"
+    ],
+    "patterns": [
+      "motioneye",
+      "motion"
+    ]
+  },
+  {
+    "id": "fp-080",
+    "deviceType": "iot",
+    "vendor": "OctoPrint",
+    "model": "3D Print",
+    "confidence": 0.85,
+    "tags": [
+      "iot",
+      "octoprint"
+    ],
+    "patterns": [
+      "octoprint",
+      "octoprint"
+    ]
+  },
+  {
+    "id": "fp-081",
+    "deviceType": "iot",
+    "vendor": "Prusa",
+    "model": "Link",
+    "confidence": 0.85,
+    "tags": [
+      "iot",
+      "prusa"
+    ],
+    "patterns": [
+      "prusa",
+      "prusalink"
+    ]
+  },
+  {
+    "id": "fp-082",
+    "deviceType": "hub",
+    "vendor": "Homebridge",
+    "model": "Plugin",
+    "confidence": 0.72,
+    "tags": [
+      "hub",
+      "homebridge"
+    ],
+    "patterns": [
+      "homebridge"
+    ]
+  },
+  {
+    "id": "fp-083",
+    "deviceType": "hub",
+    "vendor": "Zigbee2MQTT",
+    "model": "Bridge",
+    "confidence": 0.85,
+    "tags": [
+      "hub",
+      "zigbee2mqtt"
+    ],
+    "patterns": [
+      "zigbee2mqtt",
+      "z2m"
+    ]
+  },
+  {
+    "id": "fp-084",
+    "deviceType": "hub",
+    "vendor": "Z-Wave JS",
+    "model": "UI",
+    "confidence": 0.85,
+    "tags": [
+      "hub",
+      "z-wave-js"
+    ],
+    "patterns": [
+      "zwave",
+      "zwave-js"
+    ]
+  },
+  {
+    "id": "fp-085",
+    "deviceType": "hub",
+    "vendor": "deCONZ",
+    "model": "ConBee",
+    "confidence": 0.85,
+    "tags": [
+      "hub",
+      "deconz"
+    ],
+    "patterns": [
+      "deconz",
+      "phoscon"
+    ]
+  },
+  {
+    "id": "fp-086",
+    "deviceType": "smart-home",
+    "vendor": "Shelly",
+    "model": "Relay",
+    "confidence": 0.72,
+    "tags": [
+      "smart-home",
+      "shelly"
+    ],
+    "patterns": [
+      "shelly"
+    ]
+  },
+  {
+    "id": "fp-087",
+    "deviceType": "smart-home",
+    "vendor": "EcoBee",
+    "model": "Thermostat",
+    "confidence": 0.72,
+    "tags": [
+      "smart-home",
+      "ecobee"
+    ],
+    "patterns": [
+      "ecobee"
+    ]
+  },
+  {
+    "id": "fp-088",
+    "deviceType": "smart-home",
+    "vendor": "Honeywell",
+    "model": "Thermostat",
+    "confidence": 0.85,
+    "tags": [
+      "smart-home",
+      "honeywell"
+    ],
+    "patterns": [
+      "honeywell",
+      "lyric"
+    ]
+  },
+  {
+    "id": "fp-089",
+    "deviceType": "smart-home",
+    "vendor": "Ecobee",
+    "model": "Thermostat",
+    "confidence": 0.72,
+    "tags": [
+      "smart-home",
+      "ecobee"
+    ],
+    "patterns": [
+      "ecobee"
+    ]
+  },
+  {
+    "id": "fp-090",
+    "deviceType": "iot",
+    "vendor": "Tesla",
+    "model": "Gateway",
+    "confidence": 0.85,
+    "tags": [
+      "iot",
+      "tesla"
+    ],
+    "patterns": [
+      "tesla",
+      "powerwall"
+    ]
+  },
+  {
+    "id": "fp-091",
+    "deviceType": "iot",
+    "vendor": "SolarEdge",
+    "model": "Inverter",
+    "confidence": 0.72,
+    "tags": [
+      "iot",
+      "solaredge"
+    ],
+    "patterns": [
+      "solaredge"
+    ]
+  },
+  {
+    "id": "fp-092",
+    "deviceType": "iot",
+    "vendor": "Enphase",
+    "model": "Envoy",
+    "confidence": 0.85,
+    "tags": [
+      "iot",
+      "enphase"
+    ],
+    "patterns": [
+      "enphase",
+      "envoy"
+    ]
+  },
+  {
+    "id": "fp-093",
+    "deviceType": "ups",
+    "vendor": "APC",
+    "model": "UPS",
+    "confidence": 0.85,
+    "tags": [
+      "ups",
+      "apc"
+    ],
+    "patterns": [
+      "apc",
+      "apcupsd",
+      "network.?management.?card"
+    ]
+  },
+  {
+    "id": "fp-094",
+    "deviceType": "ups",
+    "vendor": "CyberPower",
+    "model": "UPS",
+    "confidence": 0.72,
+    "tags": [
+      "ups",
+      "cyberpower"
+    ],
+    "patterns": [
+      "cyberpower"
+    ]
+  },
+  {
+    "id": "fp-095",
+    "deviceType": "server",
+    "vendor": "IPMI",
+    "model": "BMC",
+    "confidence": 0.85,
+    "tags": [
+      "server",
+      "ipmi"
+    ],
+    "patterns": [
+      "ipmi",
+      "supermicro",
+      "ilo",
+      "idrac",
+      "imm2"
+    ]
+  },
+  {
+    "id": "fp-096",
+    "deviceType": "server",
+    "vendor": "iLO",
+    "model": "HP",
+    "confidence": 0.85,
+    "tags": [
+      "server",
+      "ilo"
+    ],
+    "patterns": [
+      "ilo",
+      "hp integrated"
+    ]
+  },
+  {
+    "id": "fp-097",
+    "deviceType": "server",
+    "vendor": "iDRAC",
+    "model": "Dell",
+    "confidence": 0.85,
+    "tags": [
+      "server",
+      "idrac"
+    ],
+    "patterns": [
+      "idrac",
+      "dell remote"
+    ]
+  },
+  {
+    "id": "fp-098",
+    "deviceType": "server",
+    "vendor": "IP KVM",
+    "model": "KVM",
+    "confidence": 0.85,
+    "tags": [
+      "server",
+      "ip-kvm"
+    ],
+    "patterns": [
+      "ipkvm",
+      "pikvm",
+      "jetkvm"
+    ]
+  },
+  {
+    "id": "fp-099",
+    "deviceType": "server",
+    "vendor": "PiKVM",
+    "model": "KVM",
+    "confidence": 0.72,
+    "tags": [
+      "server",
+      "pikvm"
+    ],
+    "patterns": [
+      "pikvm"
+    ]
+  },
+  {
+    "id": "fp-100",
+    "deviceType": "phone",
+    "vendor": "ADB",
+    "model": "Android",
+    "confidence": 0.85,
+    "tags": [
+      "phone",
+      "adb"
+    ],
+    "patterns": [
+      "android",
+      "adb",
+      "62078"
+    ]
+  },
+  {
+    "id": "fp-101",
+    "deviceType": "apple",
+    "vendor": "AirPort",
+    "model": "Base Station",
+    "confidence": 0.85,
+    "tags": [
+      "apple",
+      "airport"
+    ],
+    "patterns": [
+      "airport",
+      "base.?station"
+    ]
+  },
+  {
+    "id": "fp-102",
+    "deviceType": "apple",
+    "vendor": "Time Capsule",
+    "model": "Backup",
+    "confidence": 0.72,
+    "tags": [
+      "apple",
+      "time-capsule"
+    ],
+    "patterns": [
+      "time.?capsule"
+    ]
+  },
+  {
+    "id": "fp-103",
+    "deviceType": "hypervisor",
+    "vendor": "VMware",
+    "model": "ESXi",
+    "confidence": 0.85,
+    "tags": [
+      "hypervisor",
+      "vmware"
+    ],
+    "patterns": [
+      "vmware",
+      "esxi",
+      "vsphere"
+    ]
+  },
+  {
+    "id": "fp-104",
+    "deviceType": "hypervisor",
+    "vendor": "Proxmox",
+    "model": "VE",
+    "confidence": 0.72,
+    "tags": [
+      "hypervisor",
+      "proxmox"
+    ],
+    "patterns": [
+      "proxmox"
+    ]
+  },
+  {
+    "id": "fp-105",
+    "deviceType": "hypervisor",
+    "vendor": "Hyper-V",
+    "model": "Microsoft",
+    "confidence": 0.85,
+    "tags": [
+      "hypervisor",
+      "hyper-v"
+    ],
+    "patterns": [
+      "hyper-v",
+      "microsoft corporation"
+    ]
+  },
+  {
+    "id": "fp-106",
+    "deviceType": "hypervisor",
+    "vendor": "QEMU",
+    "model": "KVM",
+    "confidence": 0.85,
+    "tags": [
+      "hypervisor",
+      "qemu"
+    ],
+    "patterns": [
+      "qemu",
+      "libvirt"
+    ]
+  },
+  {
+    "id": "fp-107",
+    "deviceType": "nas",
+    "vendor": "TrueNAS SCALE",
+    "model": "SCALE",
+    "confidence": 0.72,
+    "tags": [
+      "nas",
+      "truenas-scale"
+    ],
+    "patterns": [
+      "truenas.?scale"
+    ]
+  },
+  {
+    "id": "fp-108",
+    "deviceType": "nas",
+    "vendor": "Unraid",
+    "model": "OS",
+    "confidence": 0.72,
+    "tags": [
+      "nas",
+      "unraid"
+    ],
+    "patterns": [
+      "unraid"
+    ]
+  },
+  {
+    "id": "fp-109",
+    "deviceType": "nas",
+    "vendor": "OpenMediaVault",
+    "model": "OMV",
+    "confidence": 0.85,
+    "tags": [
+      "nas",
+      "openmediavault"
+    ],
+    "patterns": [
+      "openmediavault",
+      "omv"
+    ]
+  },
+  {
+    "id": "fp-110",
+    "deviceType": "nas",
+    "vendor": "Nextcloud",
+    "model": "Server",
+    "confidence": 0.72,
+    "tags": [
+      "nas",
+      "nextcloud"
+    ],
+    "patterns": [
+      "nextcloud"
+    ]
+  },
+  {
+    "id": "fp-111",
+    "deviceType": "nas",
+    "vendor": "Seafile",
+    "model": "Server",
+    "confidence": 0.72,
+    "tags": [
+      "nas",
+      "seafile"
+    ],
+    "patterns": [
+      "seafile"
+    ]
+  },
+  {
+    "id": "fp-112",
+    "deviceType": "storage",
+    "vendor": "MinIO",
+    "model": "S3",
+    "confidence": 0.72,
+    "tags": [
+      "storage",
+      "minio"
+    ],
+    "patterns": [
+      "minio"
+    ]
+  },
+  {
+    "id": "fp-113",
+    "deviceType": "storage",
+    "vendor": "Ceph",
+    "model": "RADOS",
+    "confidence": 0.72,
+    "tags": [
+      "storage",
+      "ceph"
+    ],
+    "patterns": [
+      "ceph"
+    ]
+  },
+  {
+    "id": "fp-114",
+    "deviceType": "web",
+    "vendor": "Nginx",
+    "model": "Proxy",
+    "confidence": 0.72,
+    "tags": [
+      "web",
+      "nginx"
+    ],
+    "patterns": [
+      "nginx"
+    ]
+  },
+  {
+    "id": "fp-115",
+    "deviceType": "web",
+    "vendor": "Apache",
+    "model": "httpd",
+    "confidence": 0.85,
+    "tags": [
+      "web",
+      "apache"
+    ],
+    "patterns": [
+      "apache",
+      "httpd"
+    ]
+  },
+  {
+    "id": "fp-116",
+    "deviceType": "web",
+    "vendor": "Caddy",
+    "model": "Server",
+    "confidence": 0.72,
+    "tags": [
+      "web",
+      "caddy"
+    ],
+    "patterns": [
+      "caddy"
+    ]
+  },
+  {
+    "id": "fp-117",
+    "deviceType": "web",
+    "vendor": "Traefik",
+    "model": "Proxy",
+    "confidence": 0.72,
+    "tags": [
+      "web",
+      "traefik"
+    ],
+    "patterns": [
+      "traefik"
+    ]
+  },
+  {
+    "id": "fp-118",
+    "deviceType": "web",
+    "vendor": "Lighttpd",
+    "model": "Server",
+    "confidence": 0.72,
+    "tags": [
+      "web",
+      "lighttpd"
+    ],
+    "patterns": [
+      "lighttpd"
+    ]
+  },
+  {
+    "id": "fp-119",
+    "deviceType": "web",
+    "vendor": "Tomcat",
+    "model": "Catalina",
+    "confidence": 0.85,
+    "tags": [
+      "web",
+      "tomcat"
+    ],
+    "patterns": [
+      "tomcat",
+      "catalina"
+    ]
+  },
+  {
+    "id": "fp-120",
+    "deviceType": "web",
+    "vendor": "IIS",
+    "model": "Microsoft",
+    "confidence": 0.85,
+    "tags": [
+      "web",
+      "iis"
+    ],
+    "patterns": [
+      "iis",
+      "microsoft-iis"
+    ]
+  },
+  {
+    "id": "fp-121",
+    "deviceType": "web",
+    "vendor": "WebLogic",
+    "model": "Oracle",
+    "confidence": 0.72,
+    "tags": [
+      "web",
+      "weblogic"
+    ],
+    "patterns": [
+      "weblogic"
+    ]
+  },
+  {
+    "id": "fp-122",
+    "deviceType": "web",
+    "vendor": "JBoss",
+    "model": "WildFly",
+    "confidence": 0.85,
+    "tags": [
+      "web",
+      "jboss"
+    ],
+    "patterns": [
+      "jboss",
+      "wildfly"
+    ]
+  },
+  {
+    "id": "fp-123",
+    "deviceType": "ci",
+    "vendor": "Jenkins",
+    "model": "Master",
+    "confidence": 0.85,
+    "tags": [
+      "ci",
+      "jenkins"
+    ],
+    "patterns": [
+      "jenkins",
+      "x-jenkins"
+    ]
+  },
+  {
+    "id": "fp-124",
+    "deviceType": "ci",
+    "vendor": "GitLab",
+    "model": "CE",
+    "confidence": 0.72,
+    "tags": [
+      "ci",
+      "gitlab"
+    ],
+    "patterns": [
+      "gitlab"
+    ]
+  },
+  {
+    "id": "fp-125",
+    "deviceType": "ci",
+    "vendor": "Gitea",
+    "model": "Git",
+    "confidence": 0.72,
+    "tags": [
+      "ci",
+      "gitea"
+    ],
+    "patterns": [
+      "gitea"
+    ]
+  },
+  {
+    "id": "fp-126",
+    "deviceType": "ci",
+    "vendor": "Bitbucket",
+    "model": "Server",
+    "confidence": 0.72,
+    "tags": [
+      "ci",
+      "bitbucket"
+    ],
+    "patterns": [
+      "bitbucket"
+    ]
+  },
+  {
+    "id": "fp-127",
+    "deviceType": "wiki",
+    "vendor": "Confluence",
+    "model": "Atlassian",
+    "confidence": 0.72,
+    "tags": [
+      "wiki",
+      "confluence"
+    ],
+    "patterns": [
+      "confluence"
+    ]
+  },
+  {
+    "id": "fp-128",
+    "deviceType": "tracker",
+    "vendor": "Jira",
+    "model": "Atlassian",
+    "confidence": 0.72,
+    "tags": [
+      "tracker",
+      "jira"
+    ],
+    "patterns": [
+      "jira"
+    ]
+  },
+  {
+    "id": "fp-129",
+    "deviceType": "cms",
+    "vendor": "WordPress",
+    "model": "Blog",
+    "confidence": 0.85,
+    "tags": [
+      "cms",
+      "wordpress"
+    ],
+    "patterns": [
+      "wordpress",
+      "wp-json",
+      "wp-content"
+    ]
+  },
+  {
+    "id": "fp-130",
+    "deviceType": "cms",
+    "vendor": "Drupal",
+    "model": "CMS",
+    "confidence": 0.72,
+    "tags": [
+      "cms",
+      "drupal"
+    ],
+    "patterns": [
+      "drupal"
+    ]
+  },
+  {
+    "id": "fp-131",
+    "deviceType": "cms",
+    "vendor": "Joomla",
+    "model": "CMS",
+    "confidence": 0.72,
+    "tags": [
+      "cms",
+      "joomla"
+    ],
+    "patterns": [
+      "joomla"
+    ]
+  },
+  {
+    "id": "fp-132",
+    "deviceType": "cms",
+    "vendor": "Magento",
+    "model": "Commerce",
+    "confidence": 0.72,
+    "tags": [
+      "cms",
+      "magento"
+    ],
+    "patterns": [
+      "magento"
+    ]
+  },
+  {
+    "id": "fp-133",
+    "deviceType": "cms",
+    "vendor": "Shopify",
+    "model": "Proxy",
+    "confidence": 0.72,
+    "tags": [
+      "cms",
+      "shopify"
+    ],
+    "patterns": [
+      "shopify"
+    ]
+  },
+  {
+    "id": "fp-134",
+    "deviceType": "ot",
+    "vendor": "BACnet",
+    "model": "Controller",
+    "confidence": 0.72,
+    "tags": [
+      "ot",
+      "bacnet"
+    ],
+    "patterns": [
+      "bacnet"
+    ]
+  },
+  {
+    "id": "fp-135",
+    "deviceType": "ot",
+    "vendor": "Modbus",
+    "model": "TCP",
+    "confidence": 0.72,
+    "tags": [
+      "ot",
+      "modbus"
+    ],
+    "patterns": [
+      "modbus"
+    ]
+  },
+  {
+    "id": "fp-136",
+    "deviceType": "ot",
+    "vendor": "Siemens",
+    "model": "S7",
+    "confidence": 0.85,
+    "tags": [
+      "ot",
+      "siemens"
+    ],
+    "patterns": [
+      "siemens",
+      "s7-"
+    ]
+  },
+  {
+    "id": "fp-137",
+    "deviceType": "ot",
+    "vendor": "Schneider",
+    "model": "PLC",
+    "confidence": 0.85,
+    "tags": [
+      "ot",
+      "schneider"
+    ],
+    "patterns": [
+      "schneider",
+      "modicon"
+    ]
+  },
+  {
+    "id": "fp-138",
+    "deviceType": "ot",
+    "vendor": "Rockwell",
+    "model": "Allen-Bradley",
+    "confidence": 0.85,
+    "tags": [
+      "ot",
+      "rockwell"
+    ],
+    "patterns": [
+      "allen-bradley",
+      "rockwell",
+      "micrologix"
+    ]
+  },
+  {
+    "id": "fp-139",
+    "deviceType": "ot",
+    "vendor": "Omron",
+    "model": "PLC",
+    "confidence": 0.85,
+    "tags": [
+      "ot",
+      "omron"
+    ],
+    "patterns": [
+      "omron",
+      "fins"
+    ]
+  },
+  {
+    "id": "fp-140",
+    "deviceType": "ot",
+    "vendor": "Mitsubishi",
+    "model": "PLC",
+    "confidence": 0.85,
+    "tags": [
+      "ot",
+      "mitsubishi"
+    ],
+    "patterns": [
+      "mitsubishi",
+      "melsec"
+    ]
+  },
+  {
+    "id": "fp-141",
+    "deviceType": "iot",
+    "vendor": "CoAP",
+    "model": "Constrained",
+    "confidence": 0.85,
+    "tags": [
+      "iot",
+      "coap"
+    ],
+    "patterns": [
+      "coap",
+      "/.well-known/core"
+    ]
+  },
+  {
+    "id": "fp-142",
+    "deviceType": "discovery",
+    "vendor": "SSDP",
+    "model": "UPnP",
+    "confidence": 0.85,
+    "tags": [
+      "discovery",
+      "ssdp"
+    ],
+    "patterns": [
+      "ssdp",
+      "upnp",
+      "rootdevice"
+    ]
+  },
+  {
+    "id": "fp-143",
+    "deviceType": "discovery",
+    "vendor": "WS-Discovery",
+    "model": "ONVIF",
+    "confidence": 0.85,
+    "tags": [
+      "discovery",
+      "ws-discovery"
+    ],
+    "patterns": [
+      "ws-discovery",
+      "wsd"
+    ]
+  },
+  {
+    "id": "fp-144",
+    "deviceType": "discovery",
+    "vendor": "mDNS",
+    "model": "Bonjour",
+    "confidence": 0.85,
+    "tags": [
+      "discovery",
+      "mdns"
+    ],
+    "patterns": [
+      "_http._tcp",
+      "_hap._tcp"
+    ]
+  },
+  {
+    "id": "fp-145",
+    "deviceType": "apple",
+    "vendor": "AirTunes",
+    "model": "RAOP",
+    "confidence": 0.85,
+    "tags": [
+      "apple",
+      "airtunes"
+    ],
+    "patterns": [
+      "_raop._tcp",
+      "raop"
+    ]
+  },
+  {
+    "id": "fp-146",
+    "deviceType": "apple",
+    "vendor": "DACP",
+    "model": "Remote",
+    "confidence": 0.72,
+    "tags": [
+      "apple",
+      "dacp"
+    ],
+    "patterns": [
+      "_dacp._tcp"
+    ]
+  },
+  {
+    "id": "fp-147",
+    "deviceType": "printer",
+    "vendor": "Scanner",
+    "model": "eSCL",
+    "confidence": 0.85,
+    "tags": [
+      "printer",
+      "scanner"
+    ],
+    "patterns": [
+      "_scanner._tcp",
+      "escl",
+      "airscan"
+    ]
+  },
+  {
+    "id": "fp-148",
+    "deviceType": "printer",
+    "vendor": "IPP",
+    "model": "Everywhere",
+    "confidence": 0.85,
+    "tags": [
+      "printer",
+      "ipp"
+    ],
+    "patterns": [
+      "_ipp._tcp",
+      "ipp/"
+    ]
+  },
+  {
+    "id": "fp-149",
+    "deviceType": "file",
+    "vendor": "SMB",
+    "model": "Samba",
+    "confidence": 0.85,
+    "tags": [
+      "file",
+      "smb"
+    ],
+    "patterns": [
+      "smb",
+      "samba",
+      "microsoft-ds"
+    ]
+  },
+  {
+    "id": "fp-150",
+    "deviceType": "file",
+    "vendor": "NFS",
+    "model": "Export",
+    "confidence": 0.85,
+    "tags": [
+      "file",
+      "nfs"
+    ],
+    "patterns": [
+      "nfs",
+      "rpcbind"
+    ]
+  },
+  {
+    "id": "fp-151",
+    "deviceType": "file",
+    "vendor": "FTP",
+    "model": "vsftpd",
+    "confidence": 0.85,
+    "tags": [
+      "file",
+      "ftp"
+    ],
+    "patterns": [
+      "ftp",
+      "vsftpd",
+      "proftpd",
+      "pure-ftpd"
+    ]
+  },
+  {
+    "id": "fp-152",
+    "deviceType": "file",
+    "vendor": "TFTP",
+    "model": "tftpd",
+    "confidence": 0.72,
+    "tags": [
+      "file",
+      "tftp"
+    ],
+    "patterns": [
+      "tftp"
+    ]
+  },
+  {
+    "id": "fp-153",
+    "deviceType": "remote",
+    "vendor": "VNC",
+    "model": "RFB",
+    "confidence": 0.85,
+    "tags": [
+      "remote",
+      "vnc"
+    ],
+    "patterns": [
+      "rfb",
+      "vnc"
+    ]
+  },
+  {
+    "id": "fp-154",
+    "deviceType": "remote",
+    "vendor": "RDP",
+    "model": "Terminal Services",
+    "confidence": 0.85,
+    "tags": [
+      "remote",
+      "rdp"
+    ],
+    "patterns": [
+      "rdp",
+      "remote desktop",
+      "ms-wbt"
+    ]
+  },
+  {
+    "id": "fp-155",
+    "deviceType": "remote",
+    "vendor": "TeamViewer",
+    "model": "Host",
+    "confidence": 0.72,
+    "tags": [
+      "remote",
+      "teamviewer"
+    ],
+    "patterns": [
+      "teamviewer"
+    ]
+  },
+  {
+    "id": "fp-156",
+    "deviceType": "remote",
+    "vendor": "AnyDesk",
+    "model": "Host",
+    "confidence": 0.72,
+    "tags": [
+      "remote",
+      "anydesk"
+    ],
+    "patterns": [
+      "anydesk"
+    ]
+  },
+  {
+    "id": "fp-157",
+    "deviceType": "remote",
+    "vendor": "RustDesk",
+    "model": "Host",
+    "confidence": 0.72,
+    "tags": [
+      "remote",
+      "rustdesk"
+    ],
+    "patterns": [
+      "rustdesk"
+    ]
+  },
+  {
+    "id": "fp-158",
+    "deviceType": "remote",
+    "vendor": "Guacamole",
+    "model": "Gateway",
+    "confidence": 0.72,
+    "tags": [
+      "remote",
+      "guacamole"
+    ],
+    "patterns": [
+      "guacamole"
+    ]
+  },
+  {
+    "id": "fp-159",
+    "deviceType": "vpn",
+    "vendor": "WireGuard",
+    "model": "Interface",
+    "confidence": 0.72,
+    "tags": [
+      "vpn",
+      "wireguard"
+    ],
+    "patterns": [
+      "wireguard"
+    ]
+  },
+  {
+    "id": "fp-160",
+    "deviceType": "vpn",
+    "vendor": "OpenVPN",
+    "model": "Server",
+    "confidence": 0.72,
+    "tags": [
+      "vpn",
+      "openvpn"
+    ],
+    "patterns": [
+      "openvpn"
+    ]
+  },
+  {
+    "id": "fp-161",
+    "deviceType": "vpn",
+    "vendor": "SoftEther",
+    "model": "Server",
+    "confidence": 0.72,
+    "tags": [
+      "vpn",
+      "softether"
+    ],
+    "patterns": [
+      "softether"
+    ]
+  },
+  {
+    "id": "fp-162",
+    "deviceType": "vpn",
+    "vendor": "IPSec",
+    "model": "IKE",
+    "confidence": 0.85,
+    "tags": [
+      "vpn",
+      "ipsec"
+    ],
+    "patterns": [
+      "isakmp",
+      "ipsec"
+    ]
+  },
+  {
+    "id": "fp-163",
+    "deviceType": "proxy",
+    "vendor": "Tor",
+    "model": "Relay",
+    "confidence": 0.85,
+    "tags": [
+      "proxy",
+      "tor"
+    ],
+    "patterns": [
+      "tor",
+      "onion"
+    ]
+  },
+  {
+    "id": "fp-164",
+    "deviceType": "proxy",
+    "vendor": "Squid",
+    "model": "Cache",
+    "confidence": 0.72,
+    "tags": [
+      "proxy",
+      "squid"
+    ],
+    "patterns": [
+      "squid"
+    ]
+  },
+  {
+    "id": "fp-165",
+    "deviceType": "proxy",
+    "vendor": "Privoxy",
+    "model": "Filter",
+    "confidence": 0.72,
+    "tags": [
+      "proxy",
+      "privoxy"
+    ],
+    "patterns": [
+      "privoxy"
+    ]
+  },
+  {
+    "id": "fp-166",
+    "deviceType": "dns",
+    "vendor": "Pi-hole",
+    "model": "Blocker",
+    "confidence": 0.85,
+    "tags": [
+      "dns",
+      "pi-hole"
+    ],
+    "patterns": [
+      "pi-hole",
+      "pihole",
+      "lighttpd.*admin"
+    ]
+  },
+  {
+    "id": "fp-167",
+    "deviceType": "dns",
+    "vendor": "AdGuard",
+    "model": "Home",
+    "confidence": 0.72,
+    "tags": [
+      "dns",
+      "adguard"
+    ],
+    "patterns": [
+      "adguard"
+    ]
+  },
+  {
+    "id": "fp-168",
+    "deviceType": "dns",
+    "vendor": "Technitium",
+    "model": "Server",
+    "confidence": 0.72,
+    "tags": [
+      "dns",
+      "technitium"
+    ],
+    "patterns": [
+      "technitium"
+    ]
+  },
+  {
+    "id": "fp-169",
+    "deviceType": "dns",
+    "vendor": "Bind9",
+    "model": "Named",
+    "confidence": 0.85,
+    "tags": [
+      "dns",
+      "bind9"
+    ],
+    "patterns": [
+      "bind",
+      "named"
+    ]
+  },
+  {
+    "id": "fp-170",
+    "deviceType": "dns",
+    "vendor": "Unbound",
+    "model": "Resolver",
+    "confidence": 0.72,
+    "tags": [
+      "dns",
+      "unbound"
+    ],
+    "patterns": [
+      "unbound"
+    ]
+  },
+  {
+    "id": "fp-171",
+    "deviceType": "dns",
+    "vendor": "CoreDNS",
+    "model": "Server",
+    "confidence": 0.72,
+    "tags": [
+      "dns",
+      "coredns"
+    ],
+    "patterns": [
+      "coredns"
+    ]
+  },
+  {
+    "id": "fp-172",
+    "deviceType": "dhcp",
+    "vendor": "Kea",
+    "model": "ISC",
+    "confidence": 0.85,
+    "tags": [
+      "dhcp",
+      "kea"
+    ],
+    "patterns": [
+      "kea dhcp",
+      "isc dhcp"
+    ]
+  },
+  {
+    "id": "fp-173",
+    "deviceType": "dns",
+    "vendor": "dnsmasq",
+    "model": "DHCP",
+    "confidence": 0.72,
+    "tags": [
+      "dns",
+      "dnsmasq"
+    ],
+    "patterns": [
+      "dnsmasq"
+    ]
+  },
+  {
+    "id": "fp-174",
+    "deviceType": "aaa",
+    "vendor": "FreeRADIUS",
+    "model": "RADIUS",
+    "confidence": 0.85,
+    "tags": [
+      "aaa",
+      "freeradius"
+    ],
+    "patterns": [
+      "freeradius",
+      "radius"
+    ]
+  },
+  {
+    "id": "fp-175",
+    "deviceType": "dir",
+    "vendor": "LDAP",
+    "model": "OpenLDAP",
+    "confidence": 0.85,
+    "tags": [
+      "dir",
+      "ldap"
+    ],
+    "patterns": [
+      "ldap",
+      "openldap"
+    ]
+  },
+  {
+    "id": "fp-176",
+    "deviceType": "dir",
+    "vendor": "Active Directory",
+    "model": "Microsoft",
+    "confidence": 0.85,
+    "tags": [
+      "dir",
+      "active-directory"
+    ],
+    "patterns": [
+      "active directory",
+      "kerberos"
+    ]
+  },
+  {
+    "id": "fp-177",
+    "deviceType": "secrets",
+    "vendor": "Vault",
+    "model": "HashiCorp",
+    "confidence": 0.85,
+    "tags": [
+      "secrets",
+      "vault"
+    ],
+    "patterns": [
+      "hashicorp vault",
+      "x-vault"
+    ]
+  },
+  {
+    "id": "fp-178",
+    "deviceType": "service",
+    "vendor": "Consul",
+    "model": "HashiCorp",
+    "confidence": 0.72,
+    "tags": [
+      "service",
+      "consul"
+    ],
+    "patterns": [
+      "consul"
+    ]
+  },
+  {
+    "id": "fp-179",
+    "deviceType": "orchestrator",
+    "vendor": "Nomad",
+    "model": "HashiCorp",
+    "confidence": 0.72,
+    "tags": [
+      "orchestrator",
+      "nomad"
+    ],
+    "patterns": [
+      "nomad"
+    ]
+  },
+  {
+    "id": "fp-180",
+    "deviceType": "kv",
+    "vendor": "Etcd",
+    "model": "Cluster",
+    "confidence": 0.72,
+    "tags": [
+      "kv",
+      "etcd"
+    ],
+    "patterns": [
+      "etcd"
+    ]
+  },
+  {
+    "id": "fp-181",
+    "deviceType": "kv",
+    "vendor": "Zookeeper",
+    "model": "Apache",
+    "confidence": 0.72,
+    "tags": [
+      "kv",
+      "zookeeper"
+    ],
+    "patterns": [
+      "zookeeper"
+    ]
+  },
+  {
+    "id": "fp-182",
+    "deviceType": "queue",
+    "vendor": "Kafka",
+    "model": "Broker",
+    "confidence": 0.72,
+    "tags": [
+      "queue",
+      "kafka"
+    ],
+    "patterns": [
+      "kafka"
+    ]
+  },
+  {
+    "id": "fp-183",
+    "deviceType": "queue",
+    "vendor": "NATS",
+    "model": "Server",
+    "confidence": 0.72,
+    "tags": [
+      "queue",
+      "nats"
+    ],
+    "patterns": [
+      "nats"
+    ]
+  },
+  {
+    "id": "fp-184",
+    "deviceType": "queue",
+    "vendor": "Pulsar",
+    "model": "Broker",
+    "confidence": 0.72,
+    "tags": [
+      "queue",
+      "pulsar"
+    ],
+    "patterns": [
+      "pulsar"
+    ]
+  },
+  {
+    "id": "fp-185",
+    "deviceType": "queue",
+    "vendor": "ActiveMQ",
+    "model": "Broker",
+    "confidence": 0.72,
+    "tags": [
+      "queue",
+      "activemq"
+    ],
+    "patterns": [
+      "activemq"
+    ]
+  },
+  {
+    "id": "fp-186",
+    "deviceType": "queue",
+    "vendor": "ZeroMQ",
+    "model": "Socket",
+    "confidence": 0.85,
+    "tags": [
+      "queue",
+      "zeromq"
+    ],
+    "patterns": [
+      "zeromq",
+      "zmq"
+    ]
+  },
+  {
+    "id": "fp-187",
+    "deviceType": "tsdb",
+    "vendor": "InfluxDB",
+    "model": "Influx",
+    "confidence": 0.85,
+    "tags": [
+      "tsdb",
+      "influxdb"
+    ],
+    "patterns": [
+      "influxdb",
+      "influx"
+    ]
+  },
+  {
+    "id": "fp-188",
+    "deviceType": "tsdb",
+    "vendor": "TimescaleDB",
+    "model": "Postgres",
+    "confidence": 0.72,
+    "tags": [
+      "tsdb",
+      "timescaledb"
+    ],
+    "patterns": [
+      "timescaledb"
+    ]
+  },
+  {
+    "id": "fp-189",
+    "deviceType": "db",
+    "vendor": "ClickHouse",
+    "model": "OLAP",
+    "confidence": 0.72,
+    "tags": [
+      "db",
+      "clickhouse"
+    ],
+    "patterns": [
+      "clickhouse"
+    ]
+  },
+  {
+    "id": "fp-190",
+    "deviceType": "db",
+    "vendor": "Cassandra",
+    "model": "CQL",
+    "confidence": 0.72,
+    "tags": [
+      "db",
+      "cassandra"
+    ],
+    "patterns": [
+      "cassandra"
+    ]
+  },
+  {
+    "id": "fp-191",
+    "deviceType": "db",
+    "vendor": "CouchDB",
+    "model": "Apache",
+    "confidence": 0.72,
+    "tags": [
+      "db",
+      "couchdb"
+    ],
+    "patterns": [
+      "couchdb"
+    ]
+  },
+  {
+    "id": "fp-192",
+    "deviceType": "db",
+    "vendor": "Neo4j",
+    "model": "Graph",
+    "confidence": 0.72,
+    "tags": [
+      "db",
+      "neo4j"
+    ],
+    "patterns": [
+      "neo4j"
+    ]
+  },
+  {
+    "id": "fp-193",
+    "deviceType": "search",
+    "vendor": "Solr",
+    "model": "Apache",
+    "confidence": 0.72,
+    "tags": [
+      "search",
+      "solr"
+    ],
+    "patterns": [
+      "solr"
+    ]
+  },
+  {
+    "id": "fp-194",
+    "deviceType": "search",
+    "vendor": "Sphinx",
+    "model": "Search",
+    "confidence": 0.72,
+    "tags": [
+      "search",
+      "sphinx"
+    ],
+    "patterns": [
+      "sphinx"
+    ]
+  },
+  {
+    "id": "fp-195",
+    "deviceType": "search",
+    "vendor": "Meilisearch",
+    "model": "Engine",
+    "confidence": 0.72,
+    "tags": [
+      "search",
+      "meilisearch"
+    ],
+    "patterns": [
+      "meilisearch"
+    ]
+  },
+  {
+    "id": "fp-196",
+    "deviceType": "search",
+    "vendor": "Typesense",
+    "model": "Engine",
+    "confidence": 0.72,
+    "tags": [
+      "search",
+      "typesense"
+    ],
+    "patterns": [
+      "typesense"
+    ]
+  },
+  {
+    "id": "fp-x01",
+    "deviceType": "camera",
+    "vendor": "Generic HTTP Cam",
+    "model": "HTTP-Cam",
+    "confidence": 0.6,
+    "tags": [
+      "camera",
+      "generic"
+    ],
+    "patterns": [
+      "server:.*camera",
+      "ipcam",
+      "webcam"
+    ]
+  },
+  {
+    "id": "fp-x02",
+    "deviceType": "camera",
+    "vendor": "Generic DVR",
+    "model": "DVR",
+    "confidence": 0.6,
+    "tags": [
+      "camera",
+      "generic"
+    ],
+    "patterns": [
+      "dvr",
+      "nvr",
+      "xmeye",
+      "tvt"
+    ]
+  },
+  {
+    "id": "fp-x03",
+    "deviceType": "iot",
+    "vendor": "Generic IoT HTTP",
+    "model": "Device",
+    "confidence": 0.6,
+    "tags": [
+      "iot",
+      "generic"
+    ],
+    "patterns": [
+      "esp8266",
+      "esp32",
+      "micropython",
+      "circuitpython"
+    ]
+  },
+  {
+    "id": "fp-x04",
+    "deviceType": "broker",
+    "vendor": "Generic MQTT",
+    "model": "MQTT",
+    "confidence": 0.6,
+    "tags": [
+      "broker",
+      "generic"
+    ],
+    "patterns": [
+      "_mqtt._tcp",
+      "mqtt"
+    ]
+  },
+  {
+    "id": "fp-x05",
+    "deviceType": "camera",
+    "vendor": "Generic RTSP",
+    "model": "RTSP",
+    "confidence": 0.6,
+    "tags": [
+      "camera",
+      "generic"
+    ],
+    "patterns": [
+      "rtsp"
+    ]
+  },
+  {
+    "id": "fp-x06",
+    "deviceType": "printer",
+    "vendor": "Generic Printer",
+    "model": "Print",
+    "confidence": 0.6,
+    "tags": [
+      "printer",
+      "generic"
+    ],
+    "patterns": [
+      "printer",
+      "jetdirect",
+      "9100"
+    ]
+  },
+  {
+    "id": "fp-x07",
+    "deviceType": "nas",
+    "vendor": "Generic NAS",
+    "model": "Storage",
+    "confidence": 0.6,
+    "tags": [
+      "nas",
+      "generic"
+    ],
+    "patterns": [
+      "nas",
+      "diskstation",
+      "volume1"
+    ]
+  },
+  {
+    "id": "fp-x08",
+    "deviceType": "router",
+    "vendor": "Generic Router",
+    "model": "GW",
+    "confidence": 0.6,
+    "tags": [
+      "router",
+      "generic"
+    ],
+    "patterns": [
+      "router",
+      "gateway",
+      "admin.?login"
+    ]
+  },
+  {
+    "id": "fp-x09",
+    "deviceType": "network",
+    "vendor": "Generic Switch",
+    "model": "L2",
+    "confidence": 0.6,
+    "tags": [
+      "network",
+      "generic"
+    ],
+    "patterns": [
+      "switch",
+      "vlan",
+      "spanning.?tree"
+    ]
+  },
+  {
+    "id": "fp-x10",
+    "deviceType": "network",
+    "vendor": "Generic AP",
+    "model": "AP",
+    "confidence": 0.6,
+    "tags": [
+      "network",
+      "generic"
+    ],
+    "patterns": [
+      "access.?point",
+      "wireless",
+      "ssid"
+    ]
+  }
+]

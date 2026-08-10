@@ -1,0 +1,454 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		F66DF3D467C543AAABE95D90 /* FinchMobileApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D422AB4E5D84CD98C79742C /* FinchMobileApp.swift */; };
+		7139D80867C247A4BAFA93AA /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0608D55DED8F4E48AE3B7750 /* AppModel.swift */; };
+		B557C9FE577141AA85180EEE /* BLEDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = F81F212DEBFF4093AC985F99 /* BLEDevice.swift */; };
+		B6E25D4952494302A5BA8192 /* GlassModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66F6325C3A584120AF8F465B /* GlassModels.swift */; };
+		2F3CBF3F4A0744059AE6C40D /* InputRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F86692A60D749DBBF1B834F /* InputRouter.swift */; };
+		7A0645BF56164BE0B036D6D1 /* BLEScannerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331E71C9BE074DF99A1F8A8D /* BLEScannerService.swift */; };
+		E56D2F54BA06401C88705C7B /* DeepIoTScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82090B911AEF48F8ADE162A2 /* DeepIoTScanner.swift */; };
+		0F2DCD7F81954014B2BD1EEF /* FingerprintEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C398C5E78B0406DA8739929 /* FingerprintEngine.swift */; };
+		39CD697AFB7C4865AA0239C0 /* GlassFabricPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4470A9B7392E40DD859A0B88 /* GlassFabricPipeline.swift */; };
+		71E2344F4A90430F8F695742 /* MDNSBrowserService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B95DEB8756E4F3EB725A2EE /* MDNSBrowserService.swift */; };
+		F7653576DFB5448DAB2B3A40 /* MQTTClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEAC12AE56624DAD8C4A5EA9 /* MQTTClient.swift */; };
+		02169D17418D4151B068E206 /* SentinelExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0865E44F2AC14388AFE73C8A /* SentinelExporter.swift */; };
+		F4DAD938F19647C0966ABB1F /* SubnetSweepService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 405C3CB29C9A44C88BA41D59 /* SubnetSweepService.swift */; };
+		A0CCF2C967CE465397CE2159 /* NetworkInterfaceHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 432A823978444274B5054E66 /* NetworkInterfaceHelper.swift */; };
+		63AFAD964CBB41779F15ACD3 /* VaultManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DF325136CF4B9A9A6D0E38 /* VaultManager.swift */; };
+		532316BDD44D4B5696385458 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB4115DBEE143DCA142374A /* DesignSystem.swift */; };
+		144862AD262B4554B2DDAF18 /* BLERadarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F224C0BC46D14CEE939B03B9 /* BLERadarView.swift */; };
+		594D54CCD7EB40BAADF044C1 /* EngageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA483931D2B424DAAA4F86F /* EngageView.swift */; };
+		54203165E1A149108021D324 /* LatticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80278AA587C341558CE78ED4 /* LatticeView.swift */; };
+		D7E8EF39A11F4370BC8B9E8C /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC2A8461CDF948AB9EBB059F /* RootTabView.swift */; };
+		B6872C5ADF184F9FBD0FC194 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0840EE2ABB6648639E909DAA /* SettingsView.swift */; };
+		40FDEE6F713443C18793FBF6 /* VaultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B608D3CA3C4A4F1A96DA945C /* VaultView.swift */; };
+		1DEC638DD02B40448735E220 /* fingerprints.json in Resources */ = {isa = PBXBuildFile; fileRef = 683CCBB3F95143BA88D79F75 /* fingerprints.json */; };
+		507614052580453EB30419E4 /* oui.json in Resources */ = {isa = PBXBuildFile; fileRef = EEF4A91E4D6B4D2BAD447997 /* oui.json */; };
+		D3C5BF204C684522A4E85E82 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 857E203DCBEB4ED2AC4B65A3 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0FBE2F1B71E34F488067D835 /* FinchMobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FinchMobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4D422AB4E5D84CD98C79742C /* FinchMobileApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinchMobileApp.swift; sourceTree = "<group>"; };
+		0608D55DED8F4E48AE3B7750 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		F81F212DEBFF4093AC985F99 /* BLEDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEDevice.swift; sourceTree = "<group>"; };
+		66F6325C3A584120AF8F465B /* GlassModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassModels.swift; sourceTree = "<group>"; };
+		5F86692A60D749DBBF1B834F /* InputRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputRouter.swift; sourceTree = "<group>"; };
+		331E71C9BE074DF99A1F8A8D /* BLEScannerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEScannerService.swift; sourceTree = "<group>"; };
+		82090B911AEF48F8ADE162A2 /* DeepIoTScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepIoTScanner.swift; sourceTree = "<group>"; };
+		4C398C5E78B0406DA8739929 /* FingerprintEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FingerprintEngine.swift; sourceTree = "<group>"; };
+		4470A9B7392E40DD859A0B88 /* GlassFabricPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassFabricPipeline.swift; sourceTree = "<group>"; };
+		5B95DEB8756E4F3EB725A2EE /* MDNSBrowserService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDNSBrowserService.swift; sourceTree = "<group>"; };
+		BEAC12AE56624DAD8C4A5EA9 /* MQTTClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MQTTClient.swift; sourceTree = "<group>"; };
+		0865E44F2AC14388AFE73C8A /* SentinelExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentinelExporter.swift; sourceTree = "<group>"; };
+		405C3CB29C9A44C88BA41D59 /* SubnetSweepService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubnetSweepService.swift; sourceTree = "<group>"; };
+		432A823978444274B5054E66 /* NetworkInterfaceHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInterfaceHelper.swift; sourceTree = "<group>"; };
+		10DF325136CF4B9A9A6D0E38 /* VaultManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultManager.swift; sourceTree = "<group>"; };
+		2AB4115DBEE143DCA142374A /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		F224C0BC46D14CEE939B03B9 /* BLERadarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLERadarView.swift; sourceTree = "<group>"; };
+		AAA483931D2B424DAAA4F86F /* EngageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngageView.swift; sourceTree = "<group>"; };
+		80278AA587C341558CE78ED4 /* LatticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LatticeView.swift; sourceTree = "<group>"; };
+		DC2A8461CDF948AB9EBB059F /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
+		0840EE2ABB6648639E909DAA /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		B608D3CA3C4A4F1A96DA945C /* VaultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultView.swift; sourceTree = "<group>"; };
+		683CCBB3F95143BA88D79F75 /* fingerprints.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = fingerprints.json; sourceTree = "<group>"; };
+		EEF4A91E4D6B4D2BAD447997 /* oui.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = oui.json; sourceTree = "<group>"; };
+		857E203DCBEB4ED2AC4B65A3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		06BCAC1988FC41FB8DB641BC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		6E476B7A6E8746D6862DEDCE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		C62F818E505C478999326DC6 = {
+			isa = PBXGroup;
+			children = (
+				1DAE0A0E5CA94A1C9A36C170 /* FinchMobile */,
+				48AFE733DABC4ECAB35EBBBF /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		48AFE733DABC4ECAB35EBBBF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0FBE2F1B71E34F488067D835 /* FinchMobile.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1DAE0A0E5CA94A1C9A36C170 /* FinchMobile */ = {
+			isa = PBXGroup;
+			children = (
+				7C51867837BD410DAB11A2E4 /* Models */,
+				4465CB6EC8D8456DAC8CADFF /* Resources */,
+				E99F24960FC6470AAEB61E0D /* Services */,
+				724136255D4E442F83934AC4 /* Theme */,
+				A8B818E4184A434591A6678C /* Views */,
+				857E203DCBEB4ED2AC4B65A3 /* Assets.xcassets */,
+				4D422AB4E5D84CD98C79742C /* FinchMobileApp.swift */,
+				06BCAC1988FC41FB8DB641BC /* Info.plist */,
+			);
+			path = FinchMobile;
+			sourceTree = "<group>";
+		};
+		7C51867837BD410DAB11A2E4 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				0608D55DED8F4E48AE3B7750 /* AppModel.swift */,
+				F81F212DEBFF4093AC985F99 /* BLEDevice.swift */,
+				66F6325C3A584120AF8F465B /* GlassModels.swift */,
+				5F86692A60D749DBBF1B834F /* InputRouter.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		4465CB6EC8D8456DAC8CADFF /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				683CCBB3F95143BA88D79F75 /* fingerprints.json */,
+				EEF4A91E4D6B4D2BAD447997 /* oui.json */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		E99F24960FC6470AAEB61E0D /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				04ACB68674854586B13FC474 /* BLE */,
+				6408515A77C8445499437B69 /* Glass */,
+				8AAD2C9AACFC48B1A16B9738 /* Network */,
+				083278C791D64609BF8A3DAD /* Vault */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		724136255D4E442F83934AC4 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				2AB4115DBEE143DCA142374A /* DesignSystem.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		A8B818E4184A434591A6678C /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				1673A05CC2DE4F008E19D38F /* BLE */,
+				19BA323DEFE14A3BA9E60771 /* Engage */,
+				6E330D9527E04D9F9EC79FD8 /* Settings */,
+				2C90BBC780934B87B11956A2 /* Vault */,
+				DC2A8461CDF948AB9EBB059F /* RootTabView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		04ACB68674854586B13FC474 /* BLE */ = {
+			isa = PBXGroup;
+			children = (
+				331E71C9BE074DF99A1F8A8D /* BLEScannerService.swift */,
+			);
+			path = BLE;
+			sourceTree = "<group>";
+		};
+		6408515A77C8445499437B69 /* Glass */ = {
+			isa = PBXGroup;
+			children = (
+				82090B911AEF48F8ADE162A2 /* DeepIoTScanner.swift */,
+				4C398C5E78B0406DA8739929 /* FingerprintEngine.swift */,
+				4470A9B7392E40DD859A0B88 /* GlassFabricPipeline.swift */,
+				5B95DEB8756E4F3EB725A2EE /* MDNSBrowserService.swift */,
+				BEAC12AE56624DAD8C4A5EA9 /* MQTTClient.swift */,
+				0865E44F2AC14388AFE73C8A /* SentinelExporter.swift */,
+				405C3CB29C9A44C88BA41D59 /* SubnetSweepService.swift */,
+			);
+			path = Glass;
+			sourceTree = "<group>";
+		};
+		8AAD2C9AACFC48B1A16B9738 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				432A823978444274B5054E66 /* NetworkInterfaceHelper.swift */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
+		083278C791D64609BF8A3DAD /* Vault */ = {
+			isa = PBXGroup;
+			children = (
+				10DF325136CF4B9A9A6D0E38 /* VaultManager.swift */,
+			);
+			path = Vault;
+			sourceTree = "<group>";
+		};
+		1673A05CC2DE4F008E19D38F /* BLE */ = {
+			isa = PBXGroup;
+			children = (
+				F224C0BC46D14CEE939B03B9 /* BLERadarView.swift */,
+			);
+			path = BLE;
+			sourceTree = "<group>";
+		};
+		19BA323DEFE14A3BA9E60771 /* Engage */ = {
+			isa = PBXGroup;
+			children = (
+				AAA483931D2B424DAAA4F86F /* EngageView.swift */,
+				80278AA587C341558CE78ED4 /* LatticeView.swift */,
+			);
+			path = Engage;
+			sourceTree = "<group>";
+		};
+		6E330D9527E04D9F9EC79FD8 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				0840EE2ABB6648639E909DAA /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		2C90BBC780934B87B11956A2 /* Vault */ = {
+			isa = PBXGroup;
+			children = (
+				B608D3CA3C4A4F1A96DA945C /* VaultView.swift */,
+			);
+			path = Vault;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E0250558BA1D45C182B1AED6 /* FinchMobile */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3D811B9466FE4FF8AA095399 /* Build configuration list for PBXNativeTarget "FinchMobile" */;
+			buildPhases = (
+				BBEC7778D7FB486FA501038A /* Sources */,
+				6E476B7A6E8746D6862DEDCE /* Frameworks */,
+				831ACE6E15EF4307B7FDFC9B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FinchMobile;
+			productName = FinchMobile;
+			productReference = 0FBE2F1B71E34F488067D835 /* FinchMobile.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		5D6A059A0CF7434DB32918A6 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					E0250558BA1D45C182B1AED6 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = F323741E46484CD59C035C08 /* Build configuration list for PBXProject "FinchMobile" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = C62F818E505C478999326DC6;
+			productRefGroup = 48AFE733DABC4ECAB35EBBBF /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E0250558BA1D45C182B1AED6 /* FinchMobile */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		831ACE6E15EF4307B7FDFC9B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1DEC638DD02B40448735E220 /* fingerprints.json in Resources */,
+				507614052580453EB30419E4 /* oui.json in Resources */,
+				D3C5BF204C684522A4E85E82 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		BBEC7778D7FB486FA501038A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F66DF3D467C543AAABE95D90 /* FinchMobileApp.swift in Sources */,
+				7139D80867C247A4BAFA93AA /* AppModel.swift in Sources */,
+				B557C9FE577141AA85180EEE /* BLEDevice.swift in Sources */,
+				B6E25D4952494302A5BA8192 /* GlassModels.swift in Sources */,
+				2F3CBF3F4A0744059AE6C40D /* InputRouter.swift in Sources */,
+				7A0645BF56164BE0B036D6D1 /* BLEScannerService.swift in Sources */,
+				E56D2F54BA06401C88705C7B /* DeepIoTScanner.swift in Sources */,
+				0F2DCD7F81954014B2BD1EEF /* FingerprintEngine.swift in Sources */,
+				39CD697AFB7C4865AA0239C0 /* GlassFabricPipeline.swift in Sources */,
+				71E2344F4A90430F8F695742 /* MDNSBrowserService.swift in Sources */,
+				F7653576DFB5448DAB2B3A40 /* MQTTClient.swift in Sources */,
+				02169D17418D4151B068E206 /* SentinelExporter.swift in Sources */,
+				F4DAD938F19647C0966ABB1F /* SubnetSweepService.swift in Sources */,
+				A0CCF2C967CE465397CE2159 /* NetworkInterfaceHelper.swift in Sources */,
+				63AFAD964CBB41779F15ACD3 /* VaultManager.swift in Sources */,
+				532316BDD44D4B5696385458 /* DesignSystem.swift in Sources */,
+				144862AD262B4554B2DDAF18 /* BLERadarView.swift in Sources */,
+				594D54CCD7EB40BAADF044C1 /* EngageView.swift in Sources */,
+				54203165E1A149108021D324 /* LatticeView.swift in Sources */,
+				D7E8EF39A11F4370BC8B9E8C /* RootTabView.swift in Sources */,
+				B6872C5ADF184F9FBD0FC194 /* SettingsView.swift in Sources */,
+				40FDEE6F713443C18793FBF6 /* VaultView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		691BFEE6C60845FB89D1D760 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		2A3B745E295342EF9A6E4216 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		7293D52B60AE4346AA617B5B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = FinchMobile/Info.plist;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aetherverse.FinchMobile;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+
+			};
+			name = Debug;
+		};
+		8F07E442A8C4423DAF333CC1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = FinchMobile/Info.plist;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aetherverse.FinchMobile;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F323741E46484CD59C035C08 /* Build configuration list for PBXProject "FinchMobile" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				691BFEE6C60845FB89D1D760 /* Debug */,
+				2A3B745E295342EF9A6E4216 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3D811B9466FE4FF8AA095399 /* Build configuration list for PBXNativeTarget "FinchMobile" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7293D52B60AE4346AA617B5B /* Debug */,
+				8F07E442A8C4423DAF333CC1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 5D6A059A0CF7434DB32918A6 /* Project object */;
+}
