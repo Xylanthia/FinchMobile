@@ -5,7 +5,21 @@ final class DeepIoTScanner {
     var onPortOpen: ((String, Int) -> Void)?
     var onProgress: ((String) -> Void)?
 
-    func scanHost(_ ip: String, ports: [Int] = IoTPorts.surface, maxConcurrent: Int = 40) async -> (openPorts: [Int], banners: [Banner]) {
+    /// Open-check timeout. IoT gear (cameras, printers, sleepy Wi‑Fi) often needs >1s.
+    private let openTimeout: TimeInterval = 2.5
+
+    func scanHost(_ ip: String, ports: [Int] = IoTPorts.surface, maxConcurrent: Int = 24) async -> (openPorts: [Int], banners: [Banner]) {
+        // First pass can return empty on iOS before Local Network is granted / NECP warms up.
+        var result = await scanHostOnce(ip, ports: ports, maxConcurrent: maxConcurrent)
+        if result.openPorts.isEmpty {
+            onProgress?("Deep scan \(ip): retry (no open ports)…")
+            try? await Task.sleep(nanoseconds: 400_000_000)
+            result = await scanHostOnce(ip, ports: ports, maxConcurrent: maxConcurrent)
+        }
+        return result
+    }
+
+    private func scanHostOnce(_ ip: String, ports: [Int], maxConcurrent: Int) async -> (openPorts: [Int], banners: [Banner]) {
         var openPorts: [Int] = []
         var banners: [Banner] = []
 
@@ -18,8 +32,8 @@ final class DeepIoTScanner {
                     let port = ports[index]
                     index += 1
                     inFlight += 1
-                    group.addTask {
-                        let isOpen = await TCPProbe.isOpen(host: ip, port: UInt16(port), timeout: 1.2)
+                    group.addTask { [openTimeout] in
+                        let isOpen = await TCPProbe.isOpen(host: ip, port: UInt16(port), timeout: openTimeout)
                         if !isOpen { return (port, false, nil) }
                         let banner = await BannerGrabber.grab(host: ip, port: port)
                         return (port, true, banner)

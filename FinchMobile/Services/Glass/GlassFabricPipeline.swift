@@ -258,29 +258,41 @@ final class GlassFabricPipeline {
     }
 
     func deepScan(ip: String) {
-        Task { await performDeepScan(ip: ip) }
+        enqueueScan { await self.performDeepScan(ip: ip) }
     }
 
     func deepScanAll() {
-        Task {
-            let ips = await MainActor.run { report?.hosts.map(\.ip) ?? [] }
+        enqueueScan {
+            let ips = await MainActor.run { self.report?.hosts.map(\.ip) ?? [] }
             for ip in ips {
-                await performDeepScan(ip: ip)
+                await self.performDeepScan(ip: ip)
             }
         }
     }
 
     func iotVulns(ip: String) {
-        Task { await performIoTVulns(ip: ip, autoMQTT: true) }
+        // Auto MQTT listen made Vulns feel "stuck"/broken (20s+). Run offense only; tap Listen MQTT separately.
+        enqueueScan { await self.performIoTVulns(ip: ip, autoMQTT: false) }
     }
 
     func iotVulnsAll() {
-        Task {
-            let ips = await MainActor.run { report?.hosts.map(\.ip) ?? [] }
+        enqueueScan {
+            let ips = await MainActor.run { self.report?.hosts.map(\.ip) ?? [] }
             for ip in ips {
-                await performIoTVulns(ip: ip, autoMQTT: true)
+                await self.performIoTVulns(ip: ip, autoMQTT: false)
             }
         }
+    }
+
+    private var scanTask: Task<Void, Never>?
+
+    private func enqueueScan(_ work: @escaping @Sendable () async -> Void) {
+        if isRunning {
+            progressText = "Busy — wait for current scan to finish, then retry."
+            return
+        }
+        scanTask?.cancel()
+        scanTask = Task { await work() }
     }
 
     private func performDeepScan(ip: String) async {
@@ -305,7 +317,11 @@ final class GlassFabricPipeline {
             host.fingerprint = fp
             self.mergeHost(host)
             self.phase = "ready"
-            self.progressText = "Deep scan complete — \(ip)"
+            if result.openPorts.isEmpty {
+                self.progressText = "Deep scan \(ip): 0 ports — stay on Wi‑Fi, allow Local Network for Finch, retry."
+            } else {
+                self.progressText = "Deep scan complete — \(ip) · \(result.openPorts.count) ports"
+            }
             self.isRunning = false
             self.report?.phase = self.phase
         }
@@ -326,6 +342,16 @@ final class GlassFabricPipeline {
         }
 
         let deepResult = await deep.scanHost(ip)
+        if deepResult.openPorts.isEmpty {
+            await MainActor.run {
+                self.phase = "ready"
+                self.progressText = "IoT Vulns \(ip): no open TCP — check Wi‑Fi + Local Network permission, then retry."
+                self.isRunning = false
+                self.report?.phase = self.phase
+            }
+            return
+        }
+
         let offenseResult = await offense.probeHost(
             ip: ip,
             openTCP: deepResult.openPorts,
@@ -361,7 +387,7 @@ final class GlassFabricPipeline {
                 report?.hosts.first(where: { $0.ip == ip })?.mqttPorts ?? []
             }
             for port in mqttPorts {
-                await listenMQTTAsync(ip: ip, port: UInt16(port), duration: 20, username: nil, password: nil)
+                await listenMQTTAsync(ip: ip, port: UInt16(port), duration: 8, username: nil, password: nil)
             }
         }
 
