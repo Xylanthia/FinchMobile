@@ -39,11 +39,21 @@ Repo / release: https://github.com/rockstars4nny-hub/FinchMobile/releases/tag/v0
 
 ## After install on iPhone
 
-- Allow **Bluetooth** and **Local Network**.
-- Open **BLE Radar** or **Engage → Scan My Network**.
+- Allow **Bluetooth** and **Local Network**. Enable **Developer Mode** if asked.
+- Title should show **FINCH · GLASS 1.1**.
+- **Engage → Scan My Network** → **IoT Vulns** for full module-6 style run.
+- **BLE Radar** → tap a device → **Connect + Map GATT** (read-only).
 
 ## When done
 
 Apple menu → **Log Out** (or disconnect) so MacinCloud stops billing time.
 
 Optional: after install, make the GitHub repo private again if you prefer.
+
+## Tonight’s zip (Windows)
+
+Fresh source is already at:
+
+`C:\Users\nixon\Downloads\FinchMobile.zip`
+
+Upload that to the cloud Mac (Drive) or use `BUILD_UNSIGNED_IPA.sh` after unzip.

@@ -23,6 +23,7 @@ enum SentinelExporter {
             "netmask": report.netmask as Any,
             "warnings": report.warnings,
             "mdnsServiceCount": report.mdnsServiceCount,
+            "ssdpDeviceCount": report.ssdpDeviceCount,
             "hosts": try encodeJSONObject(report.hosts),
             "ble": try encodeJSONObject(ble)
         ]

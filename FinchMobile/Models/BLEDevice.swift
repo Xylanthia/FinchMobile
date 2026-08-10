@@ -1,6 +1,28 @@
 import Foundation
 import CoreBluetooth
 
+enum BLEConnectionState: String, Codable, Hashable {
+    case disconnected
+    case connecting
+    case discovering
+    case connected
+    case failed
+}
+
+struct GATTCharacteristicInfo: Codable, Hashable, Identifiable {
+    var id: String { uuid }
+    var uuid: String
+    var properties: [String]
+    var valueHex: String?
+    var valueUTF8: String?
+}
+
+struct GATTServiceInfo: Codable, Hashable, Identifiable {
+    var id: String { uuid }
+    var uuid: String
+    var characteristics: [GATTCharacteristicInfo]
+}
+
 struct BLEDevice: Identifiable, Codable, Hashable {
     var id: UUID { identifier }
     var identifier: UUID
@@ -17,6 +39,47 @@ struct BLEDevice: Identifiable, Codable, Hashable {
     var connectable: Bool
     var overflowServiceUUIDs: [String]
     var solicitedServiceUUIDs: [String]
+    var connectionState: BLEConnectionState
+    var gattError: String?
+    var gattServices: [GATTServiceInfo]
+
+    init(
+        identifier: UUID,
+        name: String? = nil,
+        localName: String? = nil,
+        rssi: Int,
+        lastSeen: Date = Date(),
+        advertisementHex: String,
+        manufacturerCompanyId: UInt16? = nil,
+        manufacturerDataHex: String? = nil,
+        manufacturerName: String? = nil,
+        serviceUUIDs: [String] = [],
+        txPower: Int? = nil,
+        connectable: Bool = false,
+        overflowServiceUUIDs: [String] = [],
+        solicitedServiceUUIDs: [String] = [],
+        connectionState: BLEConnectionState = .disconnected,
+        gattError: String? = nil,
+        gattServices: [GATTServiceInfo] = []
+    ) {
+        self.identifier = identifier
+        self.name = name
+        self.localName = localName
+        self.rssi = rssi
+        self.lastSeen = lastSeen
+        self.advertisementHex = advertisementHex
+        self.manufacturerCompanyId = manufacturerCompanyId
+        self.manufacturerDataHex = manufacturerDataHex
+        self.manufacturerName = manufacturerName
+        self.serviceUUIDs = serviceUUIDs
+        self.txPower = txPower
+        self.connectable = connectable
+        self.overflowServiceUUIDs = overflowServiceUUIDs
+        self.solicitedServiceUUIDs = solicitedServiceUUIDs
+        self.connectionState = connectionState
+        self.gattError = gattError
+        self.gattServices = gattServices
+    }
 
     var displayName: String {
         if let localName, !localName.isEmpty { return localName }
@@ -79,8 +142,39 @@ struct BLEDevice: Identifiable, Codable, Hashable {
             txPower: tx,
             connectable: connectable,
             overflowServiceUUIDs: overflow,
-            solicitedServiceUUIDs: solicited
+            solicitedServiceUUIDs: solicited,
+            connectionState: .disconnected,
+            gattError: nil,
+            gattServices: []
         )
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case identifier, name, localName, rssi, lastSeen, advertisementHex
+        case manufacturerCompanyId, manufacturerDataHex, manufacturerName
+        case serviceUUIDs, txPower, connectable, overflowServiceUUIDs, solicitedServiceUUIDs
+        case connectionState, gattError, gattServices
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        identifier = try c.decode(UUID.self, forKey: .identifier)
+        name = try c.decodeIfPresent(String.self, forKey: .name)
+        localName = try c.decodeIfPresent(String.self, forKey: .localName)
+        rssi = try c.decodeIfPresent(Int.self, forKey: .rssi) ?? -100
+        lastSeen = try c.decodeIfPresent(Date.self, forKey: .lastSeen) ?? Date()
+        advertisementHex = try c.decodeIfPresent(String.self, forKey: .advertisementHex) ?? ""
+        manufacturerCompanyId = try c.decodeIfPresent(UInt16.self, forKey: .manufacturerCompanyId)
+        manufacturerDataHex = try c.decodeIfPresent(String.self, forKey: .manufacturerDataHex)
+        manufacturerName = try c.decodeIfPresent(String.self, forKey: .manufacturerName)
+        serviceUUIDs = try c.decodeIfPresent([String].self, forKey: .serviceUUIDs) ?? []
+        txPower = try c.decodeIfPresent(Int.self, forKey: .txPower)
+        connectable = try c.decodeIfPresent(Bool.self, forKey: .connectable) ?? false
+        overflowServiceUUIDs = try c.decodeIfPresent([String].self, forKey: .overflowServiceUUIDs) ?? []
+        solicitedServiceUUIDs = try c.decodeIfPresent([String].self, forKey: .solicitedServiceUUIDs) ?? []
+        connectionState = try c.decodeIfPresent(BLEConnectionState.self, forKey: .connectionState) ?? .disconnected
+        gattError = try c.decodeIfPresent(String.self, forKey: .gattError)
+        gattServices = try c.decodeIfPresent([GATTServiceInfo].self, forKey: .gattServices) ?? []
     }
 
     private static func encodeAdvertisement(_ data: [String: Any]) -> String {
@@ -111,6 +205,12 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         advertisementHex = newer.advertisementHex
         if let tx = newer.txPower { txPower = tx }
         connectable = newer.connectable
+        // Preserve GATT session state unless newer explicitly carries it
+        if newer.connectionState != .disconnected || !newer.gattServices.isEmpty {
+            connectionState = newer.connectionState
+            gattServices = newer.gattServices
+            gattError = newer.gattError
+        }
     }
 }
 

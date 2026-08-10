@@ -68,17 +68,23 @@ enum BannerGrabber {
         let timeout: TimeInterval
 
         switch family {
-        case "http":
-            let req = "HEAD / HTTP/1.0\r\nHost: \(host)\r\nUser-Agent: FinchMobile/1.0\r\nConnection: close\r\n\r\n"
+        case "http", "home-assistant", "nodered", "elasticsearch":
+            let req = "HEAD / HTTP/1.0\r\nHost: \(host)\r\nUser-Agent: FinchMobile/1.1\r\nConnection: close\r\n\r\n"
             send = Data(req.utf8)
             timeout = 2.5
-        case "rtsp":
+        case "rtsp", "dahua", "hikvision-dvr":
             send = Data("OPTIONS * RTSP/1.0\r\nCSeq: 1\r\n\r\n".utf8)
             timeout = 2.5
         case "mqtt":
             send = MQTTPacket.connect(clientID: "finch-probe", cleanSession: true)
             timeout = 2.5
-        case "ssh", "telnet":
+        case "ftp":
+            send = nil
+            timeout = 2.0
+        case "redis":
+            send = Data("INFO\r\n".utf8)
+            timeout = 2.0
+        case "ssh", "telnet", "adb":
             send = nil
             timeout = 2.0
         default:

@@ -5,6 +5,8 @@ struct LatticeView: View {
     var report: GlassFabricReport?
     var onDeepScan: (String) -> Void
     var onDeepScanAll: () -> Void
+    var onIoTVulns: (String) -> Void
+    var onIoTVulnsAll: () -> Void
     var onMQTT: (String) -> Void
     var onExport: () -> Void
 
@@ -19,6 +21,7 @@ struct LatticeView: View {
                                 HostDetailView(
                                     host: host,
                                     onDeepScan: { onDeepScan(host.ip) },
+                                    onIoTVulns: { onIoTVulns(host.ip) },
                                     onMQTT: { onMQTT(host.ip) }
                                 )
                             } label: {
@@ -48,7 +51,7 @@ struct LatticeView: View {
                     .foregroundStyle(FinchTheme.textSecondary)
             }
             if let local = report.localIP {
-                Text("local \(local) · mask \(report.netmask ?? "?") · mDNS \(report.mdnsServiceCount)")
+                Text("local \(local) · mask \(report.netmask ?? "?") · mDNS \(report.mdnsServiceCount) · SSDP \(report.ssdpDeviceCount)")
                     .font(FinchTheme.monoSmall)
                     .foregroundStyle(FinchTheme.textSecondary)
             }
@@ -61,6 +64,8 @@ struct LatticeView: View {
             }
             HStack(spacing: 8) {
                 Button("Deep Scan All", action: onDeepScanAll)
+                    .buttonStyle(FinchOutlineButtonStyle())
+                Button("IoT Vulns", action: onIoTVulnsAll)
                     .buttonStyle(FinchOutlineButtonStyle())
                 Button("SENTINEL", action: onExport)
                     .buttonStyle(FinchOutlineButtonStyle())
@@ -80,10 +85,10 @@ struct LatticeView: View {
             Image(systemName: "network")
                 .font(.system(size: 40))
                 .foregroundStyle(FinchTheme.cyan.opacity(0.6))
-            Text("GLASS FABRIC")
+            Text("GLASS FABRIC · 1.1")
                 .font(FinchTheme.monoTitle)
                 .foregroundStyle(FinchTheme.cyan)
-            Text("Enter a CIDR (192.168.1.0/24) or tap Scan My Network.\nResults stay ephemeral until Persist.")
+            Text("Enter a CIDR (192.168.1.0/24) or tap Scan My Network.\nIoT Vulns = deep ports + offense + auto MQTT.\nResults stay ephemeral until Persist.")
                 .font(FinchTheme.monoSmall)
                 .foregroundStyle(FinchTheme.textSecondary)
                 .multilineTextAlignment(.center)
@@ -105,6 +110,16 @@ struct HostRow: View {
                     .font(FinchTheme.mono)
                     .foregroundStyle(FinchTheme.textPrimary)
                 Spacer()
+                if !host.offenseHits.isEmpty {
+                    Text("VULN \(host.offenseHits.count)")
+                        .font(FinchTheme.monoSmall)
+                        .foregroundStyle(FinchTheme.warn)
+                }
+                if !host.mqttMessages.isEmpty {
+                    Text("MQTT \(host.mqttMessages.count)")
+                        .font(FinchTheme.monoSmall)
+                        .foregroundStyle(FinchTheme.cyan)
+                }
                 if let fp = host.fingerprint {
                     Text(fp.vendor)
                         .font(FinchTheme.monoSmall)
@@ -128,10 +143,16 @@ struct HostRow: View {
                     .font(FinchTheme.monoSmall)
                     .foregroundStyle(FinchTheme.cyan.opacity(0.8))
             }
-            Text("ports \(host.openPorts.map(String.init).joined(separator: ","))")
+            Text("tcp \(host.openPorts.map(String.init).joined(separator: ","))")
                 .font(FinchTheme.monoSmall)
                 .foregroundStyle(FinchTheme.textSecondary)
                 .lineLimit(1)
+            if !host.openUDPPorts.isEmpty {
+                Text("udp \(host.openUDPPorts.map(String.init).joined(separator: ","))")
+                    .font(FinchTheme.monoSmall)
+                    .foregroundStyle(FinchTheme.textSecondary)
+                    .lineLimit(1)
+            }
         }
         .padding(.vertical, 4)
     }
@@ -140,6 +161,7 @@ struct HostRow: View {
 struct HostDetailView: View {
     let host: IoTHost
     var onDeepScan: () -> Void
+    var onIoTVulns: () -> Void
     var onMQTT: () -> Void
 
     var body: some View {
@@ -160,8 +182,12 @@ struct HostDetailView: View {
                 }
             }
             Section("Open Ports") {
-                Text(host.openPorts.map(String.init).joined(separator: ", "))
+                Text("TCP: " + host.openPorts.map(String.init).joined(separator: ", "))
                     .font(FinchTheme.mono)
+                if !host.openUDPPorts.isEmpty {
+                    Text("UDP: " + host.openUDPPorts.map(String.init).joined(separator: ", "))
+                        .font(FinchTheme.mono)
+                }
             }
             Section("Services") {
                 if host.services.isEmpty {
@@ -178,9 +204,37 @@ struct HostDetailView: View {
                     }
                 }
             }
+            if !host.offenseHits.isEmpty {
+                Section("Offense (\(host.offenseHits.count))") {
+                    ForEach(host.offenseHits) { hit in
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(hit.severity)
+                                    .font(FinchTheme.monoSmall)
+                                    .foregroundStyle(hit.severity == "HIGH" ? FinchTheme.danger : FinchTheme.warn)
+                                Text(hit.source)
+                                    .font(FinchTheme.monoSmall)
+                                    .foregroundStyle(FinchTheme.cyan)
+                                Spacer()
+                                Text("\(hit.proto)/\(hit.port)")
+                                    .font(FinchTheme.monoSmall)
+                                    .foregroundStyle(FinchTheme.textSecondary)
+                            }
+                            Text(hit.summary)
+                                .font(FinchTheme.mono)
+                            Text(hit.detail)
+                                .font(FinchTheme.monoSmall)
+                                .foregroundStyle(FinchTheme.textSecondary)
+                                .textSelection(.enabled)
+                                .lineLimit(6)
+                        }
+                        .padding(.vertical, 2)
+                    }
+                }
+            }
             Section("Banners") {
                 if host.banners.isEmpty {
-                    Text("Run Deep Scan").foregroundStyle(.secondary)
+                    Text("Run Deep Scan or IoT Vulns").foregroundStyle(.secondary)
                 } else {
                     ForEach(host.banners) { banner in
                         VStack(alignment: .leading, spacing: 4) {
@@ -212,6 +266,8 @@ struct HostDetailView: View {
             }
             Section {
                 Button("Deep Scan", action: onDeepScan)
+                Button("IoT Vulns", action: onIoTVulns)
+                    .foregroundStyle(FinchTheme.cyan)
                 if host.hasMQTT {
                     Button("Listen MQTT", action: onMQTT)
                 }

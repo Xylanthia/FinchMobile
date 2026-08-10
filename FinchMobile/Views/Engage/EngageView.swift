@@ -36,6 +36,8 @@ struct EngageView: View {
                         report: app.glassPipeline.report,
                         onDeepScan: { app.glassPipeline.deepScan(ip: $0) },
                         onDeepScanAll: { app.glassPipeline.deepScanAll() },
+                        onIoTVulns: { app.glassPipeline.iotVulns(ip: $0) },
+                        onIoTVulnsAll: { app.glassPipeline.iotVulnsAll() },
                         onMQTT: { ip in
                             mqttTargetIP = ip
                             showMQTTSheet = true
@@ -45,7 +47,7 @@ struct EngageView: View {
                 }
                 .padding(.top, 8)
             }
-            .navigationTitle("FINCH · GLASS")
+            .navigationTitle("FINCH · GLASS 1.1")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
