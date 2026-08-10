@@ -1,10 +1,16 @@
 # Finch Mobile — MacinCloud (finish install)
 
-Repo: **https://github.com/rockstars4nny-hub/FinchMobile** (private)
+**Easiest path (no tokens, no Drive):** on the cloud Mac Terminal, paste this:
 
-You cannot paste a whole folder into the cloud Mac. Use Terminal + git (below).
+```bash
+cd ~/Documents
+curl -L -o FinchMobile.zip "https://github.com/rockstars4nny-hub/FinchMobile/releases/download/v0.1.0-mac/FinchMobile-clean.zip"
+unzip -o FinchMobile.zip
+cd FinchMobile
+open FinchMobile.xcodeproj
+```
 
-## On the cloud Mac Terminal — copy/paste this entire block
+Or clone:
 
 ```bash
 cd ~/Documents
@@ -13,7 +19,7 @@ cd FinchMobile
 open FinchMobile.xcodeproj
 ```
 
-If git asks you to log in: use your **GitHub** username + a **Personal Access Token** (or sign in via the browser prompt). Same account that owns `rockstars4nny-hub`.
+Repo / release: https://github.com/rockstars4nny-hub/FinchMobile/releases/tag/v0.1.0-mac
 
 ## In Xcode (after project opens)
 
@@ -39,3 +45,5 @@ If git asks you to log in: use your **GitHub** username + a **Personal Access To
 ## When done
 
 Apple menu → **Log Out** (or disconnect) so MacinCloud stops billing time.
+
+Optional: after install, make the GitHub repo private again if you prefer.
