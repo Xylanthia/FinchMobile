@@ -53,49 +53,9 @@ enum NetworkInterfaceHelper {
         return candidates.first
     }
 
-    /// Best-effort local interface MAC when `ip` matches this device.
-    /// iOS does not expose the ARP neighbor table to apps; remote MACs stay nil.
-    static func macAddress(forIP ip: String) -> String? {
-        var ifaddr: UnsafeMutablePointer<ifaddrs>?
-        guard getifaddrs(&ifaddr) == 0, let first = ifaddr else { return nil }
-        defer { freeifaddrs(ifaddr) }
-
-        var ipToIface: [String: String] = [:]
-        var ifaceToMAC: [String: String] = [:]
-
-        var ptr: UnsafeMutablePointer<ifaddrs>? = first
-        while let current = ptr {
-            defer { ptr = current.pointee.ifa_next }
-            let name = String(cString: current.pointee.ifa_name)
-            guard let addr = current.pointee.ifa_addr else { continue }
-            if addr.pointee.sa_family == UInt8(AF_INET) {
-                if let s = ipv4String(from: addr) {
-                    ipToIface[s] = name
-                }
-            } else if addr.pointee.sa_family == UInt8(AF_LINK) {
-                if let mac = linkLayerMAC(from: addr), mac != "00:00:00:00:00:00" {
-                    ifaceToMAC[name] = mac
-                }
-            }
-        }
-
-        if let iface = ipToIface[ip], let mac = ifaceToMAC[iface] {
-            return mac
-        }
-        return nil
-    }
-
-    private static func linkLayerMAC(from addr: UnsafePointer<sockaddr>) -> String? {
-        addr.withMemoryRebound(to: sockaddr_dl.self, capacity: 1) { sdl -> String? in
-            let nlen = Int(sdl.pointee.sdl_nlen)
-            let alen = Int(sdl.pointee.sdl_alen)
-            guard alen == 6 else { return nil }
-            return withUnsafeBytes(of: sdl.pointee.sdl_data) { raw -> String? in
-                guard raw.count >= nlen + alen else { return nil }
-                let bytes = raw.dropFirst(nlen).prefix(alen)
-                return bytes.map { String(format: "%02X", $0) }.joined(separator: ":")
-            }
-        }
+    /// iOS does not expose the ARP neighbor table; remote MACs stay nil.
+    static func macAddress(forIP _: String) -> String? {
+        nil
     }
 
     static func hosts(inCIDR cidr: String, maxHosts: Int = 256) -> (hosts: [String], warnings: [String], effectiveCIDR: String) {

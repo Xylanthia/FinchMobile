@@ -63,15 +63,14 @@ final class MDNSBrowserService {
             switch state {
             case .ready:
                 if let path = connection.currentPath,
-                   let nwEndpoint = path.remoteEndpoint {
-                    let record = self?.record(from: nwEndpoint, name: name, type: type)
-                    if let record {
-                        self?.lock.lock()
-                        self?.results[record.id] = record
-                        let all = Array(self?.results.values ?? [])
-                        self?.lock.unlock()
-                        self?.onUpdate?(all)
-                    }
+                   let nwEndpoint = path.remoteEndpoint,
+                   let self,
+                   let record = self.record(from: nwEndpoint, name: name, type: type) {
+                    self.lock.lock()
+                    self.results[record.id] = record
+                    let all = Array(self.results.values)
+                    self.lock.unlock()
+                    self.onUpdate?(all)
                 }
                 connection.cancel()
             case .failed, .cancelled:

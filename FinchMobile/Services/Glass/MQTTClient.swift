@@ -125,12 +125,12 @@ enum MQTTPacket {
     ) -> Data {
         var variable = Data()
         variable.append(mqttString("MQTT"))
-        variable.append(0x04) // protocol level 3.1.1
+        variable.append(UInt8(0x04)) // protocol level 3.1.1
         var flags: UInt8 = cleanSession ? 0x02 : 0x00
         if username != nil { flags |= 0x80 }
         if password != nil { flags |= 0x40 }
         variable.append(flags)
-        variable.append(contentsOf: [0x00, 0x3C]) // keepalive 60
+        variable.append(contentsOf: [UInt8(0x00), UInt8(0x3C)]) // keepalive 60
         variable.append(mqttString(clientID))
         if let username { variable.append(mqttString(username)) }
         if let password { variable.append(mqttString(password)) }
@@ -143,7 +143,7 @@ enum MQTTPacket {
         variable.append(UInt8(packetID >> 8))
         variable.append(UInt8(packetID & 0xFF))
         variable.append(mqttString(topicFilter))
-        variable.append(0x00) // QoS 0
+        variable.append(UInt8(0x00)) // QoS 0
         return fixedHeader(type: 8, flags: 0x02, payload: variable)
     }
 
