@@ -12,6 +12,8 @@ xcodebuild \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGN_IDENTITY="" \
   ONLY_ACTIVE_ARCH=NO \
+  SWIFT_STRICT_CONCURRENCY=minimal \
+  OTHER_SWIFT_FLAGS='$(inherited) -strict-concurrency=minimal' \
   build 2>&1 | tee build.log
 STATUS=${PIPESTATUS[0]}
 set -e

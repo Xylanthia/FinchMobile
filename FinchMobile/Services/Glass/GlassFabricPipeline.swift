@@ -85,6 +85,7 @@ final class GlassFabricPipeline {
             warnings.append("Input not CIDR/private IP — using \(cidr).")
         }
 
+        let warningsSnapshot = warnings
         await MainActor.run {
             report = GlassFabricReport(
                 query: query,
@@ -94,7 +95,7 @@ final class GlassFabricPipeline {
                 startedAt: Date(),
                 finishedAt: nil,
                 hosts: [],
-                warnings: warnings,
+                warnings: warningsSnapshot,
                 mdnsServiceCount: 0,
                 ssdpDeviceCount: 0,
                 phase: "sweep"
@@ -104,23 +105,23 @@ final class GlassFabricPipeline {
         }
 
         sweep.onHostFound = { [weak self] host in
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
                 self?.mergeHost(host)
             }
         }
         sweep.onProgress = { [weak self] text in
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
                 self?.progressText = text
             }
         }
 
         mdns.onUpdate = { [weak self] services in
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
                 self?.mergeMDNS(services)
             }
         }
         ssdp.onUpdate = { [weak self] devices in
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
                 self?.mergeSSDP(devices)
             }
         }
@@ -290,7 +291,7 @@ final class GlassFabricPipeline {
             selectedHostIP = ip
         }
         deep.onProgress = { [weak self] text in
-            Task { @MainActor in self?.progressText = text }
+            Task { @MainActor [weak self] in self?.progressText = text }
         }
         let result = await deep.scanHost(ip)
         let fp = FingerprintEngine.shared.match(
@@ -318,10 +319,10 @@ final class GlassFabricPipeline {
             selectedHostIP = ip
         }
         deep.onProgress = { [weak self] text in
-            Task { @MainActor in self?.progressText = text }
+            Task { @MainActor [weak self] in self?.progressText = text }
         }
         offense.onProgress = { [weak self] text in
-            Task { @MainActor in self?.progressText = text }
+            Task { @MainActor [weak self] in self?.progressText = text }
         }
 
         let deepResult = await deep.scanHost(ip)
@@ -406,7 +407,7 @@ final class GlassFabricPipeline {
             password: password,
             durationSeconds: capped
         ) { [weak self] msg in
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
                 guard let self else { return }
                 var host = self.report?.hosts.first(where: { $0.ip == ip }) ?? IoTHost(ip: ip)
                 host.mqttMessages.append(msg)

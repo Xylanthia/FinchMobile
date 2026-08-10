@@ -52,9 +52,12 @@ actor TCPProbe {
             )
             let lock = NSLock()
             var resumed = false
-            var buffer = Data()
+            final class BufferBox: @unchecked Sendable {
+                var data = Data()
+            }
+            let buffer = BufferBox()
 
-            func finish(_ value: Data?) {
+            @Sendable func finish(_ value: Data?) {
                 lock.lock()
                 defer { lock.unlock() }
                 guard !resumed else { return }
@@ -66,22 +69,22 @@ actor TCPProbe {
             func startRead() {
                 connection.receive(minimumIncompleteLength: 1, maximumLength: readLimit) { data, _, isComplete, error in
                     if let data, !data.isEmpty {
-                        buffer.append(data)
-                        if buffer.count >= readLimit {
-                            finish(buffer)
+                        buffer.data.append(data)
+                        if buffer.data.count >= readLimit {
+                            finish(buffer.data)
                             return
                         }
                     }
                     if isComplete || error != nil {
-                        finish(buffer.isEmpty ? nil : buffer)
+                        finish(buffer.data.isEmpty ? nil : buffer.data)
                         return
                     }
-                    if buffer.isEmpty {
+                    if buffer.data.isEmpty {
                         startRead()
                     } else {
                         // brief grace for multi-packet banners
                         DispatchQueue.global().asyncAfter(deadline: .now() + 0.15) {
-                            finish(buffer)
+                            finish(buffer.data)
                         }
                     }
                 }
@@ -98,14 +101,14 @@ actor TCPProbe {
                         startRead()
                     }
                 case .failed, .cancelled:
-                    finish(buffer.isEmpty ? nil : buffer)
+                    finish(buffer.data.isEmpty ? nil : buffer.data)
                 default:
                     break
                 }
             }
             connection.start(queue: .global(qos: .utility))
             DispatchQueue.global().asyncAfter(deadline: .now() + timeout) {
-                finish(buffer.isEmpty ? nil : buffer)
+                finish(buffer.data.isEmpty ? nil : buffer.data)
             }
         }
     }
