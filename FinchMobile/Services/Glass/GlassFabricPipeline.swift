@@ -330,9 +330,17 @@ final class GlassFabricPipeline {
             openTCP: deepResult.openPorts,
             banners: deepResult.banners
         )
+        let existingServices = await MainActor.run { report?.hosts.first(where: { $0.ip == ip })?.services ?? [] }
+        let existingVendor = await MainActor.run { report?.hosts.first(where: { $0.ip == ip })?.vendor }
         let fp = FingerprintEngine.shared.match(
             banners: deepResult.banners,
-            services: await MainActor.run { report?.hosts.first(where: { $0.ip == ip })?.services ?? [] }
+            services: existingServices
+        )
+        let enrichedHits = CVEEnricher.enrich(
+            hits: offenseResult.hits,
+            banners: deepResult.banners,
+            fingerprint: fp,
+            vendor: existingVendor
         )
 
         await MainActor.run {
@@ -341,9 +349,10 @@ final class GlassFabricPipeline {
             host.openUDPPorts = Array(Set(host.openUDPPorts + offenseResult.openUDP)).sorted()
             host.banners = deepResult.banners
             host.fingerprint = fp
-            host.offenseHits.append(contentsOf: offenseResult.hits)
+            host.offenseHits.append(contentsOf: enrichedHits)
             self.mergeHost(host)
-            self.progressText = "IoT Vulns \(ip) — \(offenseResult.hits.count) hits"
+            let cveCount = enrichedHits.reduce(0) { $0 + $1.cves.count }
+            self.progressText = "IoT Vulns \(ip) — \(enrichedHits.count) hits · \(cveCount) CVEs"
         }
 
         if autoMQTT {

@@ -1,16 +1,21 @@
 # Finch Mobile — MacinCloud (finish install)
 
-**Easiest path (no tokens, no Drive):** on the cloud Mac Terminal, paste this:
+**Use the latest zip (last-session updates):**  
+`C:\Users\nixon\Downloads\FinchMobile-latest.zip`  
+Upload that to the cloud Mac (Drive / portal), then:
 
 ```bash
 cd ~/Documents
-curl -L -o FinchMobile.zip "https://github.com/rockstars4nny-hub/FinchMobile/releases/download/v0.1.0-mac/FinchMobile-clean.zip"
-unzip -o FinchMobile.zip
-cd FinchMobile
+unzip -o ~/Downloads/FinchMobile-latest.zip -d FinchMobile
+# if unzip landed files in Documents already:
+#   cd ~/Documents && unzip -o ~/Downloads/FinchMobile-latest.zip
+cd ~/Documents/FinchMobile
 open FinchMobile.xcodeproj
 ```
 
-Or clone:
+Do **not** use the old GitHub `v0.1.0-mac` zip — it is missing plain-language BLE names + CVE mapping.
+
+Or clone (only if `main` has been pushed with those updates):
 
 ```bash
 cd ~/Documents
@@ -18,8 +23,6 @@ git clone https://github.com/rockstars4nny-hub/FinchMobile.git
 cd FinchMobile
 open FinchMobile.xcodeproj
 ```
-
-Repo / release: https://github.com/rockstars4nny-hub/FinchMobile/releases/tag/v0.1.0-mac
 
 ## In Xcode (after project opens)
 

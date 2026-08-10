@@ -40,7 +40,7 @@ final class BLEScannerService: NSObject {
             guard let self else { return }
             guard self.activePeripheral == nil else {
                 DispatchQueue.main.async {
-                    self.statusText = "Connected — scan paused"
+                    self.statusText = "Looking inside a device — scan paused"
                 }
                 return
             }
@@ -48,8 +48,8 @@ final class BLEScannerService: NSObject {
                 DispatchQueue.main.async {
                     self.statusText = "Waiting for Bluetooth…"
                     self.errorMessage = self.central.state == .unauthorized
-                        ? "Bluetooth permission denied. Enable in Settings."
-                        : "Bluetooth not ready (\(self.describeState(self.central.state)))."
+                        ? "Bluetooth permission denied. Enable it in Settings."
+                        : "Bluetooth isn’t ready yet (\(self.friendlyState(self.central.state)))."
                 }
                 return
             }
@@ -98,7 +98,7 @@ final class BLEScannerService: NSObject {
                 DispatchQueue.main.async {
                     self.updateDevice(id) {
                         $0.connectionState = .failed
-                        $0.gattError = "Peripheral not in cache — keep scanning, then retry"
+                        $0.gattError = "Device dropped off the list — keep scanning, then try again"
                     }
                 }
                 return
@@ -111,7 +111,7 @@ final class BLEScannerService: NSObject {
             self.central.stopScan()
             DispatchQueue.main.async {
                 self.isScanning = false
-                self.statusText = "Connecting…"
+                self.statusText = "Opening device…"
                 self.connectedPeripheralID = id
                 self.updateDevice(id) {
                     $0.connectionState = .connecting
@@ -142,7 +142,7 @@ final class BLEScannerService: NSObject {
                         $0.connectionState = .disconnected
                     }
                 }
-                self.statusText = "Disconnected"
+                self.statusText = "Disconnected — scanning again soon"
             }
         }
     }
@@ -167,8 +167,8 @@ final class BLEScannerService: NSObject {
         DispatchQueue.main.async {
             self.isScanning = true
             self.statusText = self.continuousMode
-                ? "Continuous scan (AllowDuplicates)"
-                : "Scanning \(self.scanWindowSeconds)s window"
+                ? "Listening for nearby Bluetooth…"
+                : "Scanning for \(self.scanWindowSeconds) seconds…"
         }
 
         restartTask?.cancel()
@@ -184,7 +184,7 @@ final class BLEScannerService: NSObject {
             }
             DispatchQueue.main.async {
                 if self.connectedPeripheralID == nil {
-                    self.statusText = "Restarting scan…"
+                    self.statusText = "Refreshing…"
                 }
             }
             try? await Task.sleep(nanoseconds: self.pauseNanoseconds)
@@ -202,15 +202,15 @@ final class BLEScannerService: NSObject {
         devices[id] = device
     }
 
-    private func describeState(_ state: CBManagerState) -> String {
+    private func friendlyState(_ state: CBManagerState) -> String {
         switch state {
-        case .unknown: return "unknown"
+        case .unknown: return "starting up"
         case .resetting: return "resetting"
-        case .unsupported: return "unsupported"
-        case .unauthorized: return "unauthorized"
-        case .poweredOff: return "powered off"
-        case .poweredOn: return "powered on"
-        @unknown default: return "other"
+        case .unsupported: return "not supported on this phone"
+        case .unauthorized: return "permission needed"
+        case .poweredOff: return "turned off"
+        case .poweredOn: return "on"
+        @unknown default: return "unavailable"
         }
     }
 
@@ -247,7 +247,10 @@ final class BLEScannerService: NSObject {
                 $0.connectionState = .connected
                 $0.name = peripheral.name ?? $0.name
             }
-            self.statusText = "GATT mapped · \(services.count) services"
+            let n = services.count
+            self.statusText = n == 1
+                ? "Opened — 1 feature found"
+                : "Opened — \(n) features found"
         }
     }
 }
@@ -256,7 +259,16 @@ extension BLEScannerService: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         DispatchQueue.main.async {
             self.bluetoothState = central.state
-            self.statusText = "Bluetooth \(self.describeState(central.state))"
+            switch central.state {
+            case .poweredOn:
+                self.statusText = "Bluetooth is on"
+            case .poweredOff:
+                self.statusText = "Turn Bluetooth on in Control Center"
+            case .unauthorized:
+                self.statusText = "Allow Bluetooth in Settings"
+            default:
+                self.statusText = "Bluetooth: \(self.friendlyState(central.state))"
+            }
         }
         if central.state == .poweredOn, continuousMode, activePeripheral == nil {
             beginScanCycle()
@@ -299,7 +311,7 @@ extension BLEScannerService: CBCentralManagerDelegate {
                 $0.connectionState = .discovering
                 $0.gattError = nil
             }
-            self.statusText = "Discovering GATT…"
+            self.statusText = "Reading what’s inside…"
         }
         peripheral.discoverServices(nil)
     }
@@ -309,9 +321,9 @@ extension BLEScannerService: CBCentralManagerDelegate {
             self.connectedPeripheralID = nil
             self.updateDevice(peripheral.identifier) {
                 $0.connectionState = .failed
-                $0.gattError = error?.localizedDescription ?? "Connect failed"
+                $0.gattError = error?.localizedDescription ?? "Couldn't open this device"
             }
-            self.statusText = "Connect failed"
+            self.statusText = "Couldn't open device"
         }
         activePeripheral = nil
         if continuousMode { beginScanCycle() }
@@ -326,7 +338,7 @@ extension BLEScannerService: CBCentralManagerDelegate {
                 $0.connectionState = .disconnected
                 if let error { $0.gattError = error.localizedDescription }
             }
-            self.statusText = "Disconnected"
+            self.statusText = "Disconnected — scanning again"
         }
         if activePeripheral?.identifier == peripheral.identifier {
             activePeripheral = nil
@@ -351,9 +363,9 @@ extension BLEScannerService: CBPeripheralDelegate {
                 self.updateDevice(peripheral.identifier) {
                     $0.connectionState = .connected
                     $0.gattServices = []
-                    $0.gattError = "No GATT services"
+                    $0.gattError = "Opened, but nothing useful was listed inside"
                 }
-                self.statusText = "Connected · no services"
+                self.statusText = "Opened — nothing listed inside"
             }
             return
         }

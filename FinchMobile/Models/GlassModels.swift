@@ -1,5 +1,20 @@
 import Foundation
 
+struct CVERef: Identifiable, Codable, Hashable {
+    var id: String { cve }
+    /// Real CVE-ID only (e.g. CVE-2021-36260). Never invent IDs.
+    var cve: String
+    var title: String
+    /// Plain-language why this matters on this host.
+    var why: String
+    /// How we matched: fingerprint | service | banner | exposure
+    var match: String
+    /// check-version | likely | exposure
+    var confidence: String
+
+    var nvdURL: String { "https://nvd.nist.gov/vuln/detail/\(cve)" }
+}
+
 struct OffenseHit: Identifiable, Codable, Hashable {
     var id: String { "\(source)|\(port)|\(summary)" }
     var source: String
@@ -8,6 +23,44 @@ struct OffenseHit: Identifiable, Codable, Hashable {
     var proto: String
     var summary: String
     var detail: String
+    var cves: [CVERef]
+
+    init(
+        source: String,
+        severity: String,
+        port: Int,
+        proto: String,
+        summary: String,
+        detail: String,
+        cves: [CVERef] = []
+    ) {
+        self.source = source
+        self.severity = severity
+        self.port = port
+        self.proto = proto
+        self.summary = summary
+        self.detail = detail
+        self.cves = cves
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case source, severity, port, proto, summary, detail, cves
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        source = try c.decode(String.self, forKey: .source)
+        severity = try c.decode(String.self, forKey: .severity)
+        port = try c.decode(Int.self, forKey: .port)
+        proto = try c.decodeIfPresent(String.self, forKey: .proto) ?? "tcp"
+        summary = try c.decode(String.self, forKey: .summary)
+        detail = try c.decodeIfPresent(String.self, forKey: .detail) ?? ""
+        cves = try c.decodeIfPresent([CVERef].self, forKey: .cves) ?? []
+    }
+
+    var cveLine: String {
+        cves.map(\.cve).joined(separator: " ")
+    }
 }
 
 struct IoTHost: Identifiable, Codable, Hashable {
@@ -82,6 +135,43 @@ struct IoTHost: Identifiable, Codable, Hashable {
         if let hostname, !hostname.isEmpty { return hostname }
         if let vendor, !vendor.isEmpty { return vendor }
         return ip
+    }
+
+    /// Full plain-text dump for clipboard / notes.
+    var copyText: String {
+        var lines = [
+            "Host: \(displayLabel)",
+            "IP: \(ip)",
+            "MAC: \(mac ?? "—")",
+            "Vendor: \(vendor ?? "—")",
+            "Hostname: \(hostname ?? "—")",
+            "TCP ports: \(openPorts.map(String.init).joined(separator: ", "))",
+            "UDP ports: \(openUDPPorts.map(String.init).joined(separator: ", "))"
+        ]
+        if let fp = fingerprint {
+            lines.append("Fingerprint: \(fp.vendor) \(fp.model) (\(fp.deviceType)) \(Int(fp.confidence * 100))%")
+            if !fp.tags.isEmpty { lines.append("Tags: \(fp.tags.joined(separator: ", "))") }
+        }
+        for s in services {
+            lines.append("Service: \(s.name) · \(s.type) · \(s.host):\(s.port)")
+        }
+        for hit in offenseHits {
+            lines.append("Vuln [\(hit.severity)] \(hit.summary) · \(hit.proto)/\(hit.port)")
+            lines.append("  \(hit.detail)")
+            for cve in hit.cves {
+                lines.append("  \(cve.cve) — \(cve.title)")
+                lines.append("    \(cve.why)")
+                lines.append("    \(cve.nvdURL)")
+            }
+        }
+        for b in banners {
+            lines.append("Banner :\(b.port) \(b.protocolGuess)")
+            if !b.rawASCII.isEmpty { lines.append("  \(b.rawASCII)") }
+        }
+        for m in mqttMessages {
+            lines.append("MQTT \(m.topic): \(m.payloadASCII)")
+        }
+        return lines.joined(separator: "\n")
     }
 
     var hasMQTT: Bool {

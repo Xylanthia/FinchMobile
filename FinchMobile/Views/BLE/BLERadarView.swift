@@ -4,6 +4,7 @@ import UIKit
 struct BLERadarView: View {
     @Environment(AppModel.self) private var app
     @State private var selectedID: UUID?
+    @State private var copyBanner: String?
 
     private var selectedDevice: BLEDevice? {
         guard let selectedID else { return nil }
@@ -21,6 +22,14 @@ struct BLERadarView: View {
                             .font(FinchTheme.monoSmall)
                             .foregroundStyle(FinchTheme.danger)
                             .padding(8)
+                            .finchCopyable(err, label: "Copy error")
+                    }
+                    if let copyBanner {
+                        Text(copyBanner)
+                            .font(FinchTheme.monoSmall)
+                            .foregroundStyle(FinchTheme.cyan)
+                            .padding(6)
+                            .transition(.opacity)
                     }
                     List {
                         ForEach(app.bleScanner.sortedDevices) { device in
@@ -30,22 +39,59 @@ struct BLERadarView: View {
                                 BLEDeviceRow(device: device)
                             }
                             .listRowBackground(FinchTheme.surface)
+                            .contextMenu {
+                                Button {
+                                    flashCopy(device.copyText, note: "Device copied")
+                                } label: {
+                                    Label("Copy this device", systemImage: "doc.on.doc")
+                                }
+                                Button {
+                                    flashCopy(device.copyCVEsText, note: "CVEs copied")
+                                } label: {
+                                    Label("Copy CVEs", systemImage: "ladybug")
+                                }
+                                Button {
+                                    flashCopy(
+                                        "\(device.friendly.title)\n\(device.distanceLabel)\n\(device.signalLabel)",
+                                        note: "Distance copied"
+                                    )
+                                } label: {
+                                    Label("Copy distance", systemImage: "ruler")
+                                }
+                                Button {
+                                    flashCopy(device.identifier.uuidString, note: "ID copied")
+                                } label: {
+                                    Label("Copy ID", systemImage: "number")
+                                }
+                            }
                         }
                     }
                     .listStyle(.plain)
                     .scrollContentBackground(.hidden)
                 }
             }
-            .navigationTitle("BLE RADAR")
+            .navigationTitle("Nearby Bluetooth")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Clear") { app.bleScanner.clearDevices() }
+                }
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button {
+                        let all = app.bleScanner.sortedDevices.map(\.copyText)
+                            .joined(separator: "\n\n————\n\n")
+                        flashCopy(
+                            all.isEmpty ? "No devices yet" : all,
+                            note: all.isEmpty ? "Nothing to copy" : "All \(app.bleScanner.devices.count) devices copied"
+                        )
+                    } label: {
+                        Image(systemName: "doc.on.doc.fill")
+                    }
+                    .accessibilityLabel("Copy all results")
+
                     Text("\(app.bleScanner.devices.count)")
                         .font(FinchTheme.mono)
                         .foregroundStyle(FinchTheme.cyan)
-                }
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Clear") { app.bleScanner.clearDevices() }
                 }
             }
             .sheet(isPresented: Binding(
@@ -72,7 +118,7 @@ struct BLERadarView: View {
                 get: { app.bleScanner.continuousMode },
                 set: { app.bleScanner.toggleContinuous($0) }
             )) {
-                Text("Continuous Scan")
+                Text("Keep scanning")
                     .font(FinchTheme.mono)
             }
             .tint(FinchTheme.cyan)
@@ -84,6 +130,7 @@ struct BLERadarView: View {
                 Text(app.bleScanner.statusText)
                     .font(FinchTheme.monoSmall)
                     .foregroundStyle(FinchTheme.textSecondary)
+                    .finchCopyable(app.bleScanner.statusText)
                 Spacer()
                 Button(app.bleScanner.isScanning ? "Stop" : "Start") {
                     if app.bleScanner.isScanning {
@@ -94,68 +141,98 @@ struct BLERadarView: View {
                 }
                 .buttonStyle(FinchOutlineButtonStyle())
             }
-            Text("AllowDuplicates · GATT Connect/Read · TPMS / phones / wearables / beacons")
+            Text("Long-press any row to copy · clipboard button copies everything · distance is an RSSI estimate.")
                 .font(FinchTheme.monoSmall)
                 .foregroundStyle(FinchTheme.textSecondary)
         }
         .padding()
         .background(FinchTheme.surface)
     }
+
+    private func flashCopy(_ text: String, note: String) {
+        FinchCopy.set(text)
+        withAnimation { copyBanner = note }
+        Task {
+            try? await Task.sleep(nanoseconds: 1_400_000_000)
+            await MainActor.run {
+                withAnimation { copyBanner = nil }
+            }
+        }
+    }
 }
 
 struct BLEDeviceRow: View {
     let device: BLEDevice
 
+    private var identity: BLEFriendlyIdentity { device.friendly }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(device.shortUUID)
-                    .font(FinchTheme.mono)
-                    .foregroundStyle(FinchTheme.cyan)
-                Text(device.displayName)
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: identity.icon)
+                .font(.title3)
+                .foregroundStyle(FinchTheme.cyan)
+                .frame(width: 28, alignment: .center)
+                .padding(.top, 2)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(identity.title)
                     .font(FinchTheme.mono)
                     .foregroundStyle(FinchTheme.textPrimary)
                     .lineLimit(1)
-                Spacer()
-                if device.connectionState == .connected || device.connectionState == .discovering {
-                    Text("GATT")
+
+                Text(identity.category)
+                    .font(FinchTheme.monoSmall)
+                    .foregroundStyle(FinchTheme.cyan)
+
+                Text(identity.summary)
+                    .font(FinchTheme.monoSmall)
+                    .foregroundStyle(FinchTheme.textSecondary)
+                    .lineLimit(2)
+
+                Text(device.distanceLabel)
+                    .font(FinchTheme.monoSmall)
+                    .foregroundStyle(FinchTheme.warn)
+                    .lineLimit(1)
+
+                if !device.cves.isEmpty {
+                    Text(device.cves.prefix(3).map(\.cve).joined(separator: "  "))
                         .font(FinchTheme.monoSmall)
-                        .foregroundStyle(FinchTheme.cyan)
+                        .foregroundStyle(FinchTheme.danger)
+                        .lineLimit(1)
                 }
-                signalView
-                Text("\(device.rssi) dBm")
-                    .font(FinchTheme.monoSmall)
-                    .foregroundStyle(FinchTheme.textSecondary)
-            }
-            if let mfg = device.manufacturerName ?? device.manufacturerCompanyId.map({ String(format: "0x%04X", $0) }) {
-                Text("MFG \(mfg)  \(device.manufacturerDataHex ?? "")")
-                    .font(FinchTheme.monoSmall)
-                    .foregroundStyle(FinchTheme.textSecondary)
-                    .lineLimit(1)
-            }
-            if !device.serviceUUIDs.isEmpty {
-                Text(device.serviceUUIDs.joined(separator: " "))
-                    .font(FinchTheme.monoSmall)
-                    .foregroundStyle(FinchTheme.cyan.opacity(0.7))
-                    .lineLimit(1)
-            }
-            Text(relative(device.lastSeen))
+
+                HStack(spacing: 8) {
+                    Text(device.distanceShortLabel)
+                        .foregroundStyle(FinchTheme.warn)
+                    Text("·")
+                    Text(device.signalLabel)
+                    Text("·")
+                    Text(relative(device.lastSeen))
+                    if !device.cves.isEmpty {
+                        Text("·")
+                        Text("CVE \(device.cves.count)")
+                            .foregroundStyle(FinchTheme.danger)
+                    }
+                    if device.connectionState == .connected || device.connectionState == .discovering {
+                        Text("·")
+                        Text("Open")
+                            .foregroundStyle(FinchTheme.cyan)
+                    }
+                }
                 .font(FinchTheme.monoSmall)
                 .foregroundStyle(FinchTheme.textSecondary)
+            }
+            Spacer(minLength: 0)
+            Image(systemName: signalIcon)
+                .foregroundStyle(FinchTheme.cyan)
+                .font(.caption)
         }
-        .padding(.vertical, 2)
-    }
-
-    private var signalView: some View {
-        Image(systemName: signalIcon)
-            .foregroundStyle(FinchTheme.cyan)
-            .font(.caption)
+        .padding(.vertical, 4)
     }
 
     private var signalIcon: String {
         switch device.signalBars {
-        case 4: return "wifi"
-        case 3: return "wifi"
+        case 4, 3: return "wifi"
         case 2: return "wifi.exclamationmark"
         case 1: return "wifi.slash"
         default: return "antenna.radiowaves.left.and.right.slash"
@@ -174,6 +251,8 @@ struct BLEDeviceDetailSheet: View {
     let deviceID: UUID
     @Environment(AppModel.self) private var app
     @Environment(\.dismiss) private var dismiss
+    @State private var showTechnical = false
+    @State private var copyBanner: String?
 
     private var device: BLEDevice? {
         app.bleScanner.devices[deviceID]
@@ -183,43 +262,117 @@ struct BLEDeviceDetailSheet: View {
         NavigationStack {
             Group {
                 if let device {
+                    let identity = device.friendly
                     List {
-                        Section("Device") {
-                            row("UUID", device.identifier.uuidString)
-                            row("Name", device.displayName)
-                            row("RSSI", "\(device.rssi) dBm")
-                            row("Connectable", device.connectable ? "yes" : "no")
-                            row("State", device.connectionState.rawValue)
-                            if let tx = device.txPower { row("Tx Power", "\(tx)") }
+                        Section {
+                            HStack(spacing: 12) {
+                                Image(systemName: identity.icon)
+                                    .font(.largeTitle)
+                                    .foregroundStyle(FinchTheme.cyan)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(identity.title)
+                                        .font(FinchTheme.mono)
+                                        .foregroundStyle(FinchTheme.textPrimary)
+                                        .finchCopyable(identity.title)
+                                    Text(identity.category)
+                                        .font(FinchTheme.monoSmall)
+                                        .foregroundStyle(FinchTheme.cyan)
+                                        .finchCopyable(identity.category)
+                                }
+                            }
+                            .padding(.vertical, 4)
+
+                            Text(identity.summary)
+                                .font(FinchTheme.monoSmall)
+                                .foregroundStyle(FinchTheme.textSecondary)
+                                .finchCopyable(identity.summary)
+
+                            copyRow("Distance", device.distanceLabel)
+                            copyRow("Signal", "\(device.signalLabel) (\(device.rssi) dBm)")
+                            copyRow("Status", device.connectionLabel)
+                            copyRow("Connection", device.connectabilityLabel)
+                            if let name = device.broadcastName {
+                                copyRow("Broadcast name", name)
+                            }
+                            if let brand = device.manufacturerName {
+                                copyRow("Brand hint", brand)
+                            }
+                            if !identity.serviceLabels.isEmpty {
+                                copyRow("Advertises", identity.serviceLabels.joined(separator: ", "))
+                            }
                             if let err = device.gattError {
                                 Text(err)
                                     .font(FinchTheme.monoSmall)
                                     .foregroundStyle(FinchTheme.danger)
+                                    .finchCopyable(err)
+                            }
+                        } header: {
+                            Text("What is this?")
+                        }
+
+                        if !device.cves.isEmpty {
+                            Section("CVEs for this BLE finding (\(device.cves.count))") {
+                                ForEach(device.cves) { cve in
+                                    let block = "\(cve.cve) — \(cve.title)\n\(cve.why)\n\(cve.nvdURL)"
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        HStack {
+                                            Text(cve.cve)
+                                                .font(FinchTheme.mono)
+                                                .foregroundStyle(FinchTheme.danger)
+                                            Text(cve.confidence)
+                                                .font(FinchTheme.monoSmall)
+                                                .foregroundStyle(FinchTheme.textSecondary)
+                                        }
+                                        Text(cve.title)
+                                            .font(FinchTheme.monoSmall)
+                                            .foregroundStyle(FinchTheme.textPrimary)
+                                        Text(cve.why)
+                                            .font(FinchTheme.monoSmall)
+                                            .foregroundStyle(FinchTheme.textSecondary)
+                                        Text(cve.nvdURL)
+                                            .font(FinchTheme.monoSmall)
+                                            .foregroundStyle(FinchTheme.cyan.opacity(0.85))
+                                    }
+                                    .padding(.vertical, 2)
+                                    .finchCopyable(block, label: "Copy CVE")
+                                    .contextMenu {
+                                        Button { flash("CVE copied"); FinchCopy.set(block) } label: {
+                                            Label("Copy CVE", systemImage: "doc.on.doc")
+                                        }
+                                        Button { flash("CVE ID copied"); FinchCopy.set(cve.cve) } label: {
+                                            Label("Copy ID only", systemImage: "number")
+                                        }
+                                        Button { flash("NVD link copied"); FinchCopy.set(cve.nvdURL) } label: {
+                                            Label("Copy NVD link", systemImage: "link")
+                                        }
+                                    }
+                                }
+                                Button("Copy all CVEs") {
+                                    flash("All CVEs copied")
+                                    FinchCopy.set(device.copyCVEsText)
+                                }
                             }
                         }
-                        Section("Manufacturer") {
-                            row("Company", device.manufacturerName ?? device.manufacturerCompanyId.map { String(format: "0x%04X", $0) } ?? "—")
-                            row("Data", device.manufacturerDataHex ?? "—")
-                        }
-                        Section("Advertised Services") {
-                            if device.serviceUUIDs.isEmpty {
-                                Text("None in advertisement")
-                            } else {
-                                ForEach(device.serviceUUIDs, id: \.self) { Text($0).font(FinchTheme.monoSmall) }
-                            }
-                        }
+
                         if !device.gattServices.isEmpty {
-                            Section("GATT Map") {
+                            Section("What's inside") {
                                 ForEach(device.gattServices) { svc in
+                                    let svcLabel = BLEServiceNames.label(forUUID: svc.uuid)
                                     VStack(alignment: .leading, spacing: 6) {
-                                        Text(svc.uuid)
+                                        Text(svcLabel)
                                             .font(FinchTheme.mono)
                                             .foregroundStyle(FinchTheme.cyan)
+                                            .finchCopyable(svcLabel)
                                         ForEach(svc.characteristics) { ch in
+                                            let chLabel = BLEServiceNames.label(forUUID: ch.uuid)
+                                            let valueText = ch.valueUTF8
+                                                ?? (ch.valueHex.map { simpleValueHint(hex: $0, utf: nil) })
+                                                ?? ""
                                             VStack(alignment: .leading, spacing: 2) {
                                                 HStack {
-                                                    Text(ch.uuid)
+                                                    Text(chLabel)
                                                         .font(FinchTheme.monoSmall)
+                                                        .finchCopyable(chLabel)
                                                     Spacer()
                                                     if ch.properties.contains("read") {
                                                         Button("Read") {
@@ -232,20 +385,14 @@ struct BLEDeviceDetailSheet: View {
                                                         .foregroundStyle(FinchTheme.cyan)
                                                     }
                                                 }
-                                                Text(ch.properties.joined(separator: " · "))
+                                                Text(BLEPropertyLabels.friendly(ch.properties))
                                                     .font(FinchTheme.monoSmall)
                                                     .foregroundStyle(FinchTheme.textSecondary)
-                                                if let hex = ch.valueHex, !hex.isEmpty {
-                                                    Text(hex)
+                                                if !valueText.isEmpty {
+                                                    Text(valueText)
                                                         .font(FinchTheme.monoSmall)
                                                         .foregroundStyle(FinchTheme.textPrimary)
-                                                        .textSelection(.enabled)
-                                                }
-                                                if let utf = ch.valueUTF8, !utf.isEmpty {
-                                                    Text(utf)
-                                                        .font(FinchTheme.monoSmall)
-                                                        .foregroundStyle(FinchTheme.cyan.opacity(0.85))
-                                                        .textSelection(.enabled)
+                                                        .finchCopyable(valueText, label: "Copy value")
                                                 }
                                             }
                                             .padding(.leading, 4)
@@ -255,12 +402,14 @@ struct BLEDeviceDetailSheet: View {
                                 }
                             }
                         }
-                        Section("Raw Advertisement") {
-                            Text(device.advertisementHex)
-                                .font(FinchTheme.monoSmall)
-                                .textSelection(.enabled)
-                        }
+
                         Section {
+                            Button("Copy everything") {
+                                flash("Full device report copied")
+                                FinchCopy.set(device.copyText)
+                            }
+                            .foregroundStyle(FinchTheme.cyan)
+
                             if device.connectionState == .connected
                                 || device.connectionState == .discovering
                                 || device.connectionState == .connecting {
@@ -268,60 +417,114 @@ struct BLEDeviceDetailSheet: View {
                                     app.bleScanner.disconnect()
                                 }
                             } else {
-                                Button(device.connectable ? "Connect + Map GATT" : "Try Connect (ad says non-connectable)") {
+                                Button(device.connectable
+                                       ? "Open device for more detail"
+                                       : "Try open (may not work)") {
                                     app.bleScanner.connect(to: device.identifier)
                                 }
                                 .foregroundStyle(FinchTheme.cyan)
                             }
-                            Button("Copy UUID") {
-                                UIPasteboard.general.string = device.identifier.uuidString
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            ShareLink(item: device.copyText) {
+                                Label("Share summary", systemImage: "square.and.arrow.up")
                             }
-                            ShareLink(item: exportText(device)) {
-                                Label("Export", systemImage: "square.and.arrow.up")
+                        }
+
+                        Section {
+                            Toggle("Show technical details", isOn: $showTechnical)
+                                .font(FinchTheme.monoSmall)
+                            if showTechnical {
+                                copyRow("ID", device.identifier.uuidString)
+                                copyRow(
+                                    "Company ID",
+                                    device.manufacturerCompanyId.map { String(format: "0x%04X", $0) } ?? "—"
+                                )
+                                copyRow("Manufacturer data", device.manufacturerDataHex ?? "—")
+                                if !device.serviceUUIDs.isEmpty {
+                                    ForEach(device.serviceUUIDs, id: \.self) { uuid in
+                                        Text(uuid)
+                                            .font(FinchTheme.monoSmall)
+                                            .finchCopyable(uuid)
+                                    }
+                                }
+                                Text(device.advertisementHex)
+                                    .font(FinchTheme.monoSmall)
+                                    .finchCopyable(device.advertisementHex, label: "Copy advertisement")
                             }
+                        } header: {
+                            Text("Advanced")
+                        } footer: {
+                            Text("Double-tap or long-press any value to copy. Distance is estimated from signal strength.")
                         }
                     }
                     .scrollContentBackground(.hidden)
                     .background(FinchTheme.background)
-                    .navigationTitle(device.shortUUID)
+                    .navigationTitle(identity.category)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Close") { dismiss() }
+                        }
+                        ToolbarItem(placement: .primaryAction) {
+                            Button {
+                                flash("Copied")
+                                FinchCopy.set(device.copyText)
+                            } label: {
+                                Image(systemName: "doc.on.doc")
+                            }
+                        }
+                    }
+                    .overlay(alignment: .bottom) {
+                        if let copyBanner {
+                            Text(copyBanner)
+                                .font(FinchTheme.monoSmall)
+                                .padding(10)
+                                .background(FinchTheme.surface)
+                                .foregroundStyle(FinchTheme.cyan)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .padding()
+                        }
+                    }
                 } else {
                     Text("Device gone")
                         .foregroundStyle(FinchTheme.textSecondary)
                 }
             }
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
-                }
-            }
         }
     }
 
-    private func exportText(_ device: BLEDevice) -> String {
-        var lines = [
-            "UUID: \(device.identifier.uuidString)",
-            "Name: \(device.displayName)",
-            "RSSI: \(device.rssi)",
-            "State: \(device.connectionState.rawValue)",
-            "Manufacturer: \(device.manufacturerName ?? "—") \(device.manufacturerDataHex ?? "")",
-            "Services: \(device.serviceUUIDs.joined(separator: ", "))",
-            "Advertisement: \(device.advertisementHex)"
-        ]
-        for svc in device.gattServices {
-            lines.append("GATT Service \(svc.uuid)")
-            for ch in svc.characteristics {
-                lines.append("  Char \(ch.uuid) [\(ch.properties.joined(separator: ","))] hex=\(ch.valueHex ?? "") utf=\(ch.valueUTF8 ?? "")")
-            }
+    private func flash(_ note: String) {
+        withAnimation { copyBanner = note }
+        Task {
+            try? await Task.sleep(nanoseconds: 1_200_000_000)
+            await MainActor.run { withAnimation { copyBanner = nil } }
         }
-        return lines.joined(separator: "\n")
     }
 
-    private func row(_ k: String, _ v: String) -> some View {
-        HStack {
+    private func simpleValueHint(hex: String, utf: String?) -> String {
+        if let utf, !utf.isEmpty { return utf }
+        let bytes = hex.split(separator: " ").compactMap { UInt8($0, radix: 16) }
+        if bytes.count == 1 {
+            return "Value: \(bytes[0])"
+        }
+        if bytes.count == 2 {
+            let v = Int(bytes[0]) | (Int(bytes[1]) << 8)
+            return "Value: \(v)"
+        }
+        return "Raw data: \(hex)"
+    }
+
+    private func copyRow(_ k: String, _ v: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
             Text(k).font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary)
-            Spacer()
-            Text(v).font(FinchTheme.mono).textSelection(.enabled)
+            Text(v).font(FinchTheme.mono).finchCopyable(v, label: "Copy \(k)")
+        }
+        .padding(.vertical, 2)
+        .contextMenu {
+            Button { FinchCopy.set(v) } label: {
+                Label("Copy \(k)", systemImage: "doc.on.doc")
+            }
+            Button { FinchCopy.set("\(k): \(v)") } label: {
+                Label("Copy as \(k): value", systemImage: "text.append")
+            }
         }
     }
 }

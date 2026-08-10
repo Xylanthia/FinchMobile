@@ -28,6 +28,26 @@ struct LatticeView: View {
                                 HostRow(host: host)
                             }
                             .listRowBackground(FinchTheme.surface)
+                            .contextMenu {
+                                Button {
+                                    FinchCopy.set(host.copyText)
+                                } label: {
+                                    Label("Copy this host", systemImage: "doc.on.doc")
+                                }
+                                Button {
+                                    FinchCopy.set(host.ip)
+                                } label: {
+                                    Label("Copy IP", systemImage: "network")
+                                }
+                                let cves = Array(Set(host.offenseHits.flatMap { $0.cves.map(\.cve) })).sorted()
+                                if !cves.isEmpty {
+                                    Button {
+                                        FinchCopy.set(cves.joined(separator: "\n"))
+                                    } label: {
+                                        Label("Copy CVEs", systemImage: "ladybug")
+                                    }
+                                }
+                            }
                         }
                     }
                     .listStyle(.plain)
@@ -69,6 +89,14 @@ struct LatticeView: View {
                     .buttonStyle(FinchOutlineButtonStyle())
                 Button("SENTINEL", action: onExport)
                     .buttonStyle(FinchOutlineButtonStyle())
+                Button {
+                    let all = report.hosts.map(\.copyText).joined(separator: "\n\n————\n\n")
+                    FinchCopy.set(all.isEmpty ? "No hosts" : all)
+                } label: {
+                    Image(systemName: "doc.on.doc.fill")
+                }
+                .buttonStyle(FinchOutlineButtonStyle())
+                .accessibilityLabel("Copy all hosts")
                 Spacer()
                 Text(report.phase.uppercased())
                     .font(FinchTheme.monoSmall)
@@ -111,9 +139,10 @@ struct HostRow: View {
                     .foregroundStyle(FinchTheme.textPrimary)
                 Spacer()
                 if !host.offenseHits.isEmpty {
-                    Text("VULN \(host.offenseHits.count)")
+                    let cveN = host.offenseHits.reduce(0) { $0 + $1.cves.count }
+                    Text(cveN > 0 ? "CVE \(cveN)" : "VULN \(host.offenseHits.count)")
                         .font(FinchTheme.monoSmall)
-                        .foregroundStyle(FinchTheme.warn)
+                        .foregroundStyle(FinchTheme.danger)
                 }
                 if !host.mqttMessages.isEmpty {
                     Text("MQTT \(host.mqttMessages.count)")
@@ -184,9 +213,11 @@ struct HostDetailView: View {
             Section("Open Ports") {
                 Text("TCP: " + host.openPorts.map(String.init).joined(separator: ", "))
                     .font(FinchTheme.mono)
+                    .finchCopyable(host.openPorts.map(String.init).joined(separator: ", "))
                 if !host.openUDPPorts.isEmpty {
                     Text("UDP: " + host.openUDPPorts.map(String.init).joined(separator: ", "))
                         .font(FinchTheme.mono)
+                        .finchCopyable(host.openUDPPorts.map(String.init).joined(separator: ", "))
                 }
             }
             Section("Services") {
@@ -194,6 +225,7 @@ struct HostDetailView: View {
                     Text("None discovered").foregroundStyle(.secondary)
                 } else {
                     ForEach(host.services) { svc in
+                        let line = "\(svc.name) · \(svc.type) · \(svc.host):\(svc.port)"
                         VStack(alignment: .leading) {
                             Text("\(svc.name) · \(svc.type)")
                                 .font(FinchTheme.monoSmall)
@@ -201,34 +233,80 @@ struct HostDetailView: View {
                                 .font(FinchTheme.monoSmall)
                                 .foregroundStyle(FinchTheme.cyan)
                         }
+                        .finchCopyable(line)
                     }
                 }
             }
             if !host.offenseHits.isEmpty {
-                Section("Offense (\(host.offenseHits.count))") {
+                Section("Vulns / CVEs (\(host.offenseHits.count))") {
                     ForEach(host.offenseHits) { hit in
-                        VStack(alignment: .leading, spacing: 4) {
+                        let hitBlock: String = {
+                            var lines = ["[\(hit.severity)] \(hit.summary) · \(hit.proto)/\(hit.port)", hit.detail]
+                            for cve in hit.cves {
+                                lines.append("\(cve.cve) — \(cve.title)")
+                                lines.append(cve.why)
+                                lines.append(cve.nvdURL)
+                            }
+                            return lines.joined(separator: "\n")
+                        }()
+                        VStack(alignment: .leading, spacing: 6) {
                             HStack {
                                 Text(hit.severity)
                                     .font(FinchTheme.monoSmall)
-                                    .foregroundStyle(hit.severity == "HIGH" ? FinchTheme.danger : FinchTheme.warn)
-                                Text(hit.source)
+                                    .foregroundStyle(
+                                        hit.severity == "CRITICAL" || hit.severity == "HIGH"
+                                        ? FinchTheme.danger
+                                        : FinchTheme.warn
+                                    )
+                                Text(plainSource(hit.source))
                                     .font(FinchTheme.monoSmall)
                                     .foregroundStyle(FinchTheme.cyan)
                                 Spacer()
-                                Text("\(hit.proto)/\(hit.port)")
+                                Text("\(hit.proto.uppercased()) \(hit.port)")
                                     .font(FinchTheme.monoSmall)
                                     .foregroundStyle(FinchTheme.textSecondary)
                             }
                             Text(hit.summary)
                                 .font(FinchTheme.mono)
+                                .finchCopyable(hit.summary)
+                            if !hit.cves.isEmpty {
+                                ForEach(hit.cves) { cve in
+                                    let block = "\(cve.cve) — \(cve.title)\n\(cve.why)\n\(cve.nvdURL)"
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        HStack {
+                                            Text(cve.cve)
+                                                .font(FinchTheme.mono)
+                                                .foregroundStyle(FinchTheme.danger)
+                                            Text(cve.confidence)
+                                                .font(FinchTheme.monoSmall)
+                                                .foregroundStyle(FinchTheme.textSecondary)
+                                        }
+                                        Text(cve.title)
+                                            .font(FinchTheme.monoSmall)
+                                            .foregroundStyle(FinchTheme.textPrimary)
+                                        Text(cve.why)
+                                            .font(FinchTheme.monoSmall)
+                                            .foregroundStyle(FinchTheme.textSecondary)
+                                        Text(cve.nvdURL)
+                                            .font(FinchTheme.monoSmall)
+                                            .foregroundStyle(FinchTheme.cyan.opacity(0.85))
+                                    }
+                                    .padding(.vertical, 2)
+                                    .finchCopyable(block, label: "Copy CVE")
+                                }
+                            }
                             Text(hit.detail)
                                 .font(FinchTheme.monoSmall)
                                 .foregroundStyle(FinchTheme.textSecondary)
-                                .textSelection(.enabled)
+                                .finchCopyable(hit.detail)
                                 .lineLimit(6)
                         }
                         .padding(.vertical, 2)
+                        .contextMenu {
+                            Button { FinchCopy.set(hitBlock) } label: {
+                                Label("Copy this finding", systemImage: "doc.on.doc")
+                            }
+                        }
                     }
                 }
             }
@@ -237,14 +315,15 @@ struct HostDetailView: View {
                     Text("Run Deep Scan or IoT Vulns").foregroundStyle(.secondary)
                 } else {
                     ForEach(host.banners) { banner in
+                        let text = banner.rawASCII.isEmpty ? "(no banner)" : banner.rawASCII
                         VStack(alignment: .leading, spacing: 4) {
                             Text(":\(banner.port) \(banner.protocolGuess)")
                                 .font(FinchTheme.mono)
                                 .foregroundStyle(FinchTheme.cyan)
-                            Text(banner.rawASCII.isEmpty ? "(no banner)" : banner.rawASCII)
+                            Text(text)
                                 .font(FinchTheme.monoSmall)
                                 .foregroundStyle(FinchTheme.textSecondary)
-                                .textSelection(.enabled)
+                                .finchCopyable(text)
                         }
                     }
                 }
@@ -259,12 +338,17 @@ struct HostDetailView: View {
                             Text(msg.payloadASCII)
                                 .font(FinchTheme.monoSmall)
                                 .foregroundStyle(FinchTheme.textSecondary)
-                                .lineLimit(4)
+                                .lineLimit(6)
+                                .finchCopyable("\(msg.topic)\n\(msg.payloadASCII)")
                         }
                     }
                 }
             }
             Section {
+                Button("Copy everything") {
+                    FinchCopy.set(host.copyText)
+                }
+                .foregroundStyle(FinchTheme.cyan)
                 Button("Deep Scan", action: onDeepScan)
                 Button("IoT Vulns", action: onIoTVulns)
                     .foregroundStyle(FinchTheme.cyan)
@@ -279,20 +363,45 @@ struct HostDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
+    private func plainSource(_ source: String) -> String {
+        switch source {
+        case "offense.redis": return "Redis"
+        case "offense.memcached": return "Memcached"
+        case "offense.mongodb": return "MongoDB"
+        case "offense.mqtt": return "MQTT"
+        case "offense.snmp": return "SNMP"
+        case "offense.coap": return "CoAP"
+        case "offense.telnet": return "Telnet"
+        case "offense.ftp": return "FTP"
+        case "offense.rtsp": return "Camera / RTSP"
+        case "offense.onvif": return "ONVIF camera"
+        case "offense.http": return "Web service"
+        case "offense.ports": return "Open service"
+        case "offense.udp": return "UDP service"
+        case "cve.fingerprint": return "Device CVEs"
+        case "cve.banner": return "Banner CVEs"
+        default: return source.replacingOccurrences(of: "offense.", with: "")
+        }
+    }
+
     private func latticeRow(_ key: String, _ value: String) -> some View {
-        HStack {
+        VStack(alignment: .leading, spacing: 2) {
             Text(key)
                 .font(FinchTheme.monoSmall)
                 .foregroundStyle(FinchTheme.textSecondary)
-            Spacer()
             Text(value)
                 .font(FinchTheme.mono)
                 .foregroundStyle(FinchTheme.textPrimary)
-                .textSelection(.enabled)
-                .onTapGesture {
-                    UIPasteboard.general.string = value
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                }
+                .finchCopyable(value, label: "Copy \(key)")
+        }
+        .padding(.vertical, 2)
+        .contextMenu {
+            Button { FinchCopy.set(value) } label: {
+                Label("Copy \(key)", systemImage: "doc.on.doc")
+            }
+            Button { FinchCopy.set("\(key): \(value)") } label: {
+                Label("Copy labeled", systemImage: "text.append")
+            }
         }
     }
 }

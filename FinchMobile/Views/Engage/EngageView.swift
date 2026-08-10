@@ -68,7 +68,7 @@ struct EngageView: View {
 
     private var engageBar: some View {
         HStack(spacing: 8) {
-            TextField("CIDR · private IP · scan ble", text: Bindable(app).engageQuery)
+            TextField("Wi‑Fi range · IP · nearby bluetooth", text: Bindable(app).engageQuery)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .font(FinchTheme.mono)
@@ -116,7 +116,7 @@ struct EngageView: View {
             }
             .buttonStyle(FinchOutlineButtonStyle())
 
-            Button("BLE Radar") {
+            Button("Nearby Bluetooth") {
                 app.engageQuery = "scan ble"
                 app.selectedPipeline = .ble
                 engage()
@@ -133,11 +133,11 @@ struct EngageView: View {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         switch kind {
         case .ble:
-            app.statusMessage = "Dispatch → BLE Radar"
+            app.statusMessage = "Opening Nearby Bluetooth…"
             app.bleScanner.continuousMode = true
             app.bleScanner.start()
             app.reportContainer.bleSnapshot = app.bleScanner.sortedDevices
-            app.reportContainer.title = "BLE Radar"
+            app.reportContainer.title = "Nearby Bluetooth"
         case .glassFabric, .auto:
             app.statusMessage = "Dispatch → Glass Fabric"
             app.glassPipeline.engage(query: app.engageQuery.isEmpty ? "scan my network" : app.engageQuery)

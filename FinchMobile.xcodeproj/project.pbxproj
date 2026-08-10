@@ -21,6 +21,7 @@
 		F4DAD938F19647C0966ABB1F /* SubnetSweepService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 405C3CB29C9A44C88BA41D59 /* SubnetSweepService.swift */; };
 		A91C2E4F8B3D4A1E9F0C6D27 /* SSDPDiscoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B82D1F5A9C4E4B2F8A1D7E36 /* SSDPDiscoveryService.swift */; };
 		C03E3F609C4E5B2A0A1E8F47 /* OffenseProbeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D14F406A0D5F5C3B9B2E8A48 /* OffenseProbeService.swift */; };
+		A1B2C3D4E5F60718293A4B5C /* CVEEnricher.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5061728394A5B6C /* CVEEnricher.swift */; };
 		A0CCF2C967CE465397CE2159 /* NetworkInterfaceHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 432A823978444274B5054E66 /* NetworkInterfaceHelper.swift */; };
 		63AFAD964CBB41779F15ACD3 /* VaultManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DF325136CF4B9A9A6D0E38 /* VaultManager.swift */; };
 		532316BDD44D4B5696385458 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB4115DBEE143DCA142374A /* DesignSystem.swift */; };
@@ -52,6 +53,7 @@
 		405C3CB29C9A44C88BA41D59 /* SubnetSweepService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubnetSweepService.swift; sourceTree = "<group>"; };
 		B82D1F5A9C4E4B2F8A1D7E36 /* SSDPDiscoveryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSDPDiscoveryService.swift; sourceTree = "<group>"; };
 		D14F406A0D5F5C3B9B2E8A48 /* OffenseProbeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OffenseProbeService.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5061728394A5B6C /* CVEEnricher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CVEEnricher.swift; sourceTree = "<group>"; };
 		432A823978444274B5054E66 /* NetworkInterfaceHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInterfaceHelper.swift; sourceTree = "<group>"; };
 		10DF325136CF4B9A9A6D0E38 /* VaultManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultManager.swift; sourceTree = "<group>"; };
 		2AB4115DBEE143DCA142374A /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
@@ -177,6 +179,7 @@
 				5B95DEB8756E4F3EB725A2EE /* MDNSBrowserService.swift */,
 				BEAC12AE56624DAD8C4A5EA9 /* MQTTClient.swift */,
 				D14F406A0D5F5C3B9B2E8A48 /* OffenseProbeService.swift */,
+				B1C2D3E4F5061728394A5B6C /* CVEEnricher.swift */,
 				0865E44F2AC14388AFE73C8A /* SentinelExporter.swift */,
 				B82D1F5A9C4E4B2F8A1D7E36 /* SSDPDiscoveryService.swift */,
 				405C3CB29C9A44C88BA41D59 /* SubnetSweepService.swift */,
@@ -316,6 +319,7 @@
 				71E2344F4A90430F8F695742 /* MDNSBrowserService.swift in Sources */,
 				F7653576DFB5448DAB2B3A40 /* MQTTClient.swift in Sources */,
 				C03E3F609C4E5B2A0A1E8F47 /* OffenseProbeService.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5C /* CVEEnricher.swift in Sources */,
 				02169D17418D4151B068E206 /* SentinelExporter.swift in Sources */,
 				A91C2E4F8B3D4A1E9F0C6D27 /* SSDPDiscoveryService.swift in Sources */,
 				F4DAD938F19647C0966ABB1F /* SubnetSweepService.swift in Sources */,

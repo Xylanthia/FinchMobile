@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum FinchTheme {
     static let background = Color(red: 13 / 255, green: 13 / 255, blue: 13 / 255)
@@ -12,6 +13,14 @@ enum FinchTheme {
     static let mono: Font = .system(.body, design: .monospaced)
     static let monoSmall: Font = .system(.caption, design: .monospaced)
     static let monoTitle: Font = .system(.title3, design: .monospaced).weight(.semibold)
+}
+
+enum FinchCopy {
+    static func set(_ string: String) {
+        guard !string.isEmpty else { return }
+        UIPasteboard.general.string = string
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    }
 }
 
 struct GlowBorder: ViewModifier {
@@ -31,6 +40,22 @@ struct GlowBorder: ViewModifier {
 extension View {
     func glowBorder(active: Bool, cornerRadius: CGFloat = 10) -> some View {
         modifier(GlowBorder(active: active, cornerRadius: cornerRadius))
+    }
+
+    /// Selectable text + long-press Copy + double-tap Copy.
+    func finchCopyable(_ text: String, label: String = "Copy") -> some View {
+        self
+            .textSelection(.enabled)
+            .contextMenu {
+                Button {
+                    FinchCopy.set(text)
+                } label: {
+                    Label(label, systemImage: "doc.on.doc")
+                }
+            }
+            .onTapGesture(count: 2) {
+                FinchCopy.set(text)
+            }
     }
 }
 

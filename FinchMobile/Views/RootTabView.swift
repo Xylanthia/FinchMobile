@@ -10,7 +10,7 @@ struct RootTabView: View {
                 .tabItem { Label("Engage", systemImage: "dot.radiowaves.left.and.right") }
 
             BLERadarView()
-                .tabItem { Label("BLE Radar", systemImage: "antenna.radiowaves.left.and.right") }
+                .tabItem { Label("Nearby", systemImage: "antenna.radiowaves.left.and.right") }
 
             VaultView()
                 .tabItem { Label("Vault", systemImage: "lock.square.stack") }

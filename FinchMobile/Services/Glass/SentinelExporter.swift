@@ -31,11 +31,13 @@ enum SentinelExporter {
     }
 
     static func csv(from report: GlassFabricReport) -> String {
-        var lines: [String] = ["ip,mac,vendor,hostname,open_ports,fingerprint,services"]
+        var lines: [String] = ["ip,mac,vendor,hostname,open_ports,fingerprint,services,cves,vuln_summaries"]
         for h in report.hosts {
             let ports = h.openPorts.map(String.init).joined(separator: ";")
             let fp = h.fingerprint.map { "\($0.vendor) \($0.model) (\($0.confidence))" } ?? ""
             let svc = h.services.map(\.type).joined(separator: ";")
+            let cves = Array(Set(h.offenseHits.flatMap { $0.cves.map(\.cve) })).sorted().joined(separator: ";")
+            let summaries = h.offenseHits.map(\.summary).joined(separator: " | ")
             lines.append([
                 h.ip,
                 h.mac ?? "",
@@ -43,7 +45,9 @@ enum SentinelExporter {
                 csvEscape(h.hostname ?? ""),
                 ports,
                 csvEscape(fp),
-                csvEscape(svc)
+                csvEscape(svc),
+                csvEscape(cves),
+                csvEscape(summaries)
             ].joined(separator: ","))
         }
         return lines.joined(separator: "\n")
