@@ -19,11 +19,14 @@ Standalone iOS 17+ app for **authorized** on-device BLE radar and local-network 
 - Physical iPhone (BLE + local network scanning do not work fully in Simulator)
 - Authorization to scan the target LAN / RF environment
 
-## Open & Build (Mac)
+## Open & Build (Mac / MacinCloud)
+
+**Cloud Mac one-liner path:** see **[MAC_CLOUD_SETUP.md](MAC_CLOUD_SETUP.md)**  
+Repo: https://github.com/rockstars4nny-hub/FinchMobile
 
 1. Open `FinchMobile.xcodeproj` in Xcode 15+.
 2. **Signing & Capabilities** → choose your Apple ID Team.
-3. Select your **physical iPhone** → Run (`Cmd+R`).
+3. Select your **physical iPhone** → Run (`Cmd+R`), or Archive → export `.ipa` for Sideloadly.
 4. Trust the developer cert on the phone: **Settings → General → VPN & Device Management**.
 
 ## Windows PC → iPhone

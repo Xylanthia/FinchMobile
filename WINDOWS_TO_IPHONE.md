@@ -19,18 +19,16 @@ Paid Apple Developer ($99/yr) is optional — required for TestFlight / long-liv
 
 Services: [MacinCloud](https://www.macincloud.com/), [MacStadium](https://www.macstadium.com/), [AWS EC2 Mac](https://aws.amazon.com/ec2/instance-types/mac/), etc.
 
-1. On your Dell, zip or push this folder to GitHub:
-   ```powershell
-   cd C:\path\to\FinchMobile
-   git init
-   git add .
-   git commit -m "Finch Mobile Glass"
-   # create a GitHub repo, then:
-   git remote add origin https://github.com/YOU/FinchMobile.git
-   git push -u origin main
+1. Source is already on GitHub (private): https://github.com/rockstars4nny-hub/FinchMobile  
+   Full MacinCloud steps: **[MAC_CLOUD_SETUP.md](MAC_CLOUD_SETUP.md)**
+2. On the cloud Mac Terminal:
+   ```bash
+   cd ~/Documents
+   git clone https://github.com/rockstars4nny-hub/FinchMobile.git
+   cd FinchMobile
+   open FinchMobile.xcodeproj
    ```
-2. On the cloud Mac: install Xcode from the App Store, sign in with your Apple ID.
-3. `git clone` your repo → open `FinchMobile.xcodeproj`.
+3. In Xcode: sign in with your Apple ID under **Signing & Capabilities**.
 4. In Xcode: **Signing & Capabilities** → Team = your Personal Team / Developer account.
 5. Plug in the iPhone (or use network debugging) → select your phone as the run destination → **Run** (▶).
 6. On the iPhone: **Settings → General → VPN & Device Management** → trust your developer certificate.
