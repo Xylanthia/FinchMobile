@@ -83,7 +83,7 @@ enum BannerGrabber {
 
         switch family {
         case "http", "home-assistant", "nodered", "elasticsearch":
-            let req = "HEAD / HTTP/1.0\r\nHost: \(host)\r\nUser-Agent: FinchMobile/1.1\r\nConnection: close\r\n\r\n"
+            let req = "HEAD / HTTP/1.0\r\nHost: \(host)\r\nUser-Agent: FinchMobile/2.0\r\nConnection: close\r\n\r\n"
             send = Data(req.utf8)
             timeout = 2.5
         case "rtsp", "dahua", "hikvision-dvr":

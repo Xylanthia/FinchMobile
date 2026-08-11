@@ -47,7 +47,7 @@ struct EngageView: View {
                 }
                 .padding(.top, 8)
             }
-            .navigationTitle("FINCH · GLASS 1.1")
+            .navigationTitle("FINCH · GLASS 2.0")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

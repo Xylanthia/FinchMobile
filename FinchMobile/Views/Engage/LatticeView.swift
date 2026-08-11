@@ -113,7 +113,7 @@ struct LatticeView: View {
             Image(systemName: "network")
                 .font(.system(size: 40))
                 .foregroundStyle(FinchTheme.cyan.opacity(0.6))
-            Text("GLASS FABRIC · 1.1")
+            Text("GLASS FABRIC · 2.0")
                 .font(FinchTheme.monoTitle)
                 .foregroundStyle(FinchTheme.cyan)
             Text("Enter a CIDR (192.168.1.0/24) or tap Scan My Network.\nIoT Vulns = deep ports + offense + auto MQTT.\nResults stay ephemeral until Persist.")

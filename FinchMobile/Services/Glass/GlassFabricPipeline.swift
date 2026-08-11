@@ -38,7 +38,7 @@ final class GlassFabricPipeline {
         await MainActor.run {
             isRunning = true
             phase = "init"
-            progressText = "Resolving local fabric… FinchMobile/1.1"
+            progressText = "Resolving local fabric… FinchMobile/2.0"
         }
 
         let iface = NetworkInterfaceHelper.primaryIPv4()

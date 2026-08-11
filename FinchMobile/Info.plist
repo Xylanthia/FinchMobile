@@ -17,9 +17,9 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.1</string>
+	<string>2.0</string>
 	<key>CFBundleVersion</key>
-	<string>2</string>
+	<string>20</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
@@ -28,8 +28,12 @@
 	<string>Finch scans nearby BLE advertisers for authorized IoT assessment.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Finch uses your location to center the live proximity map and show approximate distances to nearby Bluetooth devices from this phone.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Finch uses the camera for AR overlays that place RF track labels in the real world during authorized assessments.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Finch may use the microphone only when you enable Acoustic fingerprinting in Research Mode for authorized lab scenarios.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Finch scans your local network to discover IoT devices and assess security.</string>
+	<string>Finch scans your local network and may form an encrypted operator mesh to share detection summaries.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_http._tcp</string>
@@ -41,6 +45,7 @@
 		<string>_scanner._tcp</string>
 		<string>_dacp._tcp</string>
 		<string>_raop._tcp</string>
+		<string>_finch-mesh._tcp</string>
 	</array>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Finch uses Face ID to secure your encrypted vault.</string>

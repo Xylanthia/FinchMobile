@@ -148,7 +148,7 @@ final class OffenseProbeService {
         var hits: [OffenseHit] = []
         let paths = ["/", "/admin", "/login", "/cgi-bin/", "/onvif/device_service"]
         for path in paths.prefix(3) {
-            let req = "GET \(path) HTTP/1.0\r\nHost: \(ip)\r\nUser-Agent: FinchMobile/1.1\r\nConnection: close\r\nAccept: */*\r\n\r\n"
+            let req = "GET \(path) HTTP/1.0\r\nHost: \(ip)\r\nUser-Agent: FinchMobile/2.0\r\nConnection: close\r\nAccept: */*\r\n\r\n"
             guard let data = await TCPProbe.connectAndIO(
                 host: ip,
                 port: UInt16(port),
@@ -188,7 +188,7 @@ final class OffenseProbeService {
         let req = """
         POST /onvif/device_service HTTP/1.0\r
         Host: \(ip)\r
-        User-Agent: FinchMobile/1.1\r
+        User-Agent: FinchMobile/2.0\r
         Content-Type: application/soap+xml; charset=utf-8\r
         Content-Length: \(body.utf8.count)\r
         Connection: close\r

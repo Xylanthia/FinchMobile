@@ -16,6 +16,36 @@ final class AppModel {
     let vaultManager = VaultManager()
     let settings = SettingsStore()
 
+    let fusion = TrackFusionEngine()
+    let consent = ConsentGate()
+    let forensic = ForensicLogger()
+    let drone = DroneModuleService()
+    let mesh = MeshCoordinator()
+    let playbooks = PlaybookEngine()
+    let sensors = SensorHub()
+
+    init() {
+        fusion.bind(forensic: forensic)
+        drone.bind(consent: consent, forensic: forensic)
+        mesh.bind(fusion: fusion, forensic: forensic)
+        playbooks.bind(forensic: forensic)
+        sensors.bind(fusion: fusion, forensic: forensic)
+        playbooks.loadBundled()
+        forensic.record(category: "system", summary: "Finch Mobile 2.0 RF platform boot")
+        if settings.researchMode {
+            sensors.applyResearchMode(true)
+        }
+    }
+
+    func refreshFusion() {
+        fusion.ingestBLE(bleScanner.sortedDevices)
+        if let hosts = glassPipeline.report?.hosts {
+            fusion.ingestHosts(hosts)
+        }
+        drone.refresh(from: fusion.sortedTracks)
+        playbooks.evaluate(tracks: fusion.sortedTracks)
+    }
+
     func clearEphemeral() {
         reportContainer.clear()
         glassPipeline.reset()

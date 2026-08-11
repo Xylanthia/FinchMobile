@@ -249,4 +249,9 @@ final class SettingsStore {
         get { UserDefaults.standard.string(forKey: "fpUpdateURL") ?? "" }
         set { UserDefaults.standard.set(newValue, forKey: "fpUpdateURL") }
     }
+
+    var researchMode: Bool {
+        get { UserDefaults.standard.bool(forKey: "researchMode") }
+        set { UserDefaults.standard.set(newValue, forKey: "researchMode") }
+    }
 }

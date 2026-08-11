@@ -1,0 +1,34 @@
+[
+  {
+    "id": "flipper-watch",
+    "title": "Flipper appears",
+    "matchClass": "flipper",
+    "minThreat": 5,
+    "action": "forensic.log + elevate UI",
+    "note": "Flag Flipper Zero-class advertisers"
+  },
+  {
+    "id": "drone-alert",
+    "title": "Drone class",
+    "matchClass": "drone",
+    "minThreat": 4,
+    "action": "forensic.log + open Drone panel hint",
+    "note": "Passive drone situational awareness"
+  },
+  {
+    "id": "hackrf-watch",
+    "title": "SDR class",
+    "matchClass": "hackrf",
+    "minThreat": 6,
+    "action": "forensic.log CRITICAL path",
+    "note": "Known offensive SDR signature"
+  },
+  {
+    "id": "critical-any",
+    "title": "Critical threat",
+    "matchClass": null,
+    "minThreat": 8,
+    "action": "forensic.log CRITICAL",
+    "note": "Any track scoring 8+"
+  }
+]

@@ -62,7 +62,7 @@ final class SSDPDiscoveryService {
         MAN: "ssdp:discover"\r
         MX: 2\r
         ST: ssdp:all\r
-        USER-AGENT: FinchMobile/1.1 UPnP/1.1\r
+        USER-AGENT: FinchMobile/2.0 UPnP/1.1\r
         \r
 
         """

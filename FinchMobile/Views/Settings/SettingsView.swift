@@ -17,6 +17,23 @@ struct SettingsView: View {
                         .tint(FinchTheme.cyan)
                 }
 
+                Section("RF Platform") {
+                    Toggle("Research Mode", isOn: Binding(
+                        get: { app.settings.researchMode },
+                        set: { on in
+                            app.settings.researchMode = on
+                            app.sensors.applyResearchMode(on)
+                        }
+                    ))
+                    .tint(FinchTheme.cyan)
+                    Text(app.consent.statusSummary)
+                        .font(FinchTheme.monoSmall)
+                        .foregroundStyle(.secondary)
+                    Text(app.fusion.statusText)
+                        .font(FinchTheme.monoSmall)
+                        .foregroundStyle(.secondary)
+                }
+
                 Section("Vault") {
                     if app.vaultManager.hasPassphrase() {
                         Text("Passphrase on file (Keychain)")
@@ -55,12 +72,12 @@ struct SettingsView: View {
                 }
 
                 Section("About") {
-                    Text("Finch Mobile · Glass Fabric")
+                    Text("Finch Mobile · RF Engagement 2.0")
                         .font(FinchTheme.mono)
-                    Text("On-device BLE + IoT red team only. No backend. Authorized use only.")
+                    Text("Passive BLE/LAN fusion + drone detect. Active Tx requires consent + external kit. Authorized use only.")
                         .font(FinchTheme.monoSmall)
                         .foregroundStyle(.secondary)
-                    Text("Schema: finch.sentinel.glass.v1")
+                    Text("Schema: finch.sentinel.glass.v1 + finch.forensic.v1")
                         .font(FinchTheme.monoSmall)
                         .foregroundStyle(FinchTheme.cyan)
                 }

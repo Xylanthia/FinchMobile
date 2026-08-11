@@ -12,23 +12,29 @@ struct RootTabView: View {
             BLERadarView()
                 .tabItem { Label("Nearby", systemImage: "antenna.radiowaves.left.and.right") }
 
-            LiveProximityMapView()
-                .tabItem { Label("Map", systemImage: "map") }
+            TracksView()
+                .tabItem { Label("Tracks", systemImage: "point.3.connected.trianglepath.dotted") }
 
-            VaultView()
-                .tabItem { Label("Vault", systemImage: "lock.square.stack") }
+            DronePanelView()
+                .tabItem { Label("Drone", systemImage: "airplane") }
 
-            SettingsView()
-                .tabItem { Label("Settings", systemImage: "gearshape") }
+            CommandHubView()
+                .tabItem { Label("Command", systemImage: "square.grid.2x2") }
         }
         .background(FinchTheme.background.ignoresSafeArea())
         .onChange(of: scenePhase) { _, phase in
             if phase == .background || phase == .inactive {
                 app.vaultManager.wipeKeyOnBackground()
             }
+            if phase == .active {
+                app.refreshFusion()
+            }
         }
         .onAppear {
             app.bleScanner.continuousMode = app.settings.continuousBLEDefault
+        }
+        .onChange(of: app.bleScanner.devices.count) { _, _ in
+            app.refreshFusion()
         }
     }
 }
