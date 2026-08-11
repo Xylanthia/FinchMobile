@@ -36,23 +36,23 @@
 		1DEC638DD02B40448735E220 /* fingerprints.json in Resources */ = {isa = PBXBuildFile; fileRef = 683CCBB3F95143BA88D79F75 /* fingerprints.json */; };
 		507614052580453EB30419E4 /* oui.json in Resources */ = {isa = PBXBuildFile; fileRef = EEF4A91E4D6B4D2BAD447997 /* oui.json */; };
 		D3C5BF204C684522A4E85E82 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 857E203DCBEB4ED2AC4B65A3 /* Assets.xcassets */; };
-		CF99CB7215F44A4C8B1169B5 /* RFTrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA3EFBC7F1145178055419A /* RFTrack.swift */; };
-		0E76184BEA58490EB25FF251 /* ConsentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0521C1A995E94EF3A4726163 /* ConsentModels.swift */; };
-		6600C31839D94BD1BB52A211 /* ThreatScorer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25F2D412FCA14FA4BFE8F477 /* ThreatScorer.swift */; };
-		A140D4C9DAD5468BBDF34A26 /* TrackFusionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58C99771047043728B2926F4 /* TrackFusionEngine.swift */; };
-		2899F218953640618BA649E0 /* ConsentGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF983EBA30FC426DA607562B /* ConsentGate.swift */; };
-		BA2DC0CDBD564671AAD9F1FC /* ForensicLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7800B2ACDE6E46B0ACBA0E44 /* ForensicLogger.swift */; };
-		3355CB93EBCE468EA6D5DED7 /* DroneModuleService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28E2C1671F1B4AF3BC79F12B /* DroneModuleService.swift */; };
-		9D18D976DA1742EAABCFA2ED /* MeshCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00B8F94507C4735B0601DAB /* MeshCoordinator.swift */; };
-		13C5DD794B6140658D57027D /* PlaybookEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96ECF210086F462F82B3187B /* PlaybookEngine.swift */; };
-		ECBA28B216884166A05662C9 /* SensorHub.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9354B9DCE20451583237DA1 /* SensorHub.swift */; };
-		E3A080B0D5EC4364A6B56EBB /* TracksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BE09A0F237A418A9A50C148 /* TracksView.swift */; };
-		880A64301BAA4B8785CF77BF /* AROverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF85DE1AC50246F382688E50 /* AROverlayView.swift */; };
-		B226F7F5473E423CADF78425 /* DronePanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BF7937927504A41994FD3DA /* DronePanelView.swift */; };
-		5B40EAC0A6EE4F1D9A400601 /* ConsentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BCF09094F9E402C98E5E128 /* ConsentView.swift */; };
-		EE9CB8C43EF54348BEEF4E78 /* ForensicReplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 458C62CC3C5840C08E7117D2 /* ForensicReplayView.swift */; };
-		F1E84A0695494997BF3C62AC /* CommandHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29119D733B1F47E4985972AD /* CommandHubView.swift */; };
-		4E9B5FD52B134D71B0215CE5 /* default_playbooks.json in Resources */ = {isa = PBXBuildFile; fileRef = F2FC3312FEFE4C07BE28C319 /* default_playbooks.json */; };
+		FE958E4BD8AD4CECB38A6397 /* RFTrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED121195E3D84EDBBD2DDE22 /* RFTrack.swift */; };
+		2C193CCFAA3541D6B0DB0C0D /* ConsentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72987377ABD4AB8AB44672E /* ConsentModels.swift */; };
+		6004331A2781447889CB6F48 /* ThreatScorer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95CFB408947467AA0AB7A48 /* ThreatScorer.swift */; };
+		319C2E3798344D63AE0B03DE /* TrackFusionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4585A0285AE344B1B566DEDE /* TrackFusionEngine.swift */; };
+		22D79076644F4B19A3C391B0 /* ConsentGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F63565ED41B4BECBB9CD0A3 /* ConsentGate.swift */; };
+		66331A4EDB8B42889D8CF1D8 /* ForensicLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF85C869781447C91BA4BD9 /* ForensicLogger.swift */; };
+		CCCF2075EBE74FC5B7955965 /* DroneModuleService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4362EF88AEC4B6B8FE25A83 /* DroneModuleService.swift */; };
+		F0C58B0FDDFC4B659EA96502 /* MeshCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67A4079A293D4689A1A195E4 /* MeshCoordinator.swift */; };
+		DE0F5216C9814000B2AC8D04 /* PlaybookEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33800B5BE6C4471AA9A52A2A /* PlaybookEngine.swift */; };
+		8759D8F04E96467095A7F97B /* SensorHub.swift in Sources */ = {isa = PBXBuildFile; fileRef = A343CA04D9BC4261A97B0137 /* SensorHub.swift */; };
+		847E332BD39C4A9ABE61F92C /* TracksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F44BA0485F4346648D9C0D14 /* TracksView.swift */; };
+		84055D5BBAB1438489E91255 /* AROverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC04B14394914E3B9729989A /* AROverlayView.swift */; };
+		11414E6ABA8745A8BDDA0212 /* DronePanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC56DD74982402DA7B19F66 /* DronePanelView.swift */; };
+		411E953267F640A0A31EEDE4 /* ConsentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F823772D104025B673DA71 /* ConsentView.swift */; };
+		EF43311F21774C93BBC9E94C /* ForensicReplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7168B3930674D638891A3B1 /* ForensicReplayView.swift */; };
+		65FA01B7BAE84E508A617129 /* CommandHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B48EAE764EE40CBA83C26FC /* CommandHubView.swift */; };
+		DAB73C7E094E497EAB5B761E /* default_playbooks.json in Resources */ = {isa = PBXBuildFile; fileRef = 44F1709795774D0E8DB4B874 /* default_playbooks.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -88,23 +88,23 @@
 		EEF4A91E4D6B4D2BAD447997 /* oui.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = oui.json; sourceTree = "<group>"; };
 		857E203DCBEB4ED2AC4B65A3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		06BCAC1988FC41FB8DB641BC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		BBA3EFBC7F1145178055419A /* RFTrack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RFTrack.swift; sourceTree = "<group>"; };
-		0521C1A995E94EF3A4726163 /* ConsentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsentModels.swift; sourceTree = "<group>"; };
-		25F2D412FCA14FA4BFE8F477 /* ThreatScorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreatScorer.swift; sourceTree = "<group>"; };
-		58C99771047043728B2926F4 /* TrackFusionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackFusionEngine.swift; sourceTree = "<group>"; };
-		DF983EBA30FC426DA607562B /* ConsentGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsentGate.swift; sourceTree = "<group>"; };
-		7800B2ACDE6E46B0ACBA0E44 /* ForensicLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForensicLogger.swift; sourceTree = "<group>"; };
-		28E2C1671F1B4AF3BC79F12B /* DroneModuleService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DroneModuleService.swift; sourceTree = "<group>"; };
-		C00B8F94507C4735B0601DAB /* MeshCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshCoordinator.swift; sourceTree = "<group>"; };
-		96ECF210086F462F82B3187B /* PlaybookEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybookEngine.swift; sourceTree = "<group>"; };
-		F9354B9DCE20451583237DA1 /* SensorHub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorHub.swift; sourceTree = "<group>"; };
-		4BE09A0F237A418A9A50C148 /* TracksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracksView.swift; sourceTree = "<group>"; };
-		EF85DE1AC50246F382688E50 /* AROverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AROverlayView.swift; sourceTree = "<group>"; };
-		1BF7937927504A41994FD3DA /* DronePanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DronePanelView.swift; sourceTree = "<group>"; };
-		7BCF09094F9E402C98E5E128 /* ConsentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsentView.swift; sourceTree = "<group>"; };
-		458C62CC3C5840C08E7117D2 /* ForensicReplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForensicReplayView.swift; sourceTree = "<group>"; };
-		29119D733B1F47E4985972AD /* CommandHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandHubView.swift; sourceTree = "<group>"; };
-		F2FC3312FEFE4C07BE28C319 /* default_playbooks.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default_playbooks.json; sourceTree = "<group>"; };
+		ED121195E3D84EDBBD2DDE22 /* RFTrack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RFTrack.swift; sourceTree = "<group>"; };
+		F72987377ABD4AB8AB44672E /* ConsentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsentModels.swift; sourceTree = "<group>"; };
+		B95CFB408947467AA0AB7A48 /* ThreatScorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreatScorer.swift; sourceTree = "<group>"; };
+		4585A0285AE344B1B566DEDE /* TrackFusionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackFusionEngine.swift; sourceTree = "<group>"; };
+		2F63565ED41B4BECBB9CD0A3 /* ConsentGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsentGate.swift; sourceTree = "<group>"; };
+		BDF85C869781447C91BA4BD9 /* ForensicLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForensicLogger.swift; sourceTree = "<group>"; };
+		A4362EF88AEC4B6B8FE25A83 /* DroneModuleService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DroneModuleService.swift; sourceTree = "<group>"; };
+		67A4079A293D4689A1A195E4 /* MeshCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshCoordinator.swift; sourceTree = "<group>"; };
+		33800B5BE6C4471AA9A52A2A /* PlaybookEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybookEngine.swift; sourceTree = "<group>"; };
+		A343CA04D9BC4261A97B0137 /* SensorHub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorHub.swift; sourceTree = "<group>"; };
+		F44BA0485F4346648D9C0D14 /* TracksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracksView.swift; sourceTree = "<group>"; };
+		DC04B14394914E3B9729989A /* AROverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AROverlayView.swift; sourceTree = "<group>"; };
+		DEC56DD74982402DA7B19F66 /* DronePanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DronePanelView.swift; sourceTree = "<group>"; };
+		B1F823772D104025B673DA71 /* ConsentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsentView.swift; sourceTree = "<group>"; };
+		D7168B3930674D638891A3B1 /* ForensicReplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForensicReplayView.swift; sourceTree = "<group>"; };
+		3B48EAE764EE40CBA83C26FC /* CommandHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandHubView.swift; sourceTree = "<group>"; };
+		44F1709795774D0E8DB4B874 /* default_playbooks.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default_playbooks.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -153,8 +153,8 @@
 			isa = PBXGroup;
 			children = (
 				0608D55DED8F4E48AE3B7750 /* AppModel.swift */,
-				BBA3EFBC7F1145178055419A /* RFTrack.swift */,
-				0521C1A995E94EF3A4726163 /* ConsentModels.swift */,
+				ED121195E3D84EDBBD2DDE22 /* RFTrack.swift */,
+				F72987377ABD4AB8AB44672E /* ConsentModels.swift */,
 				F81F212DEBFF4093AC985F99 /* BLEDevice.swift */,
 				66F6325C3A584120AF8F465B /* GlassModels.swift */,
 				5F86692A60D749DBBF1B834F /* InputRouter.swift */,
@@ -167,7 +167,7 @@
 			children = (
 				683CCBB3F95143BA88D79F75 /* fingerprints.json */,
 				EEF4A91E4D6B4D2BAD447997 /* oui.json */,
-				F2FC3312FEFE4C07BE28C319 /* default_playbooks.json */,
+				44F1709795774D0E8DB4B874 /* default_playbooks.json */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -180,14 +180,13 @@
 				A3LOC4T10N5ERV1CE0000001 /* Location */,
 				8AAD2C9AACFC48B1A16B9738 /* Network */,
 				083278C791D64609BF8A3DAD /* Vault */,
-				25F2D412FCA14FA4BFE8F477 /* ThreatScorer.swift */,
-				58C99771047043728B2926F4 /* TrackFusionEngine.swift */,
-				DF983EBA30FC426DA607562B /* ConsentGate.swift */,
-				7800B2ACDE6E46B0ACBA0E44 /* ForensicLogger.swift */,
-				28E2C1671F1B4AF3BC79F12B /* DroneModuleService.swift */,
-				C00B8F94507C4735B0601DAB /* MeshCoordinator.swift */,
-				96ECF210086F462F82B3187B /* PlaybookEngine.swift */,
-				F9354B9DCE20451583237DA1 /* SensorHub.swift */,
+				84EA5B77C36540308F215211 /* Fusion */,
+				A653AEF514734914A10CD2DC /* Auth */,
+				752336E157D44487B6211AF8 /* Forensic */,
+				36F1DB3E8A294D598AAAC920 /* Drone */,
+				85EBC8B9318B436CAABEB896 /* Mesh */,
+				874C2B035A9B463CBBC73440 /* Scripting */,
+				FFD849B9B3414226919FA91F /* Sensors */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -217,12 +216,11 @@
 				6E330D9527E04D9F9EC79FD8 /* Settings */,
 				2C90BBC780934B87B11956A2 /* Vault */,
 				DC2A8461CDF948AB9EBB059F /* RootTabView.swift */,
-				4BE09A0F237A418A9A50C148 /* TracksView.swift */,
-				EF85DE1AC50246F382688E50 /* AROverlayView.swift */,
-				1BF7937927504A41994FD3DA /* DronePanelView.swift */,
-				7BCF09094F9E402C98E5E128 /* ConsentView.swift */,
-				458C62CC3C5840C08E7117D2 /* ForensicReplayView.swift */,
-				29119D733B1F47E4985972AD /* CommandHubView.swift */,
+				3B48EAE764EE40CBA83C26FC /* CommandHubView.swift */,
+				C23C4A742C7746A49D44776F /* RF */,
+				CBD8E631CAEF4DE984514B67 /* Drone */,
+				D5EFB5B2432349A4876ADE8B /* Auth */,
+				A1F9001DACDD4B3AA17FB6C9 /* Forensic */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -307,6 +305,96 @@
 				B608D3CA3C4A4F1A96DA945C /* VaultView.swift */,
 			);
 			path = Vault;
+			sourceTree = "<group>";
+		};
+		84EA5B77C36540308F215211 /* Fusion */ = {
+			isa = PBXGroup;
+			children = (
+				B95CFB408947467AA0AB7A48 /* ThreatScorer.swift */,
+				4585A0285AE344B1B566DEDE /* TrackFusionEngine.swift */,
+			);
+			path = Fusion;
+			sourceTree = "<group>";
+		};
+		A653AEF514734914A10CD2DC /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				2F63565ED41B4BECBB9CD0A3 /* ConsentGate.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		752336E157D44487B6211AF8 /* Forensic */ = {
+			isa = PBXGroup;
+			children = (
+				BDF85C869781447C91BA4BD9 /* ForensicLogger.swift */,
+			);
+			path = Forensic;
+			sourceTree = "<group>";
+		};
+		36F1DB3E8A294D598AAAC920 /* Drone */ = {
+			isa = PBXGroup;
+			children = (
+				A4362EF88AEC4B6B8FE25A83 /* DroneModuleService.swift */,
+			);
+			path = Drone;
+			sourceTree = "<group>";
+		};
+		85EBC8B9318B436CAABEB896 /* Mesh */ = {
+			isa = PBXGroup;
+			children = (
+				67A4079A293D4689A1A195E4 /* MeshCoordinator.swift */,
+			);
+			path = Mesh;
+			sourceTree = "<group>";
+		};
+		874C2B035A9B463CBBC73440 /* Scripting */ = {
+			isa = PBXGroup;
+			children = (
+				33800B5BE6C4471AA9A52A2A /* PlaybookEngine.swift */,
+			);
+			path = Scripting;
+			sourceTree = "<group>";
+		};
+		FFD849B9B3414226919FA91F /* Sensors */ = {
+			isa = PBXGroup;
+			children = (
+				A343CA04D9BC4261A97B0137 /* SensorHub.swift */,
+			);
+			path = Sensors;
+			sourceTree = "<group>";
+		};
+		C23C4A742C7746A49D44776F /* RF */ = {
+			isa = PBXGroup;
+			children = (
+				F44BA0485F4346648D9C0D14 /* TracksView.swift */,
+				DC04B14394914E3B9729989A /* AROverlayView.swift */,
+			);
+			path = RF;
+			sourceTree = "<group>";
+		};
+		CBD8E631CAEF4DE984514B67 /* Drone */ = {
+			isa = PBXGroup;
+			children = (
+				DEC56DD74982402DA7B19F66 /* DronePanelView.swift */,
+			);
+			path = Drone;
+			sourceTree = "<group>";
+		};
+		D5EFB5B2432349A4876ADE8B /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				B1F823772D104025B673DA71 /* ConsentView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		A1F9001DACDD4B3AA17FB6C9 /* Forensic */ = {
+			isa = PBXGroup;
+			children = (
+				D7168B3930674D638891A3B1 /* ForensicReplayView.swift */,
+			);
+			path = Forensic;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
