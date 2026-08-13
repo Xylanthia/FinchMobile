@@ -165,12 +165,13 @@ struct BLEDeviceRow: View {
     let device: BLEDevice
 
     private var identity: BLEFriendlyIdentity { device.friendly }
+    private var flockHit: FlockCameraDetector.Hit? { FlockCameraDetector.matchBLE(device) }
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: identity.icon)
                 .font(.title3)
-                .foregroundStyle(FinchTheme.cyan)
+                .foregroundStyle(flockHit != nil ? FinchTheme.warn : FinchTheme.cyan)
                 .frame(width: 28, alignment: .center)
                 .padding(.top, 2)
 
@@ -181,9 +182,15 @@ struct BLEDeviceRow: View {
                     .lineLimit(1)
 
                 HStack(spacing: 6) {
-                    Text(identity.deviceType)
-                        .font(FinchTheme.monoSmall)
-                        .foregroundStyle(FinchTheme.cyan)
+                    if let flock = flockHit {
+                        Text(flock.badge)
+                            .font(FinchTheme.monoSmall)
+                            .foregroundStyle(FinchTheme.warn)
+                    } else {
+                        Text(identity.deviceType)
+                            .font(FinchTheme.monoSmall)
+                            .foregroundStyle(FinchTheme.cyan)
+                    }
                     Text("·")
                         .foregroundStyle(FinchTheme.textSecondary)
                     Text(identity.category)
@@ -306,6 +313,13 @@ struct BLEDeviceDetailSheet: View {
 
                             copyRow("Device type", identity.deviceType)
                             copyRow("Confidence", identity.confidence)
+                            if let flock = FlockCameraDetector.matchBLE(device) {
+                                copyRow("ALPR / Flock-class", "\(flock.vendor) · \(flock.model)")
+                                Text(flock.reason)
+                                    .font(FinchTheme.monoSmall)
+                                    .foregroundStyle(FinchTheme.warn)
+                                    .finchCopyable(flock.reason)
+                            }
                             copyRow("Distance", device.distanceLabel)
                             copyRow("Signal", "\(device.signalLabel) (\(device.rssi) dBm)")
                             copyRow("Status", device.connectionLabel)

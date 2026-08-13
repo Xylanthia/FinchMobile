@@ -1,5 +1,76 @@
 [
   {
+    "id": "fp-flock-1",
+    "deviceType": "camera",
+    "vendor": "Flock Safety",
+    "model": "ALPR / LPR",
+    "confidence": 0.96,
+    "tags": [
+      "camera",
+      "flock",
+      "alpr",
+      "lpr",
+      "security-camera"
+    ],
+    "patterns": [
+      "flock.?safety",
+      "flocksafety",
+      "fs.?ext.?battery",
+      "\\bflock\\b"
+    ]
+  },
+  {
+    "id": "fp-flock-2",
+    "deviceType": "camera",
+    "vendor": "Penguin",
+    "model": "Surveillance / LPR",
+    "confidence": 0.93,
+    "tags": [
+      "camera",
+      "flock-class",
+      "alpr",
+      "penguin"
+    ],
+    "patterns": [
+      "\\bpenguin\\b"
+    ]
+  },
+  {
+    "id": "fp-flock-3",
+    "deviceType": "camera",
+    "vendor": "Pigvision",
+    "model": "Surveillance",
+    "confidence": 0.93,
+    "tags": [
+      "camera",
+      "flock-class",
+      "alpr",
+      "pigvision"
+    ],
+    "patterns": [
+      "pigvision",
+      "pig.?vision"
+    ]
+  },
+  {
+    "id": "fp-flock-4",
+    "deviceType": "camera",
+    "vendor": "Raven",
+    "model": "LPR Camera",
+    "confidence": 0.9,
+    "tags": [
+      "camera",
+      "flock-class",
+      "alpr",
+      "raven"
+    ],
+    "patterns": [
+      "raven.?lpr",
+      "raven.?camera",
+      "raven.?gps"
+    ]
+  },
+  {
     "id": "fp-001",
     "deviceType": "camera",
     "vendor": "Hikvision",

@@ -156,15 +156,30 @@ final class GlassFabricPipeline {
 
     @MainActor
     private func mergeHost(_ host: IoTHost) {
+        var incoming = host
+        if let mac = incoming.mac, incoming.vendor == nil,
+           let ouiVendor = OUIDatabase.shared.vendor(forMAC: mac) {
+            incoming.vendor = ouiVendor
+        }
+        if incoming.fingerprint == nil, let flock = FlockCameraDetector.matchHost(incoming) {
+            incoming.fingerprint = FingerprintMatch(
+                deviceType: "camera",
+                vendor: flock.vendor,
+                model: flock.model,
+                confidence: flock.confidence == "high" ? 0.95 : 0.75,
+                tags: ["camera", "flock", "alpr", "lpr"],
+                ruleId: "flock-live"
+            )
+        }
         guard var report else {
             self.report = GlassFabricReport(
-                query: host.ip,
+                query: incoming.ip,
                 cidr: "",
                 localIP: nil,
                 netmask: nil,
                 startedAt: Date(),
                 finishedAt: nil,
-                hosts: [host],
+                hosts: [incoming],
                 warnings: [],
                 mdnsServiceCount: 0,
                 ssdpDeviceCount: 0,
@@ -172,10 +187,10 @@ final class GlassFabricPipeline {
             )
             return
         }
-        if let idx = report.hosts.firstIndex(where: { $0.ip == host.ip }) {
-            report.hosts[idx].merge(host)
+        if let idx = report.hosts.firstIndex(where: { $0.ip == incoming.ip }) {
+            report.hosts[idx].merge(incoming)
         } else {
-            report.hosts.append(host)
+            report.hosts.append(incoming)
             report.hosts.sort { $0.ip < $1.ip }
         }
         report.phase = phase

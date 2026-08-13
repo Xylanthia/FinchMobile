@@ -483,6 +483,19 @@ struct BLEFriendlyIdentity: Hashable {
         let serviceLabels = serviceKeys.compactMap { BLEServiceNames.label(for: $0) }.sorted()
         let mfgPayload = parseManufacturerPayload(device.manufacturerDataHex)
 
+        // --- Flock Safety / Raven / Penguin / Pigvision (flock-back signatures) ---
+        if let flock = FlockCameraDetector.matchBLE(device) {
+            return make(
+                device.broadcastName ?? "\(flock.vendor) \(flock.model)",
+                "ALPR / security camera",
+                flock.reason,
+                "Flock-class camera",
+                "camera.metering.spot",
+                flock.confidence,
+                serviceLabels
+            )
+        }
+
         // --- Explicit name heuristics ---
         if matches(nameBlob, ["flipper", "flipper zero"]) {
             return make("Flipper Zero", "RF toolkit", "Portable multi-tool advertising over BLE.", "RF / pentest", "wave.3.left.and.right", "high", serviceLabels)
@@ -865,6 +878,11 @@ enum BLEServiceNames {
         "FD69": "Amazon",
         "FEAA": "Eddystone beacon",
         "FEF5": "Apple Continuity",
+        "3100": "Raven GPS / location",
+        "3200": "Raven power / battery",
+        "3300": "Raven network status",
+        "3400": "Raven upload stats",
+        "3500": "Raven error / fault",
         "1802": "Immediate alert",
         "1803": "Link loss",
         "1804": "Tx power",

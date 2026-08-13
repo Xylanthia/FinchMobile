@@ -63,6 +63,9 @@ final class FingerprintEngine {
 
 enum FingerprintFallback {
     static let rules: [FingerprintRule] = [
+        FingerprintRule(id: "flock-1", deviceType: "camera", vendor: "Flock Safety", model: "ALPR / LPR", confidence: 0.96, tags: ["camera", "flock", "alpr"], patterns: ["flock.?safety", "flocksafety", "fs.?ext.?battery", "\\bflock\\b"]),
+        FingerprintRule(id: "flock-2", deviceType: "camera", vendor: "Penguin", model: "Surveillance / LPR", confidence: 0.93, tags: ["camera", "alpr", "penguin"], patterns: ["\\bpenguin\\b"]),
+        FingerprintRule(id: "flock-3", deviceType: "camera", vendor: "Pigvision", model: "Surveillance", confidence: 0.93, tags: ["camera", "alpr", "pigvision"], patterns: ["pigvision"]),
         FingerprintRule(id: "hik-1", deviceType: "camera", vendor: "Hikvision", model: "DVR/NVR", confidence: 0.9, tags: ["camera", "rtsp"], patterns: ["hikvision", "dvrdvs", "isapi"]),
         FingerprintRule(id: "dahua-1", deviceType: "camera", vendor: "Dahua", model: "DVR", confidence: 0.9, tags: ["camera"], patterns: ["dahua", "dh-", "webservice"]),
         FingerprintRule(id: "ha-1", deviceType: "hub", vendor: "Home Assistant", model: "Core", confidence: 0.85, tags: ["smart-home"], patterns: ["home.?assistant", "hassio"]),
@@ -145,6 +148,170 @@ enum OUIFallback {
         "30:AE:A4": "Espressif",
         "84:CC:A8": "Espressif",
         "A4:CF:12": "Espressif",
-        "C8:2B:96": "Espressif"
+        "C8:2B:96": "Espressif",
+        // Flock Safety / flock-class LPR modules (from flock-back signatures)
+        "58:8E:81": "Flock-class (FS Ext Battery / module)",
+        "EC:1B:BD": "Flock-class Wi‑Fi module",
+        "90:35:EA": "Flock-class Wi‑Fi module",
+        "04:0D:84": "Flock-class Wi‑Fi module",
+        "F0:82:C0": "Flock-class Wi‑Fi module",
+        "1C:34:F1": "Flock-class Wi‑Fi module",
+        "38:5B:44": "Flock-class Wi‑Fi module",
+        "94:34:69": "Flock-class Wi‑Fi module",
+        "B4:E3:F9": "Flock-class Wi‑Fi module",
+        "70:C9:4E": "Flock Safety Wi‑Fi",
+        "3C:91:80": "Flock Safety Wi‑Fi",
+        "D8:F3:BC": "Flock Safety Wi‑Fi",
+        "80:30:49": "Flock Safety Wi‑Fi",
+        "14:5A:FC": "Flock Safety Wi‑Fi",
+        "74:4C:A1": "Flock Safety Wi‑Fi",
+        "08:3A:88": "Flock Safety Wi‑Fi",
+        "9C:2F:9D": "Flock Safety Wi‑Fi",
+        "94:08:53": "Flock Safety Wi‑Fi",
+        "E4:AA:EA": "Flock Safety Wi‑Fi"
     ]
+}
+
+/// Passive Flock Safety / Raven / Penguin / Pigvision recognition (flock-back style).
+/// iOS can match BLE names + Raven GATT UUIDs + LAN OUI/hostname — not Wi‑Fi probe sniffing.
+enum FlockCameraDetector {
+    struct Hit: Hashable {
+        var vendor: String
+        var model: String
+        var confidence: String
+        var reason: String
+        var badge: String { "\(vendor.uppercased()) · ALPR" }
+    }
+
+    /// BLE local-name patterns (exact/contains) from flock-back.
+    static let bleNameNeedles: [String] = [
+        "fs ext battery",
+        "flock",
+        "penguin",
+        "pigvision"
+    ]
+
+    /// Raven custom GATT short UUIDs (firmware 1.2.0+).
+    static let ravenServiceShorts: Set<String> = [
+        "3100", "3200", "3300", "3400", "3500"
+    ]
+
+    static func matchBLE(_ device: BLEDevice) -> Hit? {
+        let nameBlob = [device.gattDeviceName, device.localName, device.name]
+            .compactMap { $0?.lowercased() }
+            .joined(separator: " ")
+
+        if nameBlob.contains("fs ext battery") {
+            return Hit(
+                vendor: "Flock Safety",
+                model: "FS Ext Battery",
+                confidence: "high",
+                reason: "BLE local name matches Flock Safety Extended Battery advertisement."
+            )
+        }
+        if nameBlob.contains("pigvision") {
+            return Hit(
+                vendor: "Pigvision",
+                model: "Surveillance",
+                confidence: "high",
+                reason: "BLE local name matches Pigvision surveillance advertisement."
+            )
+        }
+        if nameBlob.contains("penguin") {
+            return Hit(
+                vendor: "Penguin",
+                model: "Surveillance / LPR",
+                confidence: "high",
+                reason: "BLE local name matches Penguin surveillance advertisement."
+            )
+        }
+        // Prefer whole-word-ish flock (avoid random substrings)
+        if nameBlob == "flock" || nameBlob.hasPrefix("flock ") || nameBlob.contains(" flock")
+            || nameBlob.contains("flock safety") || nameBlob.contains("flocksafety") {
+            return Hit(
+                vendor: "Flock Safety",
+                model: "ALPR / LPR",
+                confidence: "high",
+                reason: "BLE local name matches Flock Safety advertisement."
+            )
+        }
+
+        let shorts = Set(
+            (device.serviceUUIDs + device.overflowServiceUUIDs + Array(device.serviceData.keys))
+                .map { BLEFriendlyIdentity.normalizeUUID($0) }
+        )
+        let ravenHits = shorts.intersection(ravenServiceShorts)
+        if ravenHits.count >= 2 {
+            return Hit(
+                vendor: "Raven",
+                model: "LPR Camera",
+                confidence: "high",
+                reason: "Raven GATT services \(ravenHits.sorted().joined(separator: ", ")) — GPS/power/network/upload class."
+            )
+        }
+        if ravenHits.count == 1 {
+            return Hit(
+                vendor: "Raven",
+                model: "LPR Camera (possible)",
+                confidence: "medium",
+                reason: "Raven-class GATT service \(ravenHits.first!) advertised."
+            )
+        }
+        return nil
+    }
+
+    static func matchHost(_ host: IoTHost) -> Hit? {
+        let blob = [
+            host.hostname ?? "",
+            host.vendor ?? "",
+            host.fingerprint?.vendor ?? "",
+            host.fingerprint?.model ?? "",
+            host.fingerprint?.deviceType ?? "",
+            (host.fingerprint?.tags ?? []).joined(separator: " "),
+            host.banners.map(\.rawASCII).joined(separator: " "),
+            host.services.map { "\($0.name) \($0.type)" }.joined(separator: " ")
+        ].joined(separator: " ").lowercased()
+
+        if let mac = host.mac, let vendor = OUIDatabase.shared.vendor(forMAC: mac),
+           vendor.lowercased().contains("flock") {
+            return Hit(
+                vendor: "Flock Safety",
+                model: "ALPR (OUI)",
+                confidence: "medium",
+                reason: "MAC OUI maps to Flock-class Wi‑Fi module (\(vendor))."
+            )
+        }
+
+        if blob.contains("pigvision") || blob.contains("pig vision") {
+            return Hit(vendor: "Pigvision", model: "Surveillance", confidence: "high", reason: "Hostname/banner matched Pigvision.")
+        }
+        if blob.range(of: #"\bpenguin\b"#, options: .regularExpression) != nil {
+            return Hit(vendor: "Penguin", model: "Surveillance / LPR", confidence: "high", reason: "Hostname/banner matched Penguin.")
+        }
+        if blob.contains("flock safety") || blob.contains("flocksafety") || blob.contains("fs ext battery")
+            || blob.range(of: #"\bflock\b"#, options: .regularExpression) != nil {
+            return Hit(vendor: "Flock Safety", model: "ALPR / LPR", confidence: "high", reason: "Hostname/banner matched Flock Safety.")
+        }
+        if blob.contains("raven") && (blob.contains("lpr") || blob.contains("camera") || blob.contains("alpr")) {
+            return Hit(vendor: "Raven", model: "LPR Camera", confidence: "medium", reason: "Hostname/banner matched Raven LPR.")
+        }
+
+        if let tags = host.fingerprint?.tags, tags.contains(where: { $0.lowercased().contains("flock") || $0.lowercased() == "alpr" }) {
+            let vendor = host.fingerprint?.vendor ?? "Flock Safety"
+            return Hit(
+                vendor: vendor,
+                model: host.fingerprint?.model ?? "ALPR / LPR",
+                confidence: "high",
+                reason: "Glass fingerprint tagged ALPR / Flock-class."
+            )
+        }
+        return nil
+    }
+
+    static func isFlockClass(_ text: String) -> Bool {
+        let t = text.lowercased()
+        return t.contains("flock") || t.contains("penguin") || t.contains("pigvision")
+            || t.contains("raven") && (t.contains("lpr") || t.contains("alpr"))
+            || t.contains("fs ext battery") || t.contains("alpr")
+    }
 }

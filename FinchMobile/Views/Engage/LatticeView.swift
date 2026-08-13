@@ -139,6 +139,10 @@ struct LatticeView: View {
 struct HostRow: View {
     let host: IoTHost
 
+    private var flockHit: FlockCameraDetector.Hit? {
+        FlockCameraDetector.matchHost(host)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
@@ -146,6 +150,11 @@ struct HostRow: View {
                     .font(FinchTheme.mono)
                     .foregroundStyle(FinchTheme.textPrimary)
                 Spacer()
+                if let flock = flockHit {
+                    Text(flock.badge)
+                        .font(FinchTheme.monoSmall)
+                        .foregroundStyle(FinchTheme.warn)
+                }
                 if !host.offenseHits.isEmpty {
                     let cveN = host.offenseHits.reduce(0) { $0 + $1.cves.count }
                     Text(cveN > 0 ? "CVE \(cveN)" : "VULN \(host.offenseHits.count)")
@@ -277,6 +286,12 @@ struct HostDetailView: View {
                 latticeRow("MAC", host.mac ?? "—")
                 latticeRow("Vendor", host.vendor ?? "—")
                 latticeRow("Hostname", host.hostname ?? "—")
+                if let flock = FlockCameraDetector.matchHost(host) {
+                    latticeRow("ALPR / Flock-class", "\(flock.vendor) · \(flock.model)")
+                    Text(flock.reason)
+                        .font(FinchTheme.monoSmall)
+                        .foregroundStyle(FinchTheme.warn)
+                }
             }
             if let fp = host.fingerprint {
                 Section("Fingerprint") {

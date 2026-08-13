@@ -51,11 +51,24 @@ enum ThreatScorer {
             }
         }
 
+        let nameBlob = [
+            track.displayName,
+            track.deviceClass.rawValue,
+            track.threatReasons.joined(separator: " "),
+            track.linkedHostIP ?? ""
+        ].joined(separator: " ").lowercased()
+        if FlockCameraDetector.isFlockClass(nameBlob) || track.deviceClass == .camera && nameBlob.contains("alpr") {
+            score += 2
+            reasons.append("Flock-class / ALPR security camera signature")
+        }
+
         score = min(10, max(1, score))
         return (score, reasons, anomaly)
     }
 
     static func classifyBLE(_ device: BLEDevice) -> RFDeviceClass {
+        if FlockCameraDetector.matchBLE(device) != nil { return .camera }
+
         let cat = (device.friendly.deviceType + " " + device.friendly.category).lowercased()
         let blob = [
             device.displayName,
@@ -81,12 +94,13 @@ enum ThreatScorer {
         if blob.contains("tpms") || cat.contains("tpms") || cat.contains("car") { return .vehicleTPMS }
         if cat.contains("phone") { return .phone }
         if cat.contains("computer") || blob.contains("macbook") { return .laptop }
-        if cat.contains("camera") || blob.contains("camera") { return .camera }
+        if cat.contains("camera") || blob.contains("camera") || cat.contains("alpr") { return .camera }
         if cat.contains("sensor") || cat.contains("smart") { return .iot }
         return .unknown
     }
 
     static func classifyHost(_ host: IoTHost) -> RFDeviceClass {
+        if FlockCameraDetector.matchHost(host) != nil { return .camera }
         let tags = host.fingerprint?.tags ?? []
         let fp = [host.fingerprint?.deviceType, host.fingerprint?.vendor, host.fingerprint?.model]
             .compactMap { $0 }
@@ -95,7 +109,10 @@ enum ThreatScorer {
         if blob.contains("mavlink") || host.openPorts.contains(where: { (5760...5763).contains($0) }) {
             return .drone
         }
-        if blob.contains("camera") || blob.contains("rtsp") || blob.contains("onvif") { return .camera }
+        if blob.contains("camera") || blob.contains("rtsp") || blob.contains("onvif")
+            || blob.contains("flock") || blob.contains("alpr") || blob.contains("lpr") {
+            return .camera
+        }
         if blob.contains("drone") || blob.contains("dji") { return .drone }
         return .iot
     }
