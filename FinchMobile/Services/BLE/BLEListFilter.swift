@@ -129,7 +129,7 @@ enum BLEListFilterEngine {
     }
 
     static func matches(_ device: BLEDevice, state: BLEListFilterState, now: Date = Date()) -> Bool {
-        let cats = device.resolvedCategories
+        let cats = Set(device.resolvedCategories)
 
         if let quick = state.quickCategory {
             if quick == .unknown {
