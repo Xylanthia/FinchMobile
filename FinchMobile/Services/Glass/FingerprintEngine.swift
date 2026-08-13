@@ -261,57 +261,73 @@ enum FlockCameraDetector {
     }
 
     static func matchHost(_ host: IoTHost) -> Hit? {
-        let blob = [
-            host.hostname ?? "",
-            host.vendor ?? "",
-            host.fingerprint?.vendor ?? "",
-            host.fingerprint?.model ?? "",
-            host.fingerprint?.deviceType ?? "",
-            (host.fingerprint?.tags ?? []).joined(separator: " "),
-            host.banners.map(\.rawASCII).joined(separator: " "),
-            host.services.map { "\($0.name) \($0.type)" }.joined(separator: " ")
-        ].joined(separator: " ").lowercased()
-
-        if let mac = host.mac, let vendor = OUIDatabase.shared.vendor(forMAC: mac),
-           vendor.lowercased().contains("flock") {
-            return Hit(
-                vendor: "Flock Safety",
-                model: "ALPR (OUI)",
-                confidence: "medium",
-                reason: "MAC OUI maps to Flock-class Wi‑Fi module (\(vendor))."
-            )
+        if let mac = host.mac, let vendor = OUIDatabase.shared.vendor(forMAC: mac) {
+            let lower = vendor.lowercased()
+            if lower.contains("flock") {
+                return Hit(
+                    vendor: "Flock Safety",
+                    model: "ALPR (OUI)",
+                    confidence: "medium",
+                    reason: "MAC OUI maps to Flock-class Wi‑Fi module (\(vendor))."
+                )
+            }
         }
+
+        var parts: [String] = []
+        if let hostname = host.hostname { parts.append(hostname) }
+        if let vendor = host.vendor { parts.append(vendor) }
+        if let fp = host.fingerprint {
+            parts.append(fp.vendor)
+            parts.append(fp.model)
+            parts.append(fp.deviceType)
+            parts.append(contentsOf: fp.tags)
+        }
+        for banner in host.banners {
+            parts.append(banner.rawASCII)
+        }
+        for svc in host.services {
+            parts.append(svc.name)
+            parts.append(svc.type)
+        }
+        let blob = parts.joined(separator: " ").lowercased()
 
         if blob.contains("pigvision") || blob.contains("pig vision") {
             return Hit(vendor: "Pigvision", model: "Surveillance", confidence: "high", reason: "Hostname/banner matched Pigvision.")
         }
-        if blob.range(of: #"\bpenguin\b"#, options: .regularExpression) != nil {
+        if blob.contains(" penguin") || blob.hasPrefix("penguin") || blob.contains("penguin ") {
             return Hit(vendor: "Penguin", model: "Surveillance / LPR", confidence: "high", reason: "Hostname/banner matched Penguin.")
         }
         if blob.contains("flock safety") || blob.contains("flocksafety") || blob.contains("fs ext battery")
-            || blob.range(of: #"\bflock\b"#, options: .regularExpression) != nil {
+            || blob.contains(" flock") || blob.hasPrefix("flock") {
             return Hit(vendor: "Flock Safety", model: "ALPR / LPR", confidence: "high", reason: "Hostname/banner matched Flock Safety.")
         }
         if blob.contains("raven") && (blob.contains("lpr") || blob.contains("camera") || blob.contains("alpr")) {
             return Hit(vendor: "Raven", model: "LPR Camera", confidence: "medium", reason: "Hostname/banner matched Raven LPR.")
         }
 
-        if let tags = host.fingerprint?.tags, tags.contains(where: { $0.lowercased().contains("flock") || $0.lowercased() == "alpr" }) {
-            let vendor = host.fingerprint?.vendor ?? "Flock Safety"
-            return Hit(
-                vendor: vendor,
-                model: host.fingerprint?.model ?? "ALPR / LPR",
-                confidence: "high",
-                reason: "Glass fingerprint tagged ALPR / Flock-class."
-            )
+        if let tags = host.fingerprint?.tags {
+            let hitTag = tags.contains { tag in
+                let t = tag.lowercased()
+                return t.contains("flock") || t == "alpr"
+            }
+            if hitTag {
+                let vendor = host.fingerprint?.vendor ?? "Flock Safety"
+                return Hit(
+                    vendor: vendor,
+                    model: host.fingerprint?.model ?? "ALPR / LPR",
+                    confidence: "high",
+                    reason: "Glass fingerprint tagged ALPR / Flock-class."
+                )
+            }
         }
         return nil
     }
 
     static func isFlockClass(_ text: String) -> Bool {
         let t = text.lowercased()
-        return t.contains("flock") || t.contains("penguin") || t.contains("pigvision")
-            || t.contains("raven") && (t.contains("lpr") || t.contains("alpr"))
-            || t.contains("fs ext battery") || t.contains("alpr")
+        if t.contains("flock") || t.contains("penguin") || t.contains("pigvision") { return true }
+        if t.contains("fs ext battery") || t.contains("alpr") { return true }
+        if t.contains("raven") && (t.contains("lpr") || t.contains("alpr")) { return true }
+        return false
     }
 }
