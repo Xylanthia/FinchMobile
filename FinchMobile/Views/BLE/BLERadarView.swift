@@ -180,9 +180,22 @@ struct BLEDeviceRow: View {
                     .foregroundStyle(FinchTheme.textPrimary)
                     .lineLimit(1)
 
-                Text(identity.category)
-                    .font(FinchTheme.monoSmall)
-                    .foregroundStyle(FinchTheme.cyan)
+                HStack(spacing: 6) {
+                    Text(identity.deviceType)
+                        .font(FinchTheme.monoSmall)
+                        .foregroundStyle(FinchTheme.cyan)
+                    Text("·")
+                        .foregroundStyle(FinchTheme.textSecondary)
+                    Text(identity.category)
+                        .font(FinchTheme.monoSmall)
+                        .foregroundStyle(FinchTheme.textSecondary)
+                    Text("·")
+                        .foregroundStyle(FinchTheme.textSecondary)
+                    Text(identity.confidence)
+                        .font(FinchTheme.monoSmall)
+                        .foregroundStyle(FinchTheme.warn)
+                }
+                .lineLimit(1)
 
                 Text(identity.summary)
                     .font(FinchTheme.monoSmall)
@@ -274,9 +287,13 @@ struct BLEDeviceDetailSheet: View {
                                         .font(FinchTheme.mono)
                                         .foregroundStyle(FinchTheme.textPrimary)
                                         .finchCopyable(identity.title)
-                                    Text(identity.category)
+                                    Text(identity.deviceType)
                                         .font(FinchTheme.monoSmall)
                                         .foregroundStyle(FinchTheme.cyan)
+                                        .finchCopyable(identity.deviceType)
+                                    Text(identity.category)
+                                        .font(FinchTheme.monoSmall)
+                                        .foregroundStyle(FinchTheme.textSecondary)
                                         .finchCopyable(identity.category)
                                 }
                             }
@@ -287,15 +304,20 @@ struct BLEDeviceDetailSheet: View {
                                 .foregroundStyle(FinchTheme.textSecondary)
                                 .finchCopyable(identity.summary)
 
+                            copyRow("Device type", identity.deviceType)
+                            copyRow("Confidence", identity.confidence)
                             copyRow("Distance", device.distanceLabel)
                             copyRow("Signal", "\(device.signalLabel) (\(device.rssi) dBm)")
                             copyRow("Status", device.connectionLabel)
                             copyRow("Connection", device.connectabilityLabel)
                             if let name = device.broadcastName {
-                                copyRow("Broadcast name", name)
+                                copyRow("Resolved name", name)
                             }
                             if let brand = device.manufacturerName {
                                 copyRow("Brand hint", brand)
+                            }
+                            if let company = device.manufacturerCompanyId {
+                                copyRow("Company ID", String(format: "0x%04X", company))
                             }
                             if !identity.serviceLabels.isEmpty {
                                 copyRow("Advertises", identity.serviceLabels.joined(separator: ", "))

@@ -62,7 +62,7 @@ final class TrackFusionEngine {
 
             if classGuess == .drone || classGuess == .droneController {
                 track.droneMeta = DroneTrackMeta(
-                    vendorGuess: device.manufacturerName ?? device.friendly.title,
+                    vendorGuess: device.manufacturerName ?? device.friendly.deviceType,
                     linkType: "BLE",
                     remoteIdPresent: false,
                     mavlinkPortOpen: false,

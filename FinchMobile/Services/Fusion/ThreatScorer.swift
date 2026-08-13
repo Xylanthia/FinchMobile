@@ -56,7 +56,7 @@ enum ThreatScorer {
     }
 
     static func classifyBLE(_ device: BLEDevice) -> RFDeviceClass {
-        let cat = device.friendly.category.lowercased()
+        let cat = (device.friendly.deviceType + " " + device.friendly.category).lowercased()
         let blob = [
             device.displayName,
             device.manufacturerName ?? "",

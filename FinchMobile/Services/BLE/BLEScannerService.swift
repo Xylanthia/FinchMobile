@@ -230,7 +230,12 @@ final class BLEScannerService: NSObject {
             let chars = (service.characteristics ?? []).map { ch -> GATTCharacteristicInfo in
                 let data = ch.value
                 let hex = data.map { $0.map { String(format: "%02X", $0) }.joined(separator: " ") }
-                let utf = data.flatMap { String(data: $0, encoding: .utf8) }
+                let utf = data.flatMap { raw -> String? in
+                    guard let s = String(data: raw, encoding: .utf8) else { return nil }
+                    let trimmed = s.trimmingCharacters(in: .whitespacesAndNewlines)
+                        .filter { $0.isASCII && ($0.isLetter || $0.isNumber || $0.isPunctuation || $0.isWhitespace || $0 == "-" || $0 == "_" || $0 == ".") }
+                    return trimmed.isEmpty ? nil : trimmed
+                }
                 return GATTCharacteristicInfo(
                     uuid: ch.uuid.uuidString,
                     properties: propertyNames(ch.properties),
@@ -245,12 +250,13 @@ final class BLEScannerService: NSObject {
             self.updateDevice(id) {
                 $0.gattServices = services
                 $0.connectionState = .connected
-                $0.name = peripheral.name ?? $0.name
+                $0.applyGATTIdentity(from: services, peripheralName: peripheral.name)
             }
+            let title = self.devices[id]?.displayName ?? "device"
             let n = services.count
             self.statusText = n == 1
-                ? "Opened — 1 feature found"
-                : "Opened — \(n) features found"
+                ? "Opened \(title) — 1 feature"
+                : "Opened \(title) — \(n) features"
         }
     }
 }
