@@ -819,62 +819,106 @@ struct BLEFriendlyIdentity: Hashable {
 }
 
 enum BLEServiceNames {
-    static func label(for normalizedShortOrFull: String) -> String? {
-        let key = normalizedShortOrFull.uppercased()
-        if let short = known[key] { return short }
-        if key.count == 32, key.hasPrefix("0000") {
-            let start = key.index(key.startIndex, offsetBy: 4)
-            let end = key.index(key.startIndex, offsetBy: 8)
-            return known[String(key[start..<end])]
+    /// Bluetooth SIG GATT services + characteristics + descriptors (+ Raven / common vendor shorts).
+    private static let table: [String: String] = {
+        if let url = Bundle.main.url(forResource: "gatt_uuids", withExtension: "json"),
+           let data = try? Data(contentsOf: url),
+           let decoded = try? JSONDecoder().decode([String: String].self, from: data) {
+            var map: [String: String] = [:]
+            for (k, v) in decoded {
+                map[k.uppercased()] = v
+            }
+            // Ensure Raven / flock-class always present even if JSON trimmed
+            for (k, v) in fallbackExtras {
+                map[k] = v
+            }
+            return map
         }
-        return nil
+        return fallbackKnown
+    }()
+
+    static var recognizedCount: Int { table.count }
+
+    static func label(for normalizedShortOrFull: String) -> String? {
+        let key = shortKey(normalizedShortOrFull)
+        guard let name = table[key] else { return nil }
+        return name
     }
 
+    /// Always returns a human label; unknown customs show as "Custom UUID …".
     static func label(forUUID uuid: String) -> String {
         let compact = uuid.replacingOccurrences(of: "-", with: "").uppercased()
-        if let label = label(for: compact) { return label }
+        let short = shortKey(compact)
+        if let name = table[short] {
+            return "\(name) (\(short))"
+        }
+        if compact.count == 32 {
+            return "Custom UUID \(String(compact.prefix(8)))…"
+        }
+        if compact.count == 4 {
+            return "Unknown \(compact)"
+        }
+        return "UUID \(String(uuid.prefix(8)))…"
+    }
+
+    /// Short 16-bit key from 16-bit or Bluetooth Base 128-bit UUID.
+    static func shortKey(_ uuid: String) -> String {
+        let compact = uuid.replacingOccurrences(of: "-", with: "").uppercased()
+        if compact.count == 4 { return compact }
+        // Bluetooth Base UUID: 0000XXXX-0000-1000-8000-00805F9B34FB
         if compact.count == 32, compact.hasPrefix("0000"), compact.hasSuffix("00001000800000805F9B34FB") {
             let start = compact.index(compact.startIndex, offsetBy: 4)
             let end = compact.index(compact.startIndex, offsetBy: 8)
-            let short = String(compact[start..<end])
-            return known[short] ?? "Service \(short)"
+            return String(compact[start..<end])
         }
-        if compact.count == 4 {
-            return known[compact] ?? "Char \(compact)"
-        }
-        // Characteristic short form inside full UUID
+        // Some stacks omit dashes but still put the short in bytes 2-3 of the 128-bit form
         if compact.count == 32, compact.hasPrefix("0000") {
             let start = compact.index(compact.startIndex, offsetBy: 4)
             let end = compact.index(compact.startIndex, offsetBy: 8)
-            let short = String(compact[start..<end])
-            return known[short] ?? "UUID \(short)"
+            return String(compact[start..<end])
         }
-        return "Service \(String(uuid.prefix(8)))…"
+        return compact
     }
 
-    private static let known: [String: String] = [
+    private static let fallbackExtras: [String: String] = [
+        "3100": "Raven GPS / location",
+        "3200": "Raven power / battery",
+        "3300": "Raven network status",
+        "3400": "Raven upload stats",
+        "3500": "Raven error / fault",
+        "FE2C": "Tile tracker",
+        "FD6F": "Exposure Notification / proximity",
+        "FEAA": "Eddystone beacon",
+        "FEF5": "Apple Continuity"
+    ]
+
+    /// Minimal offline fallback if the bundled JSON is missing.
+    private static let fallbackKnown: [String: String] = [
         "1800": "Generic Access",
         "1801": "Generic Attribute",
         "180A": "Device Information",
-        "180F": "Battery",
-        "180D": "Heart rate",
-        "1812": "HID (keyboard/mouse)",
-        "1813": "Scan parameters",
-        "1814": "Running speed",
-        "1816": "Cycling speed",
-        "1818": "Cycling power",
-        "181A": "Environment sensing",
-        "181C": "User data",
-        "181D": "Weight scale",
-        "181E": "Bond management",
-        "1822": "Pulse oximeter",
-        "1826": "Fitness machine",
-        "1108": "Headset audio",
-        "110B": "Audio stream",
-        "111E": "Hands-free audio",
-        "1200": "Plug and play",
+        "180F": "Battery Service",
+        "180D": "Heart Rate",
+        "1812": "Human Interface Device",
+        "1813": "Scan Parameters",
+        "1814": "Running Speed and Cadence",
+        "1816": "Cycling Speed and Cadence",
+        "1818": "Cycling Power",
+        "181A": "Environmental Sensing",
+        "181C": "User Data",
+        "181D": "Weight Scale",
+        "181E": "Bond Management",
+        "1819": "Location and Navigation",
+        "1822": "Pulse Oximeter",
+        "1826": "Fitness Machine",
+        "1827": "Mesh Provisioning",
+        "1828": "Mesh Proxy",
+        "1108": "Headset",
+        "110B": "Audio Sink",
+        "111E": "Handsfree",
+        "1200": "PnP Information",
         "FE2C": "Tile tracker",
-        "FD6F": "Phone proximity",
+        "FD6F": "Exposure Notification / proximity",
         "FD69": "Amazon",
         "FEAA": "Eddystone beacon",
         "FEF5": "Apple Continuity",
@@ -883,24 +927,30 @@ enum BLEServiceNames {
         "3300": "Raven network status",
         "3400": "Raven upload stats",
         "3500": "Raven error / fault",
-        "1802": "Immediate alert",
-        "1803": "Link loss",
-        "1804": "Tx power",
-        "1805": "Current time",
-        "1811": "Alert notification",
-        "1810": "Blood pressure",
+        "1802": "Immediate Alert",
+        "1803": "Link Loss",
+        "1804": "Tx Power",
+        "1805": "Current Time",
+        "1811": "Alert Notification",
+        "1810": "Blood Pressure",
         "1808": "Glucose",
-        "1809": "Health thermometer",
-        "2A00": "Device name",
+        "1809": "Health Thermometer",
+        "2A00": "Device Name",
         "2A01": "Appearance",
-        "2A19": "Battery level",
-        "2A24": "Model number",
-        "2A25": "Serial number",
-        "2A26": "Firmware revision",
-        "2A27": "Hardware revision",
-        "2A28": "Software revision",
-        "2A29": "Manufacturer name",
-        "2A50": "PnP ID"
+        "2A19": "Battery Level",
+        "2A24": "Model Number String",
+        "2A25": "Serial Number String",
+        "2A26": "Firmware Revision String",
+        "2A27": "Hardware Revision String",
+        "2A28": "Software Revision String",
+        "2A29": "Manufacturer Name String",
+        "2A50": "PnP ID",
+        "2900": "Characteristic Extended Properties",
+        "2901": "Characteristic User Description",
+        "2902": "Client Characteristic Configuration",
+        "2903": "Server Characteristic Configuration",
+        "2904": "Characteristic Presentation Format",
+        "2905": "Characteristic Aggregate Format"
     ]
 }
 

@@ -35,6 +35,7 @@
 		40FDEE6F713443C18793FBF6 /* VaultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B608D3CA3C4A4F1A96DA945C /* VaultView.swift */; };
 		1DEC638DD02B40448735E220 /* fingerprints.json in Resources */ = {isa = PBXBuildFile; fileRef = 683CCBB3F95143BA88D79F75 /* fingerprints.json */; };
 		507614052580453EB30419E4 /* oui.json in Resources */ = {isa = PBXBuildFile; fileRef = EEF4A91E4D6B4D2BAD447997 /* oui.json */; };
+		A9F1GATTUUIDS01B2C3D4E5F6 /* gatt_uuids.json in Resources */ = {isa = PBXBuildFile; fileRef = B8E2GATTUUIDS01B2C3D4E5F6 /* gatt_uuids.json */; };
 		D3C5BF204C684522A4E85E82 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 857E203DCBEB4ED2AC4B65A3 /* Assets.xcassets */; };
 		FE958E4BD8AD4CECB38A6397 /* RFTrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED121195E3D84EDBBD2DDE22 /* RFTrack.swift */; };
 		2C193CCFAA3541D6B0DB0C0D /* ConsentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72987377ABD4AB8AB44672E /* ConsentModels.swift */; };
@@ -86,6 +87,7 @@
 		B608D3CA3C4A4F1A96DA945C /* VaultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultView.swift; sourceTree = "<group>"; };
 		683CCBB3F95143BA88D79F75 /* fingerprints.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = fingerprints.json; sourceTree = "<group>"; };
 		EEF4A91E4D6B4D2BAD447997 /* oui.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = oui.json; sourceTree = "<group>"; };
+		B8E2GATTUUIDS01B2C3D4E5F6 /* gatt_uuids.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gatt_uuids.json; sourceTree = "<group>"; };
 		857E203DCBEB4ED2AC4B65A3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		06BCAC1988FC41FB8DB641BC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		ED121195E3D84EDBBD2DDE22 /* RFTrack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RFTrack.swift; sourceTree = "<group>"; };
@@ -167,6 +169,7 @@
 			children = (
 				683CCBB3F95143BA88D79F75 /* fingerprints.json */,
 				EEF4A91E4D6B4D2BAD447997 /* oui.json */,
+				B8E2GATTUUIDS01B2C3D4E5F6 /* gatt_uuids.json */,
 				44F1709795774D0E8DB4B874 /* default_playbooks.json */,
 			);
 			path = Resources;
@@ -457,6 +460,7 @@
 			files = (
 				1DEC638DD02B40448735E220 /* fingerprints.json in Resources */,
 				507614052580453EB30419E4 /* oui.json in Resources */,
+				A9F1GATTUUIDS01B2C3D4E5F6 /* gatt_uuids.json in Resources */,
 				D3C5BF204C684522A4E85E82 /* Assets.xcassets in Resources */,
 				DAB73C7E094E497EAB5B761E /* default_playbooks.json in Resources */,
 			);
@@ -568,7 +572,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 24;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -598,7 +602,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 24;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
