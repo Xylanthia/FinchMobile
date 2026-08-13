@@ -34,10 +34,22 @@ struct EngageView: View {
                     }
                     LatticeView(
                         report: app.glassPipeline.report,
-                        onDeepScan: { app.glassPipeline.deepScan(ip: $0) },
-                        onDeepScanAll: { app.glassPipeline.deepScanAll() },
-                        onIoTVulns: { app.glassPipeline.iotVulns(ip: $0) },
-                        onIoTVulnsAll: { app.glassPipeline.iotVulnsAll() },
+                        onDeepScan: {
+                            app.glassPipeline.deepScan(ip: $0)
+                            app.statusMessage = "Deep Scan → \($0)"
+                        },
+                        onDeepScanAll: {
+                            app.glassPipeline.deepScanAll()
+                            app.statusMessage = "Deep Scan All…"
+                        },
+                        onIoTVulns: {
+                            app.glassPipeline.iotVulns(ip: $0)
+                            app.statusMessage = "IoT Vulns → \($0)"
+                        },
+                        onIoTVulnsAll: {
+                            app.glassPipeline.iotVulnsAll()
+                            app.statusMessage = "IoT Vulns All…"
+                        },
                         onMQTT: { ip in
                             mqttTargetIP = ip
                             showMQTTSheet = true
@@ -61,8 +73,15 @@ struct EngageView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showMQTTSheet) { mqttSheet }
-            .sheet(isPresented: $showPersist) { persistSheet }
+            .onChange(of: app.glassPipeline.isRunning) { _, running in
+                if !running {
+                    syncReport()
+                    app.refreshFusion()
+                }
+            }
+            .onChange(of: app.glassPipeline.progressText) { _, text in
+                if !text.isEmpty { app.statusMessage = text }
+            }
         }
     }
 

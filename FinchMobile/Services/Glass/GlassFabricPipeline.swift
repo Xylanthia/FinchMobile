@@ -264,7 +264,14 @@ final class GlassFabricPipeline {
     func deepScanAll() {
         enqueueScan {
             let ips = await MainActor.run { self.report?.hosts.map(\.ip) ?? [] }
+            guard !ips.isEmpty else {
+                await MainActor.run {
+                    self.progressText = "No hosts yet — run Scan My Network first."
+                }
+                return
+            }
             for ip in ips {
+                if Task.isCancelled { break }
                 await self.performDeepScan(ip: ip)
             }
         }
@@ -278,34 +285,59 @@ final class GlassFabricPipeline {
     func iotVulnsAll() {
         enqueueScan {
             let ips = await MainActor.run { self.report?.hosts.map(\.ip) ?? [] }
+            guard !ips.isEmpty else {
+                await MainActor.run {
+                    self.progressText = "No hosts yet — run Scan My Network first."
+                }
+                return
+            }
             for ip in ips {
+                if Task.isCancelled { break }
                 await self.performIoTVulns(ip: ip, autoMQTT: false)
             }
         }
     }
 
     private var scanTask: Task<Void, Never>?
+    private var scanGeneration: UInt64 = 0
 
+    /// Always starts (or replaces) a deep/vulns job. Never silently no-ops.
     private func enqueueScan(_ work: @escaping @Sendable () async -> Void) {
-        if isRunning {
-            progressText = "Busy — wait for current scan to finish, then retry."
-            return
-        }
         scanTask?.cancel()
-        scanTask = Task { await work() }
+        // Fabric engage holds isRunning during sweep — cancel it so Deep/Vulns aren't dead.
+        runTask?.cancel()
+        scanGeneration &+= 1
+        let gen = scanGeneration
+        scanTask = Task {
+            await MainActor.run {
+                self.isRunning = true
+                self.progressText = "Starting scan…"
+            }
+            await work()
+            await MainActor.run {
+                if gen == self.scanGeneration {
+                    self.isRunning = false
+                    if self.phase == "deep" || self.phase == "vulns" || self.phase == "mqtt" {
+                        self.phase = "ready"
+                        self.report?.phase = "ready"
+                    }
+                }
+            }
+        }
     }
 
     private func performDeepScan(ip: String) async {
         await MainActor.run {
-            isRunning = true
             phase = "deep"
             progressText = "Deep IoT scan \(ip)"
             selectedHostIP = ip
+            report?.phase = phase
         }
         deep.onProgress = { [weak self] text in
             Task { @MainActor [weak self] in self?.progressText = text }
         }
         let result = await deep.scanHost(ip)
+        if Task.isCancelled { return }
         let fp = FingerprintEngine.shared.match(
             banners: result.banners,
             services: await MainActor.run { report?.hosts.first(where: { $0.ip == ip })?.services ?? [] }
@@ -322,17 +354,16 @@ final class GlassFabricPipeline {
             } else {
                 self.progressText = "Deep scan complete — \(ip) · \(result.openPorts.count) ports"
             }
-            self.isRunning = false
             self.report?.phase = self.phase
         }
     }
 
     private func performIoTVulns(ip: String, autoMQTT: Bool) async {
         await MainActor.run {
-            isRunning = true
             phase = "vulns"
             progressText = "IoT Vulns \(ip) — deep scan…"
             selectedHostIP = ip
+            report?.phase = phase
         }
         deep.onProgress = { [weak self] text in
             Task { @MainActor [weak self] in self?.progressText = text }
@@ -342,11 +373,11 @@ final class GlassFabricPipeline {
         }
 
         let deepResult = await deep.scanHost(ip)
+        if Task.isCancelled { return }
         if deepResult.openPorts.isEmpty {
             await MainActor.run {
                 self.phase = "ready"
                 self.progressText = "IoT Vulns \(ip): no open TCP — check Wi‑Fi + Local Network permission, then retry."
-                self.isRunning = false
                 self.report?.phase = self.phase
             }
             return
@@ -357,6 +388,7 @@ final class GlassFabricPipeline {
             openTCP: deepResult.openPorts,
             banners: deepResult.banners
         )
+        if Task.isCancelled { return }
         let existingServices = await MainActor.run { report?.hosts.first(where: { $0.ip == ip })?.services ?? [] }
         let existingVendor = await MainActor.run { report?.hosts.first(where: { $0.ip == ip })?.vendor }
         let fp = FingerprintEngine.shared.match(
@@ -376,6 +408,9 @@ final class GlassFabricPipeline {
             host.openUDPPorts = Array(Set(host.openUDPPorts + offenseResult.openUDP)).sorted()
             host.banners = deepResult.banners
             host.fingerprint = fp
+            // Replace same-source hits so re-tapping doesn't duplicate forever
+            let newKeys = Set(enrichedHits.map(\.id))
+            host.offenseHits.removeAll { newKeys.contains($0.id) }
             host.offenseHits.append(contentsOf: enrichedHits)
             self.mergeHost(host)
             let cveCount = enrichedHits.reduce(0) { $0 + $1.cves.count }
@@ -387,6 +422,7 @@ final class GlassFabricPipeline {
                 report?.hosts.first(where: { $0.ip == ip })?.mqttPorts ?? []
             }
             for port in mqttPorts {
+                if Task.isCancelled { break }
                 await listenMQTTAsync(ip: ip, port: UInt16(port), duration: 8, username: nil, password: nil)
             }
         }
@@ -394,7 +430,6 @@ final class GlassFabricPipeline {
         await MainActor.run {
             self.phase = "ready"
             self.progressText = "IoT Vulns complete — \(ip)"
-            self.isRunning = false
             self.report?.phase = self.phase
         }
     }

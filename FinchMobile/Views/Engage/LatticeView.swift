@@ -18,17 +18,22 @@ struct LatticeView: View {
                     List {
                         ForEach(report.hosts) { host in
                             NavigationLink {
-                                HostDetailView(
-                                    host: host,
-                                    onDeepScan: { onDeepScan(host.ip) },
-                                    onIoTVulns: { onIoTVulns(host.ip) },
-                                    onMQTT: { onMQTT(host.ip) }
-                                )
+                                HostDetailView(hostIP: host.ip, onMQTT: { onMQTT(host.ip) })
                             } label: {
                                 HostRow(host: host)
                             }
                             .listRowBackground(FinchTheme.surface)
                             .contextMenu {
+                                Button {
+                                    onDeepScan(host.ip)
+                                } label: {
+                                    Label("Deep Scan", systemImage: "dot.radiowaves.left.and.right")
+                                }
+                                Button {
+                                    onIoTVulns(host.ip)
+                                } label: {
+                                    Label("IoT Vulns", systemImage: "ladybug")
+                                }
                                 Button {
                                     FinchCopy.set(host.copyText)
                                 } label: {
@@ -83,21 +88,24 @@ struct LatticeView: View {
                 }
             }
             HStack(spacing: 8) {
-                Button("Deep Scan All", action: onDeepScanAll)
-                    .buttonStyle(FinchOutlineButtonStyle())
-                Button("IoT Vulns", action: onIoTVulnsAll)
-                    .buttonStyle(FinchOutlineButtonStyle())
-                Button("SENTINEL", action: onExport)
-                    .buttonStyle(FinchOutlineButtonStyle())
-                Button {
-                    let all = report.hosts.map(\.copyText).joined(separator: "\n\n————\n\n")
-                    FinchCopy.set(all.isEmpty ? "No hosts" : all)
-                } label: {
-                    Image(systemName: "doc.on.doc.fill")
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        Button("Deep Scan All", action: onDeepScanAll)
+                            .buttonStyle(FinchOutlineButtonStyle())
+                        Button("IoT Vulns", action: onIoTVulnsAll)
+                            .buttonStyle(FinchOutlineButtonStyle())
+                        Button("SENTINEL", action: onExport)
+                            .buttonStyle(FinchOutlineButtonStyle())
+                        Button {
+                            let all = report.hosts.map(\.copyText).joined(separator: "\n\n————\n\n")
+                            FinchCopy.set(all.isEmpty ? "No hosts" : all)
+                        } label: {
+                            Image(systemName: "doc.on.doc.fill")
+                        }
+                        .buttonStyle(FinchOutlineButtonStyle())
+                        .accessibilityLabel("Copy all hosts")
+                    }
                 }
-                .buttonStyle(FinchOutlineButtonStyle())
-                .accessibilityLabel("Copy all hosts")
-                Spacer()
                 Text(report.phase.uppercased())
                     .font(FinchTheme.monoSmall)
                     .foregroundStyle(FinchTheme.cyan)
@@ -188,12 +196,81 @@ struct HostRow: View {
 }
 
 struct HostDetailView: View {
-    let host: IoTHost
-    var onDeepScan: () -> Void
-    var onIoTVulns: () -> Void
+    @Environment(AppModel.self) private var app
+    let hostIP: String
     var onMQTT: () -> Void
 
+    private var host: IoTHost? {
+        app.glassPipeline.report?.hosts.first(where: { $0.ip == hostIP })
+    }
+
+    private var scanningThisHost: Bool {
+        app.glassPipeline.isRunning &&
+        (app.glassPipeline.selectedHostIP == hostIP || app.glassPipeline.phase == "deep" || app.glassPipeline.phase == "vulns")
+    }
+
     var body: some View {
+        Group {
+            if let host {
+                hostList(host)
+            } else {
+                VStack(spacing: 12) {
+                    Image(systemName: "wifi.slash")
+                        .font(.largeTitle)
+                        .foregroundStyle(FinchTheme.cyan.opacity(0.6))
+                    Text("Host gone")
+                        .font(FinchTheme.monoTitle)
+                        .foregroundStyle(FinchTheme.textPrimary)
+                    Text("\(hostIP) is no longer in the Glass report. Re-scan the network.")
+                        .font(FinchTheme.monoSmall)
+                        .foregroundStyle(FinchTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .background(FinchTheme.background)
+        .navigationTitle(host?.displayLabel ?? hostIP)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItemGroup(placement: .bottomBar) {
+                Button {
+                    kickDeepScan()
+                } label: {
+                    Label("Deep Scan", systemImage: "dot.radiowaves.left.and.right")
+                }
+                .disabled(app.glassPipeline.isRunning && app.glassPipeline.selectedHostIP != hostIP && app.glassPipeline.phase == "sweep")
+
+                Button {
+                    kickIoTVulns()
+                } label: {
+                    Label("IoT Vulns", systemImage: "ladybug")
+                }
+
+                if host?.hasMQTT == true {
+                    Button(action: onMQTT) {
+                        Label("MQTT", systemImage: "antenna.radiowaves.left.and.right")
+                    }
+                }
+            }
+        }
+        .safeAreaInset(edge: .top) {
+            if !app.glassPipeline.progressText.isEmpty,
+               app.glassPipeline.isRunning || app.glassPipeline.selectedHostIP == hostIP {
+                Text(app.glassPipeline.progressText)
+                    .font(FinchTheme.monoSmall)
+                    .foregroundStyle(FinchTheme.cyan)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(FinchTheme.surface.opacity(0.95))
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func hostList(_ host: IoTHost) -> some View {
         List {
             Section("Identity") {
                 latticeRow("IP", host.ip)
@@ -211,7 +288,7 @@ struct HostDetailView: View {
                 }
             }
             Section("Open Ports") {
-                Text("TCP: " + host.openPorts.map(String.init).joined(separator: ", "))
+                Text("TCP: " + (host.openPorts.isEmpty ? "—" : host.openPorts.map(String.init).joined(separator: ", ")))
                     .font(FinchTheme.mono)
                     .finchCopyable(host.openPorts.map(String.init).joined(separator: ", "))
                 if !host.openUDPPorts.isEmpty {
@@ -312,7 +389,8 @@ struct HostDetailView: View {
             }
             Section("Banners") {
                 if host.banners.isEmpty {
-                    Text("Run Deep Scan or IoT Vulns").foregroundStyle(.secondary)
+                    Text(scanningThisHost ? "Scanning…" : "Tap Deep Scan or IoT Vulns below")
+                        .foregroundStyle(.secondary)
                 } else {
                     ForEach(host.banners) { banner in
                         let text = banner.rawASCII.isEmpty ? "(no banner)" : banner.rawASCII
@@ -344,23 +422,57 @@ struct HostDetailView: View {
                     }
                 }
             }
-            Section {
+            Section("Actions") {
+                Button {
+                    kickDeepScan()
+                } label: {
+                    HStack {
+                        Text("Deep Scan")
+                        if scanningThisHost && app.glassPipeline.phase == "deep" {
+                            Spacer()
+                            ProgressView()
+                        }
+                    }
+                }
+                .foregroundStyle(FinchTheme.cyan)
+
+                Button {
+                    kickIoTVulns()
+                } label: {
+                    HStack {
+                        Text("IoT Vulns")
+                        if scanningThisHost && app.glassPipeline.phase == "vulns" {
+                            Spacer()
+                            ProgressView()
+                        }
+                    }
+                }
+                .foregroundStyle(FinchTheme.cyan)
+
+                if host.hasMQTT {
+                    Button("Listen MQTT", action: onMQTT)
+                }
+
                 Button("Copy everything") {
                     FinchCopy.set(host.copyText)
                 }
                 .foregroundStyle(FinchTheme.cyan)
-                Button("Deep Scan", action: onDeepScan)
-                Button("IoT Vulns", action: onIoTVulns)
-                    .foregroundStyle(FinchTheme.cyan)
-                if host.hasMQTT {
-                    Button("Listen MQTT", action: onMQTT)
-                }
             }
         }
         .scrollContentBackground(.hidden)
         .background(FinchTheme.background)
-        .navigationTitle(host.displayLabel)
-        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func kickDeepScan() {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        app.glassPipeline.deepScan(ip: hostIP)
+        app.statusMessage = "Deep Scan → \(hostIP)"
+    }
+
+    private func kickIoTVulns() {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        app.glassPipeline.iotVulns(ip: hostIP)
+        app.statusMessage = "IoT Vulns → \(hostIP)"
     }
 
     private func plainSource(_ source: String) -> String {

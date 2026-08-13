@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct TracksView: View {
     @Environment(AppModel.self) private var app
@@ -12,7 +13,7 @@ struct TracksView: View {
                     List {
                         ForEach(app.fusion.sortedTracks) { track in
                             NavigationLink {
-                                TrackDetailView(track: track)
+                                TrackDetailView(trackID: track.id)
                             } label: {
                                 TrackRow(track: track)
                             }
@@ -96,14 +97,51 @@ struct TrackRow: View {
 
 struct TrackDetailView: View {
     @Environment(AppModel.self) private var app
-    let track: RFTrack
+    let trackID: UUID
+
+    private var track: RFTrack? {
+        app.fusion.tracks[trackID]
+    }
 
     var body: some View {
+        Group {
+            if let track {
+                trackList(track)
+            } else {
+                Text("Track cleared")
+                    .font(FinchTheme.mono)
+                    .foregroundStyle(FinchTheme.textSecondary)
+            }
+        }
+        .background(FinchTheme.background)
+        .navigationTitle(track?.displayName ?? "Track")
+        .navigationBarTitleDisplayMode(.inline)
+        .safeAreaInset(edge: .top) {
+            if let ip = track?.linkedHostIP,
+               app.glassPipeline.isRunning,
+               app.glassPipeline.selectedHostIP == ip,
+               !app.glassPipeline.progressText.isEmpty {
+                Text(app.glassPipeline.progressText)
+                    .font(FinchTheme.monoSmall)
+                    .foregroundStyle(FinchTheme.cyan)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(FinchTheme.surface.opacity(0.95))
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func trackList(_ track: RFTrack) -> some View {
         List {
             Section("Identity") {
                 LabeledContent("Class", value: track.deviceClass.rawValue)
                 LabeledContent("Threat", value: "\(track.threatScore) · \(track.threatBand)")
                 LabeledContent("Anomaly", value: String(format: "%.2f", track.anomalyScore))
+                if let ip = track.linkedHostIP {
+                    LabeledContent("Host IP", value: ip)
+                }
                 if track.isSynthetic {
                     Text("SYNTHETIC / RESEARCH")
                         .foregroundStyle(.orange)
@@ -129,10 +167,27 @@ struct TrackDetailView: View {
                     LabeledContent("Controller nearby", value: meta.controllerNearby ? "yes" : "no")
                 }
             }
+            if let ip = track.linkedHostIP {
+                Section("Glass actions") {
+                    Button("Deep Scan \(ip)") {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        app.glassPipeline.deepScan(ip: ip)
+                        app.statusMessage = "Deep Scan → \(ip)"
+                    }
+                    .foregroundStyle(FinchTheme.cyan)
+                    Button("IoT Vulns \(ip)") {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        app.glassPipeline.iotVulns(ip: ip)
+                        app.statusMessage = "IoT Vulns → \(ip)"
+                    }
+                    .foregroundStyle(FinchTheme.cyan)
+                    Text("Results land on Engage → host detail. Stay on Wi‑Fi with Local Network allowed.")
+                        .font(FinchTheme.monoSmall)
+                        .foregroundStyle(.secondary)
+                }
+            }
         }
         .scrollContentBackground(.hidden)
         .background(FinchTheme.background)
-        .navigationTitle(track.displayName)
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
