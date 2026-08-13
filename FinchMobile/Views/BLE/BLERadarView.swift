@@ -5,11 +5,23 @@ struct BLERadarView: View {
     @Environment(AppModel.self) private var app
     @State private var selectedID: UUID?
     @State private var copyBanner: String?
+    @State private var showAdvancedFilter = false
+    @State private var summaryExpanded = true
 
     private var selectedDevice: BLEDevice? {
         guard let selectedID else { return nil }
         return app.bleScanner.devices[selectedID]
     }
+
+    private var filter: Binding<BLEListFilterState> {
+        Binding(
+            get: { app.bleScanner.listFilter },
+            set: { app.bleScanner.listFilter = $0 }
+        )
+    }
+
+    private var devices: [BLEDevice] { app.bleScanner.filteredDevices }
+    private var summary: BLEScanSummary { app.bleScanner.scanSummary }
 
     var body: some View {
         NavigationStack {
@@ -17,6 +29,8 @@ struct BLERadarView: View {
                 FinchTheme.background.ignoresSafeArea()
                 VStack(spacing: 0) {
                     controls
+                    summaryCard
+                    filterBar
                     if let err = app.bleScanner.errorMessage {
                         Text(err)
                             .font(FinchTheme.monoSmall)
@@ -32,7 +46,7 @@ struct BLERadarView: View {
                             .transition(.opacity)
                     }
                     List {
-                        ForEach(app.bleScanner.sortedDevices) { device in
+                        ForEach(devices) { device in
                             Button {
                                 selectedID = device.identifier
                             } label: {
@@ -44,6 +58,11 @@ struct BLERadarView: View {
                                     flashCopy(device.copyText, note: "Device copied")
                                 } label: {
                                     Label("Copy this device", systemImage: "doc.on.doc")
+                                }
+                                Button {
+                                    flashCopy(device.exportJSONString, note: "JSON copied")
+                                } label: {
+                                    Label("Copy JSON", systemImage: "curlybraces")
                                 }
                                 Button {
                                     flashCopy(device.copyCVEsText, note: "CVEs copied")
@@ -63,6 +82,16 @@ struct BLERadarView: View {
                                 } label: {
                                     Label("Copy ID", systemImage: "number")
                                 }
+                                Menu("Set category") {
+                                    Button("Auto (clear override)") {
+                                        app.bleScanner.setManualCategory(for: device.identifier, category: nil)
+                                    }
+                                    ForEach(BLEDeviceCategory.allCases) { cat in
+                                        Button(cat.label) {
+                                            app.bleScanner.setManualCategory(for: device.identifier, category: cat)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -77,19 +106,48 @@ struct BLERadarView: View {
                     Button("Clear") { app.bleScanner.clearDevices() }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button {
-                        let all = app.bleScanner.sortedDevices.map(\.copyText)
-                            .joined(separator: "\n\n————\n\n")
-                        flashCopy(
-                            all.isEmpty ? "No devices yet" : all,
-                            note: all.isEmpty ? "Nothing to copy" : "All \(app.bleScanner.devices.count) devices copied"
-                        )
+                    Menu {
+                        ForEach(BLESortMode.allCases) { mode in
+                            Button {
+                                app.bleScanner.listFilter.sortMode = mode
+                            } label: {
+                                HStack {
+                                    Text(mode.label)
+                                    if app.bleScanner.listFilter.sortMode == mode {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "arrow.up.arrow.down")
+                    }
+                    .accessibilityLabel("Sort")
+
+                    Menu {
+                        Button {
+                            let all = devices.map(\.copyText).joined(separator: "\n\n————\n\n")
+                            flashCopy(
+                                all.isEmpty ? "No devices yet" : all,
+                                note: all.isEmpty ? "Nothing to copy" : "\(devices.count) devices copied"
+                            )
+                        } label: {
+                            Label("Copy visible text", systemImage: "doc.on.doc")
+                        }
+                        Button {
+                            flashCopy(app.bleScanner.exportAllJSON(), note: "JSON export copied")
+                        } label: {
+                            Label("Copy JSON export", systemImage: "curlybraces")
+                        }
+                        ShareLink(item: app.bleScanner.exportAllJSON()) {
+                            Label("Share JSON", systemImage: "square.and.arrow.up")
+                        }
                     } label: {
                         Image(systemName: "doc.on.doc.fill")
                     }
-                    .accessibilityLabel("Copy all results")
+                    .accessibilityLabel("Export")
 
-                    Text("\(app.bleScanner.devices.count)")
+                    Text("\(devices.count)/\(app.bleScanner.devices.count)")
                         .font(FinchTheme.mono)
                         .foregroundStyle(FinchTheme.cyan)
                 }
@@ -102,6 +160,9 @@ struct BLERadarView: View {
                     BLEDeviceDetailSheet(deviceID: device.identifier)
                         .environment(app)
                 }
+            }
+            .sheet(isPresented: $showAdvancedFilter) {
+                BLEAdvancedFilterSheet(filter: filter)
             }
             .onAppear {
                 if app.settings.continuousBLEDefault {
@@ -141,12 +202,167 @@ struct BLERadarView: View {
                 }
                 .buttonStyle(FinchOutlineButtonStyle())
             }
-            Text("Long-press any row to copy · clipboard button copies everything · distance is an RSSI estimate.")
+        }
+        .padding(.horizontal)
+        .padding(.top)
+        .padding(.bottom, 4)
+        .background(FinchTheme.surface)
+    }
+
+    private var summaryCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Button {
+                withAnimation { summaryExpanded.toggle() }
+            } label: {
+                HStack {
+                    Text("Scan summary")
+                        .font(FinchTheme.mono)
+                        .foregroundStyle(FinchTheme.textPrimary)
+                    Spacer()
+                    Text("\(summary.total) devices")
+                        .font(FinchTheme.monoSmall)
+                        .foregroundStyle(FinchTheme.cyan)
+                    Image(systemName: summaryExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption)
+                        .foregroundStyle(FinchTheme.textSecondary)
+                }
+            }
+            .buttonStyle(.plain)
+
+            if summaryExpanded {
+                HStack(spacing: 12) {
+                    summaryStat("Visible", "\(devices.count)")
+                    summaryStat("Connectable", "\(summary.connectable)")
+                    if let rssi = summary.strongestRSSI {
+                        summaryStat("Best RSSI", "\(rssi)")
+                    }
+                }
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(BLEDeviceCategory.quickFilterCases) { cat in
+                            let n = summary.count(for: cat)
+                            if n > 0 || cat == .unknown {
+                                Text("\(cat.shortLabel) \(n)")
+                                    .font(FinchTheme.monoSmall)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(FinchTheme.background)
+                                    .foregroundStyle(n > 0 ? FinchTheme.cyan : FinchTheme.textSecondary)
+                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                                    .onTapGesture {
+                                        app.bleScanner.listFilter.quickCategory = cat
+                                    }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(FinchTheme.surface)
+    }
+
+    private func summaryStat(_ title: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title)
                 .font(FinchTheme.monoSmall)
                 .foregroundStyle(FinchTheme.textSecondary)
+            Text(value)
+                .font(FinchTheme.mono)
+                .foregroundStyle(FinchTheme.textPrimary)
         }
-        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var filterBar: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(FinchTheme.textSecondary)
+                TextField(
+                    "Search name, ID, UUID, company…",
+                    text: Binding(
+                        get: { app.bleScanner.listFilter.searchText },
+                        set: { app.bleScanner.listFilter.searchText = $0 }
+                    )
+                )
+                .font(FinchTheme.monoSmall)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                if !app.bleScanner.listFilter.searchText.isEmpty {
+                    Button {
+                        app.bleScanner.listFilter.searchText = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(FinchTheme.textSecondary)
+                    }
+                }
+            }
+            .padding(8)
+            .background(FinchTheme.background)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    quickPill("All", selected: app.bleScanner.listFilter.quickCategory == nil) {
+                        app.bleScanner.listFilter.quickCategory = nil
+                    }
+                    ForEach(BLEDeviceCategory.quickFilterCases) { cat in
+                        quickPill(cat.shortLabel, selected: app.bleScanner.listFilter.quickCategory == cat) {
+                            app.bleScanner.listFilter.quickCategory = cat
+                        }
+                    }
+                }
+            }
+
+            HStack {
+                Button {
+                    showAdvancedFilter = true
+                } label: {
+                    Label(
+                        app.bleScanner.listFilter.hasAdvancedActive ? "Advanced ●" : "Advanced",
+                        systemImage: "slider.horizontal.3"
+                    )
+                    .font(FinchTheme.monoSmall)
+                }
+                .foregroundStyle(FinchTheme.cyan)
+
+                Spacer()
+
+                Text(app.bleScanner.listFilter.sortMode.label)
+                    .font(FinchTheme.monoSmall)
+                    .foregroundStyle(FinchTheme.textSecondary)
+
+                if app.bleScanner.listFilter.activeFilterCount > 0 {
+                    Button("Reset") {
+                        app.bleScanner.listFilter.resetAll()
+                    }
+                    .font(FinchTheme.monoSmall)
+                    .foregroundStyle(FinchTheme.warn)
+                }
+            }
+        }
+        .padding(.horizontal)
+        .padding(.bottom, 8)
         .background(FinchTheme.surface)
+    }
+
+    private func quickPill(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(FinchTheme.monoSmall)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(selected ? FinchTheme.cyan.opacity(0.25) : FinchTheme.background)
+                .foregroundStyle(selected ? FinchTheme.cyan : FinchTheme.textSecondary)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(selected ? FinchTheme.cyan : FinchTheme.cyanDim, lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
     }
 
     private func flashCopy(_ text: String, note: String) {
@@ -156,6 +372,108 @@ struct BLERadarView: View {
             try? await Task.sleep(nanoseconds: 1_400_000_000)
             await MainActor.run {
                 withAnimation { copyBanner = nil }
+            }
+        }
+    }
+}
+
+struct BLEAdvancedFilterSheet: View {
+    @Binding var filter: BLEListFilterState
+    @Environment(\.dismiss) private var dismiss
+    @Environment(AppModel.self) private var app
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Include categories") {
+                    ForEach(BLEDeviceCategory.allCases) { cat in
+                        Toggle(cat.label, isOn: Binding(
+                            get: { filter.includeCategories.contains(cat) },
+                            set: { on in
+                                if on { filter.includeCategories.insert(cat) }
+                                else { filter.includeCategories.remove(cat) }
+                            }
+                        ))
+                    }
+                }
+                Section("Exclude categories") {
+                    ForEach(BLEDeviceCategory.allCases) { cat in
+                        Toggle(cat.label, isOn: Binding(
+                            get: { filter.excludeCategories.contains(cat) },
+                            set: { on in
+                                if on { filter.excludeCategories.insert(cat) }
+                                else { filter.excludeCategories.remove(cat) }
+                            }
+                        ))
+                    }
+                }
+                Section("RSSI (dBm)") {
+                    HStack {
+                        Text("\(Int(filter.rssiMin))")
+                        Slider(value: $filter.rssiMin, in: -100...(-20), step: 1)
+                        Text("\(Int(filter.rssiMax))")
+                    }
+                    .font(FinchTheme.monoSmall)
+                    Slider(value: $filter.rssiMax, in: -100...(-20), step: 1)
+                }
+                Section("Distance (m)") {
+                    HStack {
+                        Text(String(format: "%.0f", filter.distanceMin))
+                        Slider(value: $filter.distanceMin, in: 0...100, step: 1)
+                        Text(String(format: "%.0f", filter.distanceMax))
+                    }
+                    .font(FinchTheme.monoSmall)
+                    Slider(value: $filter.distanceMax, in: 0...100, step: 1)
+                }
+                Section("Company ID") {
+                    TextField("e.g. 0x0075", text: $filter.companyIdText)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                }
+                Section("Name contains") {
+                    TextField("substring", text: $filter.nameContains)
+                }
+                Section("Connectable") {
+                    Picker("Connectable", selection: $filter.connectable) {
+                        ForEach(BLEConnectableFilter.allCases) { c in
+                            Text(c.label).tag(c)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+                Section("Service UUID") {
+                    TextField("e.g. 180D or FE2C", text: $filter.serviceUUID)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
+                    if !app.bleScanner.knownAdvertisedServiceUUIDs.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack {
+                                ForEach(app.bleScanner.knownAdvertisedServiceUUIDs.prefix(40), id: \.self) { uuid in
+                                    Button(uuid) { filter.serviceUUID = uuid }
+                                        .font(FinchTheme.monoSmall)
+                                }
+                            }
+                        }
+                    }
+                }
+                Section("Last seen") {
+                    Picker("Window", selection: $filter.lastSeen) {
+                        ForEach(BLELastSeenWindow.allCases) { w in
+                            Text(w.label).tag(w)
+                        }
+                    }
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background(FinchTheme.background)
+            .navigationTitle("Advanced filter")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Reset") { filter.resetAdvanced() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
             }
         }
     }
@@ -193,9 +511,9 @@ struct BLEDeviceRow: View {
                     }
                     Text("·")
                         .foregroundStyle(FinchTheme.textSecondary)
-                    Text(identity.category)
+                    Text(device.primaryCategory.shortLabel)
                         .font(FinchTheme.monoSmall)
-                        .foregroundStyle(FinchTheme.textSecondary)
+                        .foregroundStyle(device.manualCategoryOverride != nil ? FinchTheme.warn : FinchTheme.textSecondary)
                     Text("·")
                         .foregroundStyle(FinchTheme.textSecondary)
                     Text(identity.confidence)
@@ -271,7 +589,7 @@ struct BLEDeviceDetailSheet: View {
     let deviceID: UUID
     @Environment(AppModel.self) private var app
     @Environment(\.dismiss) private var dismiss
-    @State private var showTechnical = false
+    @State private var showTechnical = true
     @State private var copyBanner: String?
 
     private var device: BLEDevice? {
@@ -298,10 +616,10 @@ struct BLEDeviceDetailSheet: View {
                                         .font(FinchTheme.monoSmall)
                                         .foregroundStyle(FinchTheme.cyan)
                                         .finchCopyable(identity.deviceType)
-                                    Text(identity.category)
+                                    Text(device.resolvedCategories.map(\.label).joined(separator: ", "))
                                         .font(FinchTheme.monoSmall)
                                         .foregroundStyle(FinchTheme.textSecondary)
-                                        .finchCopyable(identity.category)
+                                        .finchCopyable(device.resolvedCategories.map(\.label).joined(separator: ", "))
                                 }
                             }
                             .padding(.vertical, 4)
@@ -313,6 +631,22 @@ struct BLEDeviceDetailSheet: View {
 
                             copyRow("Device type", identity.deviceType)
                             copyRow("Confidence", identity.confidence)
+                            copyRow("Taxonomy", device.resolvedCategories.map(\.label).joined(separator: ", "))
+                            if device.manualCategoryOverride != nil {
+                                Text("Manual override active")
+                                    .font(FinchTheme.monoSmall)
+                                    .foregroundStyle(FinchTheme.warn)
+                            }
+                            Menu("Reclassify…") {
+                                Button("Auto (clear override)") {
+                                    app.bleScanner.setManualCategory(for: device.identifier, category: nil)
+                                }
+                                ForEach(BLEDeviceCategory.allCases) { cat in
+                                    Button(cat.label) {
+                                        app.bleScanner.setManualCategory(for: device.identifier, category: cat)
+                                    }
+                                }
+                            }
                             if let flock = FlockCameraDetector.matchBLE(device) {
                                 copyRow("ALPR / Flock-class", "\(flock.vendor) · \(flock.model)")
                                 Text(flock.reason)
@@ -333,9 +667,10 @@ struct BLEDeviceDetailSheet: View {
                             if let company = device.manufacturerCompanyId {
                                 copyRow("Brand / company", BLEValueExplainer.explainCompanyId(company))
                             }
+                            // Advertisement: summary + hex for manufacturer / service / tx / flags
                             if let mfg = device.manufacturerDataHex, !mfg.isEmpty {
                                 copyRow(
-                                    "Manufacturer payload",
+                                    "Manufacturer summary",
                                     BLEValueExplainer.explainManufacturer(
                                         companyId: device.manufacturerCompanyId,
                                         brand: device.manufacturerName,
@@ -343,13 +678,32 @@ struct BLEDeviceDetailSheet: View {
                                     )
                                 )
                             }
+                            if let raw = device.manufacturerDataRawHex, !raw.isEmpty {
+                                copyRow("Manufacturer hex (raw)", raw)
+                            }
+                            if let payload = device.manufacturerDataHex, !payload.isEmpty {
+                                copyRow("Manufacturer hex (payload)", payload)
+                            }
+                            if let tx = device.txPower {
+                                copyRow("Tx Power summary", "\(tx) dBm")
+                                if let hx = device.txPowerHex {
+                                    copyRow("Tx Power hex", hx)
+                                }
+                            }
+                            if let flagsSummary = device.advertisementFlagsSummary {
+                                copyRow("Flags summary", flagsSummary)
+                            }
+                            if let flagsHex = device.advertisementFlagsHex {
+                                copyRow("Flags hex", flagsHex)
+                            }
                             if !device.serviceData.isEmpty {
                                 ForEach(device.serviceData.keys.sorted(), id: \.self) { uuid in
                                     let hex = device.serviceData[uuid] ?? ""
                                     copyRow(
-                                        "Service data",
+                                        "Service data summary",
                                         BLEValueExplainer.explainServiceData(uuid: uuid, hex: hex)
                                     )
+                                    copyRow("Service data hex (\(BLEServiceNames.shortKey(uuid)))", hex)
                                 }
                             }
                             if !identity.serviceLabels.isEmpty {
@@ -410,7 +764,7 @@ struct BLEDeviceDetailSheet: View {
                         }
 
                         if !device.gattServices.isEmpty {
-                            Section("What's inside · \(BLEServiceNames.recognizedCount) UUID names loaded") {
+                            Section("GATT · \(BLEServiceNames.recognizedCount) UUID names loaded") {
                                 ForEach(device.gattServices) { svc in
                                     let svcLabel = BLEServiceNames.label(forUUID: svc.uuid)
                                     VStack(alignment: .leading, spacing: 6) {
@@ -418,13 +772,13 @@ struct BLEDeviceDetailSheet: View {
                                             .font(FinchTheme.mono)
                                             .foregroundStyle(FinchTheme.cyan)
                                             .finchCopyable(svcLabel)
+                                        Text("UUID: \(svc.uuid)")
+                                            .font(FinchTheme.monoSmall)
+                                            .foregroundStyle(FinchTheme.textSecondary)
+                                            .finchCopyable(svc.uuid)
                                         ForEach(svc.characteristics) { ch in
                                             let chLabel = BLEServiceNames.label(forUUID: ch.uuid)
-                                            let valueText = BLEValueExplainer.explainCharacteristic(
-                                                uuid: ch.uuid,
-                                                utf8: ch.valueUTF8,
-                                                hex: ch.valueHex
-                                            )
+                                            let valueText = ch.valueSummary
                                             VStack(alignment: .leading, spacing: 2) {
                                                 HStack {
                                                     Text(chLabel)
@@ -448,7 +802,30 @@ struct BLEDeviceDetailSheet: View {
                                                 Text(valueText)
                                                     .font(FinchTheme.monoSmall)
                                                     .foregroundStyle(FinchTheme.textPrimary)
-                                                    .finchCopyable(valueText, label: "Copy value")
+                                                    .finchCopyable(valueText, label: "Copy value summary")
+                                                if let hex = ch.valueHex, !hex.isEmpty {
+                                                    Text("hex: \(hex)")
+                                                        .font(FinchTheme.monoSmall)
+                                                        .foregroundStyle(FinchTheme.warn)
+                                                        .finchCopyable(hex, label: "Copy hex")
+                                                }
+                                                ForEach(ch.descriptors) { desc in
+                                                    VStack(alignment: .leading, spacing: 1) {
+                                                        Text("desc \(BLEServiceNames.label(forUUID: desc.uuid))")
+                                                            .font(FinchTheme.monoSmall)
+                                                            .foregroundStyle(FinchTheme.textSecondary)
+                                                        Text(desc.valueSummary)
+                                                            .font(FinchTheme.monoSmall)
+                                                            .finchCopyable(desc.valueSummary)
+                                                        if let hx = desc.valueHex, !hx.isEmpty {
+                                                            Text("hex: \(hx)")
+                                                                .font(FinchTheme.monoSmall)
+                                                                .foregroundStyle(FinchTheme.warn)
+                                                                .finchCopyable(hx)
+                                                        }
+                                                    }
+                                                    .padding(.leading, 8)
+                                                }
                                             }
                                             .padding(.leading, 4)
                                         }
@@ -464,6 +841,16 @@ struct BLEDeviceDetailSheet: View {
                                 FinchCopy.set(device.copyText)
                             }
                             .foregroundStyle(FinchTheme.cyan)
+
+                            Button("Copy JSON") {
+                                flash("JSON copied")
+                                FinchCopy.set(device.exportJSONString)
+                            }
+                            .foregroundStyle(FinchTheme.cyan)
+
+                            ShareLink(item: device.exportJSONString) {
+                                Label("Share JSON", systemImage: "square.and.arrow.up")
+                            }
 
                             if device.connectionState == .connected
                                 || device.connectionState == .discovering
@@ -492,27 +879,18 @@ struct BLEDeviceDetailSheet: View {
                                 if let company = device.manufacturerCompanyId {
                                     copyRow("Brand / company", BLEValueExplainer.explainCompanyId(company))
                                 }
-                                copyRow(
-                                    "Manufacturer payload",
-                                    BLEValueExplainer.explainManufacturer(
-                                        companyId: device.manufacturerCompanyId,
-                                        brand: device.manufacturerName,
-                                        payloadHex: device.manufacturerDataHex
-                                    )
-                                )
+                                if let raw = device.manufacturerDataRawHex {
+                                    copyRow("Manufacturer hex (raw)", raw)
+                                }
                                 if !device.serviceUUIDs.isEmpty {
                                     ForEach(device.serviceUUIDs, id: \.self) { uuid in
                                         Text(BLEServiceNames.label(forUUID: uuid))
                                             .font(FinchTheme.monoSmall)
                                             .finchCopyable(BLEServiceNames.label(forUUID: uuid))
-                                    }
-                                }
-                                if !device.serviceData.isEmpty {
-                                    ForEach(device.serviceData.keys.sorted(), id: \.self) { uuid in
-                                        let hex = device.serviceData[uuid] ?? ""
-                                        Text(BLEValueExplainer.explainServiceData(uuid: uuid, hex: hex))
+                                        Text(uuid)
                                             .font(FinchTheme.monoSmall)
-                                            .finchCopyable(BLEValueExplainer.explainServiceData(uuid: uuid, hex: hex))
+                                            .foregroundStyle(FinchTheme.textSecondary)
+                                            .finchCopyable(uuid)
                                     }
                                 }
                                 Text(BLEValueExplainer.explainAdvertisementBlob(device.advertisementHex))
@@ -522,16 +900,22 @@ struct BLEDeviceDetailSheet: View {
                                         BLEValueExplainer.explainAdvertisementBlob(device.advertisementHex),
                                         label: "Copy advertisement summary"
                                     )
+                                if !device.advertisementHex.isEmpty {
+                                    Text(device.advertisementHex)
+                                        .font(FinchTheme.monoSmall)
+                                        .foregroundStyle(FinchTheme.warn)
+                                        .finchCopyable(device.advertisementHex, label: "Copy advertisement dump")
+                                }
                             }
                         } header: {
                             Text("Advanced")
                         } footer: {
-                            Text("Double-tap or long-press any value to copy. Distance is estimated from signal strength.")
+                            Text("Double-tap or long-press any value to copy. Distance is estimated from signal strength. Raw hex shown alongside summaries.")
                         }
                     }
                     .scrollContentBackground(.hidden)
                     .background(FinchTheme.background)
-                    .navigationTitle(identity.category)
+                    .navigationTitle(device.primaryCategory.shortLabel)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Close") { dismiss() }

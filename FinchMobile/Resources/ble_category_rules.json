@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "categories": [
+    {
+      "id": "cameraSecurity",
+      "label": "Camera / Security",
+      "companyIds": ["0x0171", "0x0DE8"],
+      "nameContains": ["Ring", "Cam", "Doorbell", "Security", "DBC", "Arlo", "Eufy", "Nest Cam", "Wyze", "Blink"],
+      "serviceUUIDs": []
+    },
+    {
+      "id": "tracker",
+      "label": "Tracker",
+      "companyIds": ["0x0075", "0x004C", "0x03DA", "0x1011"],
+      "nameContains": ["Tile", "SmartTag", "Chipolo", "Find My", "Tracker", "AirTag", "Pebblebee"],
+      "serviceUUIDs": ["FE2C", "FD6F"]
+    },
+    {
+      "id": "audio",
+      "label": "Audio / Headphones",
+      "companyIds": ["0x008A", "0x00D2"],
+      "nameContains": ["JLab", "Bose", "Sony", "JBL", "AirPods", "Headphones", "Buds", "Speaker", "Beats", "Headset", "FreeBuds"],
+      "serviceUUIDs": ["110B", "1108", "111E"]
+    },
+    {
+      "id": "wearable",
+      "label": "Wearable / Fitness",
+      "companyIds": ["0x015A", "0x0157", "0x005D", "0x006D", "0x01D7"],
+      "nameContains": ["Fitbit", "Watch", "Band", "HRM", "Oura", "Garmin", "Amazfit", "Whoop"],
+      "serviceUUIDs": ["180D", "180F", "1822", "1826"]
+    },
+    {
+      "id": "medical",
+      "label": "Medical / Health",
+      "companyIds": [],
+      "nameContains": ["Temp", "BP", "Glucose", "Insulin", "Monitor", "Pulse", "O2", "Oximeter"],
+      "serviceUUIDs": ["181E", "180A", "1810", "1808", "1809", "181D"]
+    },
+    {
+      "id": "smartHome",
+      "label": "Smart Home / IoT",
+      "companyIds": ["0x0075", "0x0000", "0x00A0", "0x0171", "0x0BDB"],
+      "nameContains": ["Hue", "Light", "Bulb", "Smart", "Thermo", "Plug", "Switch", "Lock", "Nest", "Echo"],
+      "serviceUUIDs": ["FD69"]
+    },
+    {
+      "id": "tvMedia",
+      "label": "TV / Media",
+      "companyIds": [],
+      "nameContains": ["TV", "Chromecast", "Fire TV", "Roku", "Apple TV", "Display", "Shield"],
+      "serviceUUIDs": ["183A", "1844"]
+    },
+    {
+      "id": "drone",
+      "label": "Drone / UAV",
+      "companyIds": ["0x0960"],
+      "nameContains": ["Drone", "UAV", "MAV", "XC-", "DJI", "Autel", "Skydio"],
+      "serviceUUIDs": []
+    },
+    {
+      "id": "phone",
+      "label": "Phone / Tablet",
+      "companyIds": [],
+      "nameContains": ["iPhone", "Galaxy", "Pixel", "Phone", "iPad", "OnePlus"],
+      "serviceUUIDs": ["111E", "110B", "1108"]
+    },
+    {
+      "id": "automotive",
+      "label": "Car / Automotive",
+      "companyIds": ["0x0175", "0x0A7C"],
+      "nameContains": ["Tesla", "BMW", "Mercedes", "Car", "Auto", "TPMS", "CarPlay"],
+      "serviceUUIDs": []
+    }
+  ]
+}

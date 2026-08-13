@@ -9,12 +9,54 @@ enum BLEConnectionState: String, Codable, Hashable {
     case failed
 }
 
+struct GATTDescriptorInfo: Codable, Hashable, Identifiable {
+    var id: String { uuid }
+    var uuid: String
+    var valueHex: String?
+    var valueUTF8: String?
+    var valueSummary: String {
+        BLEValueExplainer.explainCharacteristic(uuid: uuid, utf8: valueUTF8, hex: valueHex)
+    }
+}
+
 struct GATTCharacteristicInfo: Codable, Hashable, Identifiable {
     var id: String { uuid }
     var uuid: String
     var properties: [String]
     var valueHex: String?
     var valueUTF8: String?
+    var descriptors: [GATTDescriptorInfo]
+
+    init(
+        uuid: String,
+        properties: [String],
+        valueHex: String? = nil,
+        valueUTF8: String? = nil,
+        descriptors: [GATTDescriptorInfo] = []
+    ) {
+        self.uuid = uuid
+        self.properties = properties
+        self.valueHex = valueHex
+        self.valueUTF8 = valueUTF8
+        self.descriptors = descriptors
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        uuid = try c.decode(String.self, forKey: .uuid)
+        properties = try c.decodeIfPresent([String].self, forKey: .properties) ?? []
+        valueHex = try c.decodeIfPresent(String.self, forKey: .valueHex)
+        valueUTF8 = try c.decodeIfPresent(String.self, forKey: .valueUTF8)
+        descriptors = try c.decodeIfPresent([GATTDescriptorInfo].self, forKey: .descriptors) ?? []
+    }
+
+    var valueSummary: String {
+        BLEValueExplainer.explainCharacteristic(uuid: uuid, utf8: valueUTF8, hex: valueHex)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case uuid, properties, valueHex, valueUTF8, descriptors
+    }
 }
 
 struct GATTServiceInfo: Codable, Hashable, Identifiable {
@@ -34,18 +76,31 @@ struct BLEDevice: Identifiable, Codable, Hashable {
     var lastSeen: Date
     var advertisementHex: String
     var manufacturerCompanyId: UInt16?
+    /// Payload only (company ID bytes stripped) — space-separated hex.
     var manufacturerDataHex: String?
+    /// Full manufacturer AD including little-endian company ID — space-separated hex.
+    var manufacturerDataRawHex: String?
     var manufacturerName: String?
     var serviceUUIDs: [String]
     /// Service-data UUID → payload hex (Eddystone, Tile, Continuity helpers).
     var serviceData: [String: String]
     var txPower: Int?
+    /// Raw Tx Power Level AD value as hex byte (signed).
+    var txPowerHex: String?
+    /// GAP Flags AD type when CoreBluetooth exposes it (`kCBAdvDataFlags`); else nil.
+    var advertisementFlags: UInt8?
+    var advertisementFlagsHex: String?
+    var advertisementFlagsSummary: String?
     var connectable: Bool
     var overflowServiceUUIDs: [String]
     var solicitedServiceUUIDs: [String]
     var connectionState: BLEConnectionState
     var gattError: String?
     var gattServices: [GATTServiceInfo]
+    /// Auto-classified categories (refreshed on merge / scan).
+    var categories: [BLEDeviceCategory]
+    /// User re-classification; when set, filters/exports use this alone.
+    var manualCategoryOverride: BLEDeviceCategory?
 
     init(
         identifier: UUID,
@@ -57,16 +112,23 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         advertisementHex: String,
         manufacturerCompanyId: UInt16? = nil,
         manufacturerDataHex: String? = nil,
+        manufacturerDataRawHex: String? = nil,
         manufacturerName: String? = nil,
         serviceUUIDs: [String] = [],
         serviceData: [String: String] = [:],
         txPower: Int? = nil,
+        txPowerHex: String? = nil,
+        advertisementFlags: UInt8? = nil,
+        advertisementFlagsHex: String? = nil,
+        advertisementFlagsSummary: String? = nil,
         connectable: Bool = false,
         overflowServiceUUIDs: [String] = [],
         solicitedServiceUUIDs: [String] = [],
         connectionState: BLEConnectionState = .disconnected,
         gattError: String? = nil,
-        gattServices: [GATTServiceInfo] = []
+        gattServices: [GATTServiceInfo] = [],
+        categories: [BLEDeviceCategory] = [],
+        manualCategoryOverride: BLEDeviceCategory? = nil
     ) {
         self.identifier = identifier
         self.name = name
@@ -77,16 +139,51 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         self.advertisementHex = advertisementHex
         self.manufacturerCompanyId = manufacturerCompanyId
         self.manufacturerDataHex = manufacturerDataHex
+        self.manufacturerDataRawHex = manufacturerDataRawHex
         self.manufacturerName = manufacturerName
         self.serviceUUIDs = serviceUUIDs
         self.serviceData = serviceData
         self.txPower = txPower
+        self.txPowerHex = txPowerHex
+        self.advertisementFlags = advertisementFlags
+        self.advertisementFlagsHex = advertisementFlagsHex
+        self.advertisementFlagsSummary = advertisementFlagsSummary
         self.connectable = connectable
         self.overflowServiceUUIDs = overflowServiceUUIDs
         self.solicitedServiceUUIDs = solicitedServiceUUIDs
         self.connectionState = connectionState
         self.gattError = gattError
         self.gattServices = gattServices
+        self.categories = categories
+        self.manualCategoryOverride = manualCategoryOverride
+        if self.categories.isEmpty {
+            self.categories = BLECategoryClassifier.classify(self)
+        }
+    }
+
+    var resolvedCategories: [BLEDeviceCategory] {
+        if let manualCategoryOverride { return [manualCategoryOverride] }
+        if categories.isEmpty { return BLECategoryClassifier.classify(self) }
+        return categories
+    }
+
+    var primaryCategory: BLEDeviceCategory {
+        resolvedCategories.first ?? .unknown
+    }
+
+    mutating func refreshCategories() {
+        if manualCategoryOverride == nil {
+            categories = BLECategoryClassifier.classify(self)
+        }
+    }
+
+    mutating func setManualCategory(_ category: BLEDeviceCategory?) {
+        manualCategoryOverride = category
+        if let category {
+            categories = [category]
+        } else {
+            categories = BLECategoryClassifier.classify(self)
+        }
     }
 
     /// Best human name from ads / GATT (still may be nil for privacy ads).
@@ -164,7 +261,8 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         var lines = [
             identity.title,
             "Type: \(identity.deviceType)",
-            "Category: \(identity.category)",
+            "Friendly category: \(identity.category)",
+            "Taxonomy: \(resolvedCategories.map(\.label).joined(separator: ", "))",
             identity.summary,
             "Distance: \(distanceLabel)",
             "Signal: \(signalLabel) (\(rssi) dBm)",
@@ -172,9 +270,12 @@ struct BLEDevice: Identifiable, Codable, Hashable {
             "Connection: \(connectabilityLabel)",
             "Broadcast name: \(broadcastName ?? "—")",
             "Brand hint: \(manufacturerName ?? "—")",
-            "Company ID: \(manufacturerCompanyId.map { String(format: "0x%04X", $0) } ?? "—")",
+            "Company: \(manufacturerCompanyId.map { BLEValueExplainer.explainCompanyId($0) } ?? "—")",
             "ID: \(identifier.uuidString)"
         ]
+        if let override = manualCategoryOverride {
+            lines.append("Manual category override: \(override.label)")
+        }
         if !identity.serviceLabels.isEmpty {
             lines.append("Advertises: \(identity.serviceLabels.joined(separator: ", "))")
         }
@@ -186,31 +287,70 @@ struct BLEDevice: Identifiable, Codable, Hashable {
                 lines.append("    \(cve.nvdURL)")
             }
         }
-        for svc in gattServices {
-            lines.append("Inside: \(BLEServiceNames.label(forUUID: svc.uuid))")
-            for ch in svc.characteristics {
-                let explained = BLEValueExplainer.explainCharacteristic(
-                    uuid: ch.uuid,
-                    utf8: ch.valueUTF8,
-                    hex: ch.valueHex
-                )
-                lines.append("  - \(BLEServiceNames.label(forUUID: ch.uuid)): \(explained)")
-            }
-        }
-        if manufacturerCompanyId != nil || !(manufacturerDataHex ?? "").isEmpty {
+        if manufacturerCompanyId != nil || !(manufacturerDataHex ?? "").isEmpty || !(manufacturerDataRawHex ?? "").isEmpty {
             lines.append(
                 "Manufacturer: \(BLEValueExplainer.explainManufacturer(companyId: manufacturerCompanyId, brand: manufacturerName, payloadHex: manufacturerDataHex))"
             )
+            if let raw = manufacturerDataRawHex, !raw.isEmpty {
+                lines.append("Manufacturer hex (raw): \(raw)")
+            }
+            if let payload = manufacturerDataHex, !payload.isEmpty {
+                lines.append("Manufacturer hex (payload): \(payload)")
+            }
+        }
+        if let tx = txPower {
+            lines.append("Tx Power: \(tx) dBm")
+            if let hx = txPowerHex { lines.append("Tx Power hex: \(hx)") }
+        }
+        if let flagsSummary = advertisementFlagsSummary {
+            lines.append("Flags: \(flagsSummary)")
+        }
+        if let flagsHex = advertisementFlagsHex {
+            lines.append("Flags hex: \(flagsHex)")
         }
         if !serviceData.isEmpty {
             for (uuid, hex) in serviceData.sorted(by: { $0.key < $1.key }) {
                 lines.append(BLEValueExplainer.explainServiceData(uuid: uuid, hex: hex))
+                lines.append("  Service data hex (\(uuid)): \(hex)")
+            }
+        }
+        for svc in gattServices {
+            lines.append("GATT service: \(BLEServiceNames.label(forUUID: svc.uuid)) [\(svc.uuid)]")
+            for ch in svc.characteristics {
+                let explained = ch.valueSummary
+                lines.append("  - \(BLEServiceNames.label(forUUID: ch.uuid)): \(explained)")
+                if let hex = ch.valueHex, !hex.isEmpty {
+                    lines.append("    value hex: \(hex)")
+                }
+                for desc in ch.descriptors {
+                    lines.append("    descriptor \(BLEServiceNames.label(forUUID: desc.uuid)): \(desc.valueSummary)")
+                    if let hex = desc.valueHex, !hex.isEmpty {
+                        lines.append("      descriptor hex: \(hex)")
+                    }
+                }
             }
         }
         if !advertisementHex.isEmpty {
             lines.append(BLEValueExplainer.explainAdvertisementBlob(advertisementHex))
+            lines.append("Advertisement dump: \(advertisementHex)")
         }
         return lines.joined(separator: "\n")
+    }
+
+    /// Full structured export for clipboard / ShareLink.
+    func exportJSON(pretty: Bool = true) throws -> Data {
+        let encoder = JSONEncoder()
+        if pretty {
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        } else {
+            encoder.outputFormatting = [.sortedKeys]
+        }
+        encoder.dateEncodingStrategy = .iso8601
+        return try encoder.encode(self)
+    }
+
+    var exportJSONString: String {
+        (try? String(data: exportJSON(), encoding: .utf8)) ?? "{}"
     }
 
     var copyCVEsText: String {
@@ -248,10 +388,12 @@ struct BLEDevice: Identifiable, Codable, Hashable {
 
         var mfgCompany: UInt16?
         var mfgHex: String?
+        var mfgRawHex: String?
         var mfgName: String?
         if let data = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data, data.count >= 2 {
             let company = UInt16(data[0]) | (UInt16(data[1]) << 8)
             mfgCompany = company
+            mfgRawHex = data.map { String(format: "%02X", $0) }.joined(separator: " ")
             mfgHex = data.dropFirst(2).map { String(format: "%02X", $0) }.joined(separator: " ")
             mfgName = BLEManufacturerLookup.name(for: company)
         }
@@ -270,7 +412,13 @@ struct BLEDevice: Identifiable, Codable, Hashable {
             }
         }
 
-        return BLEDevice(
+        let txHex: String? = tx.map { String(format: "%02X", UInt8(bitPattern: Int8(clamping: $0))) }
+        let (flags, flagsHex, flagsSummary) = parseAdvertisementFlags(
+            advertisementData: advertisementData,
+            connectable: connectable
+        )
+
+        var device = BLEDevice(
             identifier: peripheral.identifier,
             name: peripheral.name,
             localName: localName,
@@ -279,21 +427,68 @@ struct BLEDevice: Identifiable, Codable, Hashable {
             advertisementHex: encodeAdvertisement(advertisementData),
             manufacturerCompanyId: mfgCompany,
             manufacturerDataHex: mfgHex,
+            manufacturerDataRawHex: mfgRawHex,
             manufacturerName: mfgName,
             serviceUUIDs: services,
             serviceData: serviceDataMap,
             txPower: tx,
+            txPowerHex: txHex,
+            advertisementFlags: flags,
+            advertisementFlagsHex: flagsHex,
+            advertisementFlagsSummary: flagsSummary,
             connectable: connectable,
             overflowServiceUUIDs: overflow,
             solicitedServiceUUIDs: solicited
         )
+        device.refreshCategories()
+        return device
+    }
+
+    /// Best-effort GAP Flags. CoreBluetooth sometimes exposes undocumented `kCBAdvDataFlags`.
+    private static func parseAdvertisementFlags(
+        advertisementData: [String: Any],
+        connectable: Bool
+    ) -> (UInt8?, String?, String?) {
+        let flagKeys = ["kCBAdvDataFlags", "CBAdvertisementDataFlagsKey"]
+        var raw: UInt8?
+        for key in flagKeys {
+            if let n = advertisementData[key] as? NSNumber {
+                raw = n.uint8Value
+                break
+            }
+            if let i = advertisementData[key] as? Int {
+                raw = UInt8(clamping: i)
+                break
+            }
+        }
+        if let raw {
+            return (raw, String(format: "%02X", raw), explainFlagsByte(raw, connectable: connectable))
+        }
+        // iOS often strips the Flags AD type — still surface connectable / overflow context.
+        let summary = "GAP Flags AD not exposed by CoreBluetooth · connectable=\(connectable ? "yes" : "no")"
+        return (nil, nil, summary)
+    }
+
+    private static func explainFlagsByte(_ flags: UInt8, connectable: Bool) -> String {
+        var parts: [String] = []
+        if flags & 0x01 != 0 { parts.append("LE Limited Discoverable") }
+        if flags & 0x02 != 0 { parts.append("LE General Discoverable") }
+        if flags & 0x04 != 0 { parts.append("BR/EDR Not Supported") }
+        if flags & 0x08 != 0 { parts.append("Simultaneous LE + BR/EDR Controller") }
+        if flags & 0x10 != 0 { parts.append("Simultaneous LE + BR/EDR Host") }
+        if parts.isEmpty { parts.append("no standard bits set") }
+        parts.append("connectable=\(connectable ? "yes" : "no")")
+        return parts.joined(separator: " · ")
     }
 
     enum CodingKeys: String, CodingKey {
         case identifier, name, localName, gattDeviceName, rssi, lastSeen, advertisementHex
-        case manufacturerCompanyId, manufacturerDataHex, manufacturerName
-        case serviceUUIDs, serviceData, txPower, connectable, overflowServiceUUIDs, solicitedServiceUUIDs
+        case manufacturerCompanyId, manufacturerDataHex, manufacturerDataRawHex, manufacturerName
+        case serviceUUIDs, serviceData, txPower, txPowerHex
+        case advertisementFlags, advertisementFlagsHex, advertisementFlagsSummary
+        case connectable, overflowServiceUUIDs, solicitedServiceUUIDs
         case connectionState, gattError, gattServices
+        case categories, manualCategoryOverride
     }
 
     init(from decoder: Decoder) throws {
@@ -307,16 +502,26 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         advertisementHex = try c.decodeIfPresent(String.self, forKey: .advertisementHex) ?? ""
         manufacturerCompanyId = try c.decodeIfPresent(UInt16.self, forKey: .manufacturerCompanyId)
         manufacturerDataHex = try c.decodeIfPresent(String.self, forKey: .manufacturerDataHex)
+        manufacturerDataRawHex = try c.decodeIfPresent(String.self, forKey: .manufacturerDataRawHex)
         manufacturerName = try c.decodeIfPresent(String.self, forKey: .manufacturerName)
         serviceUUIDs = try c.decodeIfPresent([String].self, forKey: .serviceUUIDs) ?? []
         serviceData = try c.decodeIfPresent([String: String].self, forKey: .serviceData) ?? [:]
         txPower = try c.decodeIfPresent(Int.self, forKey: .txPower)
+        txPowerHex = try c.decodeIfPresent(String.self, forKey: .txPowerHex)
+        advertisementFlags = try c.decodeIfPresent(UInt8.self, forKey: .advertisementFlags)
+        advertisementFlagsHex = try c.decodeIfPresent(String.self, forKey: .advertisementFlagsHex)
+        advertisementFlagsSummary = try c.decodeIfPresent(String.self, forKey: .advertisementFlagsSummary)
         connectable = try c.decodeIfPresent(Bool.self, forKey: .connectable) ?? false
         overflowServiceUUIDs = try c.decodeIfPresent([String].self, forKey: .overflowServiceUUIDs) ?? []
         solicitedServiceUUIDs = try c.decodeIfPresent([String].self, forKey: .solicitedServiceUUIDs) ?? []
         connectionState = try c.decodeIfPresent(BLEConnectionState.self, forKey: .connectionState) ?? .disconnected
         gattError = try c.decodeIfPresent(String.self, forKey: .gattError)
         gattServices = try c.decodeIfPresent([GATTServiceInfo].self, forKey: .gattServices) ?? []
+        categories = try c.decodeIfPresent([BLEDeviceCategory].self, forKey: .categories) ?? []
+        manualCategoryOverride = try c.decodeIfPresent(BLEDeviceCategory.self, forKey: .manualCategoryOverride)
+        if categories.isEmpty {
+            categories = BLECategoryClassifier.classify(self)
+        }
     }
 
     private static func encodeAdvertisement(_ data: [String: Any]) -> String {
@@ -338,6 +543,7 @@ struct BLEDevice: Identifiable, Codable, Hashable {
     }
 
     mutating func merge(with newer: BLEDevice) {
+        let preservedOverride = manualCategoryOverride
         rssi = newer.rssi
         lastSeen = newer.lastSeen
         if let n = newer.name, !n.isEmpty { name = n }
@@ -346,6 +552,7 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         if newer.manufacturerCompanyId != nil {
             manufacturerCompanyId = newer.manufacturerCompanyId
             manufacturerDataHex = newer.manufacturerDataHex
+            manufacturerDataRawHex = newer.manufacturerDataRawHex
             manufacturerName = newer.manufacturerName
         }
         if !newer.serviceUUIDs.isEmpty { serviceUUIDs = newer.serviceUUIDs }
@@ -353,13 +560,23 @@ struct BLEDevice: Identifiable, Codable, Hashable {
             for (k, v) in newer.serviceData { serviceData[k] = v }
         }
         advertisementHex = newer.advertisementHex
-        if let tx = newer.txPower { txPower = tx }
+        if let tx = newer.txPower {
+            txPower = tx
+            txPowerHex = newer.txPowerHex
+        }
+        if newer.advertisementFlags != nil || newer.advertisementFlagsSummary != nil {
+            advertisementFlags = newer.advertisementFlags
+            advertisementFlagsHex = newer.advertisementFlagsHex
+            advertisementFlagsSummary = newer.advertisementFlagsSummary
+        }
         connectable = newer.connectable
         if newer.connectionState != .disconnected || !newer.gattServices.isEmpty {
             connectionState = newer.connectionState
             gattServices = newer.gattServices
             gattError = newer.gattError
         }
+        manualCategoryOverride = preservedOverride
+        refreshCategories()
     }
 
     /// Prefer GAP Device Name / Model Number from a finished GATT map.
@@ -388,6 +605,7 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         if manufacturerName == nil, let mfg = found["2A29"] {
             manufacturerName = mfg
         }
+        refreshCategories()
     }
 }
 
@@ -436,6 +654,8 @@ enum BLEManufacturerLookup {
         0x015F: "Xiaomi",
         0x0171: "Amazon",
         0x0175: "Tesla",
+        0x0960: "DJI",
+        0x0DE8: "Vivint",
         0x01D7: "Withings",
         0x0211: "iRobot",
         0x02A9: "Huawei",

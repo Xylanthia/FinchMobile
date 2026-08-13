@@ -12,6 +12,9 @@ final class BLEScannerService: NSObject {
     var errorMessage: String?
     var connectedPeripheralID: UUID?
 
+    /// Shared list filter / sort / search (BLE Radar + Drone module).
+    var listFilter = BLEListFilterState()
+
     private var central: CBCentralManager!
     private let bleQueue = DispatchQueue(label: "com.aetherverse.finch.ble", qos: .userInitiated)
     private var restartTask: Task<Void, Never>?
@@ -21,16 +24,42 @@ final class BLEScannerService: NSObject {
     private var knownPeripherals: [UUID: CBPeripheral] = [:]
     private var activePeripheral: CBPeripheral?
     private var pendingCharReads = 0
+    private var pendingDescReads = 0
     private var gattBuild: [CBUUID: GATTServiceInfo] = [:]
+    private static let restoreId = "com.rockstars4nny.finchmobile.ble.central"
 
     var sortedDevices: [BLEDevice] {
         devices.values.sorted { $0.lastSeen > $1.lastSeen }
     }
 
+    var filteredDevices: [BLEDevice] {
+        BLEListFilterEngine.filtered(Array(devices.values), state: listFilter)
+    }
+
+    var scanSummary: BLEScanSummary {
+        BLEListFilterEngine.summary(from: Array(devices.values))
+    }
+
+    var filteredSummary: BLEScanSummary {
+        BLEListFilterEngine.summary(from: filteredDevices)
+    }
+
+    /// Known service UUID shorts for advanced filter picker.
+    var knownAdvertisedServiceUUIDs: [String] {
+        var set = Set<String>()
+        for d in devices.values {
+            for u in d.serviceUUIDs + d.overflowServiceUUIDs + Array(d.serviceData.keys) {
+                set.insert(BLEFriendlyIdentity.normalizeUUID(u))
+            }
+        }
+        return set.sorted()
+    }
+
     override init() {
         super.init()
         central = CBCentralManager(delegate: self, queue: bleQueue, options: [
-            CBCentralManagerOptionShowPowerAlertKey: true
+            CBCentralManagerOptionShowPowerAlertKey: true,
+            CBCentralManagerOptionRestoreIdentifierKey: Self.restoreId
         ])
     }
 
@@ -48,7 +77,7 @@ final class BLEScannerService: NSObject {
                 DispatchQueue.main.async {
                     self.statusText = "Waiting for Bluetooth…"
                     self.errorMessage = self.central.state == .unauthorized
-                        ? "Bluetooth permission denied. Enable it in Settings."
+                        ? "Bluetooth permission denied. Enable it in Settings → Finch → Bluetooth."
                         : "Bluetooth isn’t ready yet (\(self.friendlyState(self.central.state)))."
                 }
                 return
@@ -82,6 +111,34 @@ final class BLEScannerService: NSObject {
         if on && !isScanning && connectedPeripheralID == nil {
             start()
         }
+    }
+
+    func setManualCategory(for id: UUID, category: BLEDeviceCategory?) {
+        updateDevice(id) { $0.setManualCategory(category) }
+    }
+
+    func exportAllJSON() -> String {
+        let list = listFilter.activeFilterCount > 0 ? filteredDevices : sortedDevices
+        struct Envelope: Codable {
+            var exportedAt: Date
+            var filterActive: Bool
+            var deviceCount: Int
+            var devices: [BLEDevice]
+        }
+        let env = Envelope(
+            exportedAt: Date(),
+            filterActive: listFilter.activeFilterCount > 0,
+            deviceCount: list.count,
+            devices: list
+        )
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+        guard let data = try? encoder.encode(env),
+              let s = String(data: data, encoding: .utf8) else {
+            return "[]"
+        }
+        return s
     }
 
     func connect(to id: UUID) {
@@ -121,6 +178,7 @@ final class BLEScannerService: NSObject {
             }
             self.gattBuild.removeAll()
             self.pendingCharReads = 0
+            self.pendingDescReads = 0
             self.activePeripheral = peripheral
             peripheral.delegate = self
             self.central.connect(peripheral, options: nil)
@@ -225,22 +283,50 @@ final class BLEScannerService: NSObject {
         return names
     }
 
+    private func utf8Preview(from data: Data?) -> String? {
+        guard let raw = data else { return nil }
+        guard let s = String(data: raw, encoding: .utf8) else { return nil }
+        let trimmed = s.trimmingCharacters(in: .whitespacesAndNewlines)
+            .filter { $0.isASCII && ($0.isLetter || $0.isNumber || $0.isPunctuation || $0.isWhitespace || $0 == "-" || $0 == "_" || $0 == ".") }
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
     private func publishGATT(for peripheral: CBPeripheral) {
         let services = (peripheral.services ?? []).map { service -> GATTServiceInfo in
             let chars = (service.characteristics ?? []).map { ch -> GATTCharacteristicInfo in
                 let data = ch.value
                 let hex = data.map { $0.map { String(format: "%02X", $0) }.joined(separator: " ") }
-                let utf = data.flatMap { raw -> String? in
-                    guard let s = String(data: raw, encoding: .utf8) else { return nil }
-                    let trimmed = s.trimmingCharacters(in: .whitespacesAndNewlines)
-                        .filter { $0.isASCII && ($0.isLetter || $0.isNumber || $0.isPunctuation || $0.isWhitespace || $0 == "-" || $0 == "_" || $0 == ".") }
-                    return trimmed.isEmpty ? nil : trimmed
+                let utf = utf8Preview(from: data)
+                let descriptors = (ch.descriptors ?? []).map { desc -> GATTDescriptorInfo in
+                    let dHex = desc.value.map { data -> String in
+                        if let d = data as? Data {
+                            return d.map { String(format: "%02X", $0) }.joined(separator: " ")
+                        }
+                        if let s = data as? String {
+                            return s.data(using: .utf8)?.map { String(format: "%02X", $0) }.joined(separator: " ") ?? ""
+                        }
+                        if let n = data as? NSNumber {
+                            return String(format: "%02X", n.uint16Value & 0xFF)
+                        }
+                        return ""
+                    }
+                    let dUtf: String? = {
+                        if let d = desc.value as? Data { return utf8Preview(from: d) }
+                        if let s = desc.value as? String { return s }
+                        return nil
+                    }()
+                    return GATTDescriptorInfo(
+                        uuid: desc.uuid.uuidString,
+                        valueHex: (dHex?.isEmpty == false) ? dHex : nil,
+                        valueUTF8: dUtf
+                    )
                 }
                 return GATTCharacteristicInfo(
                     uuid: ch.uuid.uuidString,
                     properties: propertyNames(ch.properties),
                     valueHex: hex,
-                    valueUTF8: utf
+                    valueUTF8: utf,
+                    descriptors: descriptors
                 )
             }
             return GATTServiceInfo(uuid: service.uuid.uuidString, characteristics: chars)
@@ -251,12 +337,26 @@ final class BLEScannerService: NSObject {
                 $0.gattServices = services
                 $0.connectionState = .connected
                 $0.applyGATTIdentity(from: services, peripheralName: peripheral.name)
+                $0.refreshCategories()
             }
             let title = self.devices[id]?.displayName ?? "device"
             let n = services.count
             self.statusText = n == 1
                 ? "Opened \(title) — 1 feature"
                 : "Opened \(title) — \(n) features"
+        }
+    }
+
+    private func maybeFinishGATT(for peripheral: CBPeripheral) {
+        let allCharsReady = (peripheral.services ?? []).allSatisfy { $0.characteristics != nil }
+        let allDescsReady = (peripheral.services ?? []).allSatisfy { svc in
+            (svc.characteristics ?? []).allSatisfy { $0.descriptors != nil }
+        }
+        if allCharsReady && allDescsReady && pendingCharReads == 0 && pendingDescReads == 0 {
+            publishGATT(for: peripheral)
+        } else if allCharsReady {
+            // Publish partial map while descriptors finish
+            publishGATT(for: peripheral)
         }
     }
 }
@@ -271,7 +371,7 @@ extension BLEScannerService: CBCentralManagerDelegate {
             case .poweredOff:
                 self.statusText = "Turn Bluetooth on in Control Center"
             case .unauthorized:
-                self.statusText = "Allow Bluetooth in Settings"
+                self.statusText = "Allow Bluetooth in Settings → Finch"
             default:
                 self.statusText = "Bluetooth: \(self.friendlyState(central.state))"
             }
@@ -282,6 +382,18 @@ extension BLEScannerService: CBCentralManagerDelegate {
             DispatchQueue.main.async {
                 self.isScanning = false
             }
+        }
+    }
+
+    func centralManager(_ central: CBCentralManager, willRestoreState dict: [String: Any]) {
+        if let peripherals = dict[CBCentralManagerRestoredStatePeripheralsKey] as? [CBPeripheral] {
+            for p in peripherals {
+                knownPeripherals[p.identifier] = p
+                p.delegate = self
+            }
+        }
+        DispatchQueue.main.async {
+            self.statusText = "Bluetooth session restored"
         }
     }
 
@@ -298,7 +410,10 @@ extension BLEScannerService: CBCentralManagerDelegate {
                 let state = existing.connectionState
                 let gatt = existing.gattServices
                 let err = existing.gattError
+                let override = existing.manualCategoryOverride
                 existing.merge(with: device)
+                existing.manualCategoryOverride = override
+                existing.refreshCategories()
                 if state != .disconnected {
                     existing.connectionState = state
                     existing.gattServices = gatt
@@ -388,14 +503,30 @@ extension BLEScannerService: CBPeripheralDelegate {
                 }
             }
         }
-        for ch in service.characteristics ?? [] where ch.properties.contains(.read) {
-            pendingCharReads += 1
-            peripheral.readValue(for: ch)
+        for ch in service.characteristics ?? [] {
+            peripheral.discoverDescriptors(for: ch)
+            if ch.properties.contains(.read) {
+                pendingCharReads += 1
+                peripheral.readValue(for: ch)
+            }
         }
-        // If nothing to read, still publish map when all services have characteristics discovered
-        let allReady = (peripheral.services ?? []).allSatisfy { $0.characteristics != nil }
-        if allReady && pendingCharReads == 0 {
-            publishGATT(for: peripheral)
+        maybeFinishGATT(for: peripheral)
+    }
+
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverDescriptorsFor characteristic: CBCharacteristic, error: Error?) {
+        if let error {
+            DispatchQueue.main.async {
+                self.updateDevice(peripheral.identifier) {
+                    $0.gattError = error.localizedDescription
+                }
+            }
+        }
+        for desc in characteristic.descriptors ?? [] {
+            pendingDescReads += 1
+            peripheral.readValue(for: desc)
+        }
+        if (characteristic.descriptors ?? []).isEmpty {
+            maybeFinishGATT(for: peripheral)
         }
     }
 
@@ -408,11 +539,18 @@ extension BLEScannerService: CBPeripheralDelegate {
                 }
             }
         }
-        let allReady = (peripheral.services ?? []).allSatisfy { $0.characteristics != nil }
-        if allReady && pendingCharReads == 0 {
-            publishGATT(for: peripheral)
-        } else {
-            publishGATT(for: peripheral)
+        maybeFinishGATT(for: peripheral)
+    }
+
+    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor descriptor: CBDescriptor, error: Error?) {
+        if pendingDescReads > 0 { pendingDescReads -= 1 }
+        if let error {
+            DispatchQueue.main.async {
+                self.updateDevice(peripheral.identifier) {
+                    $0.gattError = error.localizedDescription
+                }
+            }
         }
+        maybeFinishGATT(for: peripheral)
     }
 }

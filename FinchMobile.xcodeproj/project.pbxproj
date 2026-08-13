@@ -12,6 +12,8 @@
 		B6E25D4952494302A5BA8192 /* GlassModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66F6325C3A584120AF8F465B /* GlassModels.swift */; };
 		2F3CBF3F4A0744059AE6C40D /* InputRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F86692A60D749DBBF1B834F /* InputRouter.swift */; };
 		7A0645BF56164BE0B036D6D1 /* BLEScannerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331E71C9BE074DF99A1F8A8D /* BLEScannerService.swift */; };
+		E8BLECATCL01B2C3D4E5F60718 /* BLECategoryClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8BLECATCL01B2C3D4E5F60718 /* BLECategoryClassifier.swift */; };
+		E9BLELISTF01B2C3D4E5F60718 /* BLEListFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9BLELISTF01B2C3D4E5F60718 /* BLEListFilter.swift */; };
 		E56D2F54BA06401C88705C7B /* DeepIoTScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82090B911AEF48F8ADE162A2 /* DeepIoTScanner.swift */; };
 		0F2DCD7F81954014B2BD1EEF /* FingerprintEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C398C5E78B0406DA8739929 /* FingerprintEngine.swift */; };
 		39CD697AFB7C4865AA0239C0 /* GlassFabricPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4470A9B7392E40DD859A0B88 /* GlassFabricPipeline.swift */; };
@@ -36,6 +38,7 @@
 		1DEC638DD02B40448735E220 /* fingerprints.json in Resources */ = {isa = PBXBuildFile; fileRef = 683CCBB3F95143BA88D79F75 /* fingerprints.json */; };
 		507614052580453EB30419E4 /* oui.json in Resources */ = {isa = PBXBuildFile; fileRef = EEF4A91E4D6B4D2BAD447997 /* oui.json */; };
 		A9F1GATTUUIDS01B2C3D4E5F6 /* gatt_uuids.json in Resources */ = {isa = PBXBuildFile; fileRef = B8E2GATTUUIDS01B2C3D4E5F6 /* gatt_uuids.json */; };
+		C9BLECATRULES01B2C3D4E5F6 /* ble_category_rules.json in Resources */ = {isa = PBXBuildFile; fileRef = D9BLECATRULES01B2C3D4E5F6 /* ble_category_rules.json */; };
 		D3C5BF204C684522A4E85E82 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 857E203DCBEB4ED2AC4B65A3 /* Assets.xcassets */; };
 		FE958E4BD8AD4CECB38A6397 /* RFTrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED121195E3D84EDBBD2DDE22 /* RFTrack.swift */; };
 		2C193CCFAA3541D6B0DB0C0D /* ConsentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72987377ABD4AB8AB44672E /* ConsentModels.swift */; };
@@ -64,6 +67,8 @@
 		66F6325C3A584120AF8F465B /* GlassModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassModels.swift; sourceTree = "<group>"; };
 		5F86692A60D749DBBF1B834F /* InputRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputRouter.swift; sourceTree = "<group>"; };
 		331E71C9BE074DF99A1F8A8D /* BLEScannerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEScannerService.swift; sourceTree = "<group>"; };
+		F8BLECATCL01B2C3D4E5F60718 /* BLECategoryClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLECategoryClassifier.swift; sourceTree = "<group>"; };
+		F9BLELISTF01B2C3D4E5F60718 /* BLEListFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEListFilter.swift; sourceTree = "<group>"; };
 		82090B911AEF48F8ADE162A2 /* DeepIoTScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepIoTScanner.swift; sourceTree = "<group>"; };
 		4C398C5E78B0406DA8739929 /* FingerprintEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FingerprintEngine.swift; sourceTree = "<group>"; };
 		4470A9B7392E40DD859A0B88 /* GlassFabricPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassFabricPipeline.swift; sourceTree = "<group>"; };
@@ -88,6 +93,7 @@
 		683CCBB3F95143BA88D79F75 /* fingerprints.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = fingerprints.json; sourceTree = "<group>"; };
 		EEF4A91E4D6B4D2BAD447997 /* oui.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = oui.json; sourceTree = "<group>"; };
 		B8E2GATTUUIDS01B2C3D4E5F6 /* gatt_uuids.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gatt_uuids.json; sourceTree = "<group>"; };
+		D9BLECATRULES01B2C3D4E5F6 /* ble_category_rules.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ble_category_rules.json; sourceTree = "<group>"; };
 		857E203DCBEB4ED2AC4B65A3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		06BCAC1988FC41FB8DB641BC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		ED121195E3D84EDBBD2DDE22 /* RFTrack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RFTrack.swift; sourceTree = "<group>"; };
@@ -170,6 +176,7 @@
 				683CCBB3F95143BA88D79F75 /* fingerprints.json */,
 				EEF4A91E4D6B4D2BAD447997 /* oui.json */,
 				B8E2GATTUUIDS01B2C3D4E5F6 /* gatt_uuids.json */,
+				D9BLECATRULES01B2C3D4E5F6 /* ble_category_rules.json */,
 				44F1709795774D0E8DB4B874 /* default_playbooks.json */,
 			);
 			path = Resources;
@@ -240,6 +247,8 @@
 			isa = PBXGroup;
 			children = (
 				331E71C9BE074DF99A1F8A8D /* BLEScannerService.swift */,
+				F8BLECATCL01B2C3D4E5F60718 /* BLECategoryClassifier.swift */,
+				F9BLELISTF01B2C3D4E5F60718 /* BLEListFilter.swift */,
 			);
 			path = BLE;
 			sourceTree = "<group>";
@@ -461,6 +470,7 @@
 				1DEC638DD02B40448735E220 /* fingerprints.json in Resources */,
 				507614052580453EB30419E4 /* oui.json in Resources */,
 				A9F1GATTUUIDS01B2C3D4E5F6 /* gatt_uuids.json in Resources */,
+				C9BLECATRULES01B2C3D4E5F6 /* ble_category_rules.json in Resources */,
 				D3C5BF204C684522A4E85E82 /* Assets.xcassets in Resources */,
 				DAB73C7E094E497EAB5B761E /* default_playbooks.json in Resources */,
 			);
@@ -479,6 +489,8 @@
 				B6E25D4952494302A5BA8192 /* GlassModels.swift in Sources */,
 				2F3CBF3F4A0744059AE6C40D /* InputRouter.swift in Sources */,
 				7A0645BF56164BE0B036D6D1 /* BLEScannerService.swift in Sources */,
+				E8BLECATCL01B2C3D4E5F60718 /* BLECategoryClassifier.swift in Sources */,
+				E9BLELISTF01B2C3D4E5F60718 /* BLEListFilter.swift in Sources */,
 				E56D2F54BA06401C88705C7B /* DeepIoTScanner.swift in Sources */,
 				0F2DCD7F81954014B2BD1EEF /* FingerprintEngine.swift in Sources */,
 				39CD697AFB7C4865AA0239C0 /* GlassFabricPipeline.swift in Sources */,
@@ -572,7 +584,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 26;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -582,7 +594,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1;
+				MARKETING_VERSION = 2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rockstars4nny.finchmobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -602,7 +614,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 26;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -612,7 +624,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1;
+				MARKETING_VERSION = 2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rockstars4nny.finchmobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
