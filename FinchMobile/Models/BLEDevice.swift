@@ -189,20 +189,26 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         for svc in gattServices {
             lines.append("Inside: \(BLEServiceNames.label(forUUID: svc.uuid))")
             for ch in svc.characteristics {
-                let val = ch.valueUTF8 ?? ch.valueHex ?? ""
-                lines.append("  - \(BLEServiceNames.label(forUUID: ch.uuid)): \(val)")
+                let explained = BLEValueExplainer.explainCharacteristic(
+                    uuid: ch.uuid,
+                    utf8: ch.valueUTF8,
+                    hex: ch.valueHex
+                )
+                lines.append("  - \(BLEServiceNames.label(forUUID: ch.uuid)): \(explained)")
             }
         }
-        if let mfg = manufacturerDataHex, !mfg.isEmpty {
-            lines.append("Manufacturer data: \(mfg)")
+        if manufacturerCompanyId != nil || !(manufacturerDataHex ?? "").isEmpty {
+            lines.append(
+                "Manufacturer: \(BLEValueExplainer.explainManufacturer(companyId: manufacturerCompanyId, brand: manufacturerName, payloadHex: manufacturerDataHex))"
+            )
         }
         if !serviceData.isEmpty {
             for (uuid, hex) in serviceData.sorted(by: { $0.key < $1.key }) {
-                lines.append("Service data \(uuid): \(hex)")
+                lines.append(BLEValueExplainer.explainServiceData(uuid: uuid, hex: hex))
             }
         }
         if !advertisementHex.isEmpty {
-            lines.append("Advertisement: \(advertisementHex)")
+            lines.append(BLEValueExplainer.explainAdvertisementBlob(advertisementHex))
         }
         return lines.joined(separator: "\n")
     }
@@ -968,5 +974,246 @@ enum BLEPropertyLabels {
             }
         }
         return mapped.isEmpty ? "no actions listed" : mapped.joined(separator: " · ")
+    }
+}
+
+/// Turn BLE hex / opaque bytes into plain-language explanations. Never leave the operator with hex alone.
+enum BLEValueExplainer {
+    static func parseHex(_ hex: String) -> [UInt8] {
+        let cleaned = hex.replacingOccurrences(of: " ", with: "")
+        var bytes: [UInt8] = []
+        var idx = cleaned.startIndex
+        while idx < cleaned.endIndex {
+            let next = cleaned.index(idx, offsetBy: 2, limitedBy: cleaned.endIndex) ?? cleaned.endIndex
+            if let b = UInt8(cleaned[idx..<next], radix: 16) { bytes.append(b) }
+            idx = next
+        }
+        if bytes.isEmpty {
+            return hex.split(separator: " ").compactMap { UInt8($0, radix: 16) }
+        }
+        return bytes
+    }
+
+    static func explainCharacteristic(uuid: String, utf8: String?, hex: String?) -> String {
+        let short = BLEServiceNames.shortKey(uuid)
+        if let utf = utf8?.trimmingCharacters(in: .whitespacesAndNewlines), !utf.isEmpty {
+            return plainString(short: short, text: utf)
+        }
+        guard let hex, !hex.isEmpty else {
+            return "No value read yet — tap Read if available."
+        }
+        let bytes = parseHex(hex)
+        if bytes.isEmpty {
+            return "Empty value from device."
+        }
+        if let decoded = decodeKnown(short: short, bytes: bytes) {
+            return decoded
+        }
+        if let asText = String(bytes: bytes, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           !asText.isEmpty,
+           asText.unicodeScalars.allSatisfy({ $0.isASCII && ($0.value >= 32 || $0 == "\n" || $0 == "\t") }) {
+            return plainString(short: short, text: asText)
+        }
+        return genericBytes(short: short, bytes: bytes)
+    }
+
+    static func explainManufacturer(companyId: UInt16?, brand: String?, payloadHex: String?) -> String {
+        let brandPart = brand ?? (companyId.map { BLEManufacturerLookup.name(for: $0) } ?? nil)
+        let idPart = companyId.map { String(format: "company 0x%04X", $0) }
+        let who = [brandPart, idPart].compactMap { $0 }.joined(separator: " · ")
+        let bytes = parseHex(payloadHex ?? "")
+        if bytes.isEmpty {
+            return who.isEmpty
+                ? "No manufacturer payload in the advertisement."
+                : "\(who). No extra payload bytes."
+        }
+        if companyId == 0x004C {
+            return appleContinuity(bytes: bytes, header: who.isEmpty ? "Apple" : who)
+        }
+        if companyId == 0x00E0 || companyId == 0x02F2 || companyId == 0x00D7 {
+            return "\(who.isEmpty ? "Google" : who): Fast Pair / Nearby-style payload (\(bytes.count) bytes). Often earbuds, Pixel, or Chromebook."
+        }
+        if companyId == 0x0006 {
+            let kind = bytes.first == 0x01 ? "Swift Pair / CDS (usually a Windows PC)" : "Microsoft accessory beacon"
+            return "\(who.isEmpty ? "Microsoft" : who): \(kind) — \(bytes.count) bytes."
+        }
+        if companyId == 0x0A7C {
+            return "\(who.isEmpty ? "TPMS" : who): tire-pressure sensor payload (\(bytes.count) bytes)."
+        }
+        return "\(who.isEmpty ? "Unknown brand" : who) manufacturer payload — \(bytes.count) bytes of device-specific status/ID (not a human name)."
+    }
+
+    static func explainCompanyId(_ id: UInt16) -> String {
+        if let name = BLEManufacturerLookup.name(for: id) {
+            return "\(name) (Bluetooth company ID \(String(format: "0x%04X", id)))"
+        }
+        return "Unlisted Bluetooth company ID \(String(format: "0x%04X", id)) — brand table miss; still useful for fingerprinting."
+    }
+
+    static func explainServiceData(uuid: String, hex: String) -> String {
+        let short = BLEServiceNames.shortKey(uuid)
+        let name = BLEServiceNames.label(for: short) ?? "Service \(short)"
+        let bytes = parseHex(hex)
+        if short == "FEAA" {
+            return eddystone(bytes: bytes)
+        }
+        if short == "FD6F" {
+            return "\(name): privacy / exposure-style proximity beacon (\(bytes.count) bytes). Usually a phone — identity is randomized."
+        }
+        if short == "FE2C" {
+            return "\(name): Tile finder advertisement (\(bytes.count) bytes)."
+        }
+        return "\(name) service data — \(bytes.count) bytes of beacon/status payload."
+    }
+
+    static func explainAdvertisementBlob(_ blob: String) -> String {
+        if blob.isEmpty { return "No advertisement fields captured." }
+        var notes: [String] = []
+        let lower = blob.lowercased()
+        if lower.contains("localname") || lower.contains("kcbadvlocalname") {
+            notes.append("includes a broadcast name")
+        }
+        if lower.contains("manufacturer") {
+            notes.append("includes manufacturer / brand payload")
+        }
+        if lower.contains("serviceuuid") || lower.contains("service uuids") {
+            notes.append("lists GATT services it offers")
+        }
+        if lower.contains("txpower") {
+            notes.append("reports transmit power (helps distance estimate)")
+        }
+        if lower.contains("isconnectable") || lower.contains("connectable") {
+            notes.append("says whether you can open it")
+        }
+        if lower.contains("servicedata") {
+            notes.append("includes service-data beacon bytes")
+        }
+        if notes.isEmpty {
+            return "Raw advertisement dump from CoreBluetooth — tap Open to read named GATT values inside."
+        }
+        return "Advertisement summary: " + notes.joined(separator: "; ") + "."
+    }
+
+    // MARK: - Private
+
+    private static func plainString(short: String, text: String) -> String {
+        switch short {
+        case "2A00": return "Device name: \(text)"
+        case "2A24": return "Model number: \(text)"
+        case "2A25": return "Serial number: \(text)"
+        case "2A26": return "Firmware: \(text)"
+        case "2A27": return "Hardware: \(text)"
+        case "2A28": return "Software: \(text)"
+        case "2A29": return "Manufacturer: \(text)"
+        case "2A50": return "PnP ID text: \(text)"
+        default:
+            let label = BLEServiceNames.label(for: short) ?? short
+            return "\(label): \(text)"
+        }
+    }
+
+    private static func decodeKnown(short: String, bytes: [UInt8]) -> String? {
+        switch short {
+        case "2A19": // Battery Level
+            guard let pct = bytes.first else { return nil }
+            return "Battery level: \(min(Int(pct), 100))%"
+        case "2A01": // Appearance
+            guard bytes.count >= 2 else { return nil }
+            let value = UInt16(bytes[0]) | (UInt16(bytes[1]) << 8)
+            return "Appearance category code \(value) — what kind of device it claims to be."
+        case "2A00", "2A24", "2A25", "2A26", "2A27", "2A28", "2A29":
+            if let s = String(bytes: bytes, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !s.isEmpty {
+                return plainString(short: short, text: s)
+            }
+            return nil
+        case "2A37": // Heart Rate Measurement
+            guard let flags = bytes.first else { return nil }
+            let hr: Int
+            if flags & 0x01 != 0, bytes.count >= 3 {
+                hr = Int(UInt16(bytes[1]) | (UInt16(bytes[2]) << 8))
+            } else if bytes.count >= 2 {
+                hr = Int(bytes[1])
+            } else { return nil }
+            return "Heart rate: \(hr) bpm"
+        case "2A1C", "2A1E": // Temperature
+            if bytes.count >= 5 {
+                // IEEE-11073 FLOAT: 32-bit mantissa + 8-bit exponent — simplify
+                return "Temperature sample (\(bytes.count) bytes) — health thermometer reading."
+            }
+            return "Temperature characteristic (\(bytes.count) bytes)."
+        case "2A6E": // Temperature Celsius (sint16, 0.01°C)
+            guard bytes.count >= 2 else { return nil }
+            let raw = Int16(bitPattern: UInt16(bytes[0]) | (UInt16(bytes[1]) << 8))
+            let c = Double(raw) / 100.0
+            return String(format: "Temperature: %.2f °C", c)
+        case "2A6F": // Humidity
+            guard bytes.count >= 2 else { return nil }
+            let raw = UInt16(bytes[0]) | (UInt16(bytes[1]) << 8)
+            return String(format: "Humidity: %.2f%%", Double(raw) / 100.0)
+        case "2A6D": // Pressure
+            guard bytes.count >= 4 else { return nil }
+            let raw = UInt32(bytes[0])
+                | (UInt32(bytes[1]) << 8)
+                | (UInt32(bytes[2]) << 16)
+                | (UInt32(bytes[3]) << 24)
+            return String(format: "Pressure: %.1f Pa", Double(raw) / 10.0)
+        case "2A2B": // Current Time — skip full parse
+            return "Current time from device clock (\(bytes.count) bytes)."
+        case "2A04": // Peripheral Preferred Connection Parameters
+            return "Preferred connection timing (\(bytes.count) bytes) — how often it wants to talk."
+        case "2A29":
+            return nil
+        default:
+            return nil
+        }
+    }
+
+    private static func genericBytes(short: String, bytes: [UInt8]) -> String {
+        let label = BLEServiceNames.label(for: short) ?? "Characteristic \(short)"
+        let preview = bytes.prefix(8).map { String(format: "%02X", $0) }.joined(separator: " ")
+        let more = bytes.count > 8 ? "…" : ""
+        if bytes.count == 1 {
+            return "\(label): single byte value \(bytes[0]) (0–255 scale / flag)."
+        }
+        if bytes.count == 2 {
+            let v = UInt16(bytes[0]) | (UInt16(bytes[1]) << 8)
+            return "\(label): 16-bit value \(v)."
+        }
+        return "\(label): \(bytes.count) bytes of binary data (\(preview)\(more)). Not plain text — device-specific encoding."
+    }
+
+    private static func appleContinuity(bytes: [UInt8], header: String) -> String {
+        let type = bytes.first
+        let kind: String
+        switch type {
+        case 0x01: kind = "AirPrint"
+        case 0x02: kind = "iBeacon"
+        case 0x05: kind = "AirDrop"
+        case 0x06: kind = "HomeKit"
+        case 0x07: kind = "AirPods / Beats proximity"
+        case 0x08: kind = "Hey Siri"
+        case 0x09: kind = "AirPlay"
+        case 0x0C: kind = "Handoff"
+        case 0x0D, 0x0E: kind = "Instant Hotspot"
+        case 0x0F: kind = "Nearby Action"
+        case 0x10: kind = "Nearby Info (iPhone/iPad-class)"
+        case 0x12, 0x16: kind = "Find My / AirTag-class"
+        default: kind = type.map { String(format: "Continuity type 0x%02X", $0) } ?? "Continuity"
+        }
+        return "\(header): \(kind) — \(bytes.count) bytes. Apple devices hide the friendly name on purpose."
+    }
+
+    private static func eddystone(bytes: [UInt8]) -> String {
+        guard let frame = bytes.first else {
+            return "Eddystone beacon with empty payload."
+        }
+        switch frame {
+        case 0x00: return "Eddystone-UID beacon (unique ID frame)."
+        case 0x10: return "Eddystone-URL beacon (broadcasts a short URL)."
+        case 0x20: return "Eddystone-TLM beacon (telemetry: battery / temp / uptime)."
+        case 0x30: return "Eddystone-EID beacon (ephemeral encrypted ID)."
+        default: return String(format: "Eddystone frame type 0x%02X (%d bytes).", frame, bytes.count)
+        }
     }
 }

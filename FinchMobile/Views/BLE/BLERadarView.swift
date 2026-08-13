@@ -331,7 +331,26 @@ struct BLEDeviceDetailSheet: View {
                                 copyRow("Brand hint", brand)
                             }
                             if let company = device.manufacturerCompanyId {
-                                copyRow("Company ID", String(format: "0x%04X", company))
+                                copyRow("Brand / company", BLEValueExplainer.explainCompanyId(company))
+                            }
+                            if let mfg = device.manufacturerDataHex, !mfg.isEmpty {
+                                copyRow(
+                                    "Manufacturer payload",
+                                    BLEValueExplainer.explainManufacturer(
+                                        companyId: device.manufacturerCompanyId,
+                                        brand: device.manufacturerName,
+                                        payloadHex: mfg
+                                    )
+                                )
+                            }
+                            if !device.serviceData.isEmpty {
+                                ForEach(device.serviceData.keys.sorted(), id: \.self) { uuid in
+                                    let hex = device.serviceData[uuid] ?? ""
+                                    copyRow(
+                                        "Service data",
+                                        BLEValueExplainer.explainServiceData(uuid: uuid, hex: hex)
+                                    )
+                                }
                             }
                             if !identity.serviceLabels.isEmpty {
                                 copyRow("Advertises", identity.serviceLabels.joined(separator: ", "))
@@ -391,7 +410,7 @@ struct BLEDeviceDetailSheet: View {
                         }
 
                         if !device.gattServices.isEmpty {
-                            Section("What's inside") {
+                            Section("What's inside · \(BLEServiceNames.recognizedCount) UUID names loaded") {
                                 ForEach(device.gattServices) { svc in
                                     let svcLabel = BLEServiceNames.label(forUUID: svc.uuid)
                                     VStack(alignment: .leading, spacing: 6) {
@@ -401,9 +420,11 @@ struct BLEDeviceDetailSheet: View {
                                             .finchCopyable(svcLabel)
                                         ForEach(svc.characteristics) { ch in
                                             let chLabel = BLEServiceNames.label(forUUID: ch.uuid)
-                                            let valueText = ch.valueUTF8
-                                                ?? (ch.valueHex.map { simpleValueHint(hex: $0, utf: nil) })
-                                                ?? ""
+                                            let valueText = BLEValueExplainer.explainCharacteristic(
+                                                uuid: ch.uuid,
+                                                utf8: ch.valueUTF8,
+                                                hex: ch.valueHex
+                                            )
                                             VStack(alignment: .leading, spacing: 2) {
                                                 HStack {
                                                     Text(chLabel)
@@ -424,12 +445,10 @@ struct BLEDeviceDetailSheet: View {
                                                 Text(BLEPropertyLabels.friendly(ch.properties))
                                                     .font(FinchTheme.monoSmall)
                                                     .foregroundStyle(FinchTheme.textSecondary)
-                                                if !valueText.isEmpty {
-                                                    Text(valueText)
-                                                        .font(FinchTheme.monoSmall)
-                                                        .foregroundStyle(FinchTheme.textPrimary)
-                                                        .finchCopyable(valueText, label: "Copy value")
-                                                }
+                                                Text(valueText)
+                                                    .font(FinchTheme.monoSmall)
+                                                    .foregroundStyle(FinchTheme.textPrimary)
+                                                    .finchCopyable(valueText, label: "Copy value")
                                             }
                                             .padding(.leading, 4)
                                         }
@@ -469,22 +488,40 @@ struct BLEDeviceDetailSheet: View {
                             Toggle("Show technical details", isOn: $showTechnical)
                                 .font(FinchTheme.monoSmall)
                             if showTechnical {
-                                copyRow("ID", device.identifier.uuidString)
+                                copyRow("Phone-local ID", device.identifier.uuidString)
+                                if let company = device.manufacturerCompanyId {
+                                    copyRow("Brand / company", BLEValueExplainer.explainCompanyId(company))
+                                }
                                 copyRow(
-                                    "Company ID",
-                                    device.manufacturerCompanyId.map { String(format: "0x%04X", $0) } ?? "—"
+                                    "Manufacturer payload",
+                                    BLEValueExplainer.explainManufacturer(
+                                        companyId: device.manufacturerCompanyId,
+                                        brand: device.manufacturerName,
+                                        payloadHex: device.manufacturerDataHex
+                                    )
                                 )
-                                copyRow("Manufacturer data", device.manufacturerDataHex ?? "—")
                                 if !device.serviceUUIDs.isEmpty {
                                     ForEach(device.serviceUUIDs, id: \.self) { uuid in
-                                        Text(uuid)
+                                        Text(BLEServiceNames.label(forUUID: uuid))
                                             .font(FinchTheme.monoSmall)
-                                            .finchCopyable(uuid)
+                                            .finchCopyable(BLEServiceNames.label(forUUID: uuid))
                                     }
                                 }
-                                Text(device.advertisementHex)
+                                if !device.serviceData.isEmpty {
+                                    ForEach(device.serviceData.keys.sorted(), id: \.self) { uuid in
+                                        let hex = device.serviceData[uuid] ?? ""
+                                        Text(BLEValueExplainer.explainServiceData(uuid: uuid, hex: hex))
+                                            .font(FinchTheme.monoSmall)
+                                            .finchCopyable(BLEValueExplainer.explainServiceData(uuid: uuid, hex: hex))
+                                    }
+                                }
+                                Text(BLEValueExplainer.explainAdvertisementBlob(device.advertisementHex))
                                     .font(FinchTheme.monoSmall)
-                                    .finchCopyable(device.advertisementHex, label: "Copy advertisement")
+                                    .foregroundStyle(FinchTheme.textSecondary)
+                                    .finchCopyable(
+                                        BLEValueExplainer.explainAdvertisementBlob(device.advertisementHex),
+                                        label: "Copy advertisement summary"
+                                    )
                             }
                         } header: {
                             Text("Advanced")
@@ -533,19 +570,6 @@ struct BLEDeviceDetailSheet: View {
             try? await Task.sleep(nanoseconds: 1_200_000_000)
             await MainActor.run { withAnimation { copyBanner = nil } }
         }
-    }
-
-    private func simpleValueHint(hex: String, utf: String?) -> String {
-        if let utf, !utf.isEmpty { return utf }
-        let bytes = hex.split(separator: " ").compactMap { UInt8($0, radix: 16) }
-        if bytes.count == 1 {
-            return "Value: \(bytes[0])"
-        }
-        if bytes.count == 2 {
-            let v = Int(bytes[0]) | (Int(bytes[1]) << 8)
-            return "Value: \(v)"
-        }
-        return "Raw data: \(hex)"
     }
 
     private func copyRow(_ k: String, _ v: String) -> some View {
