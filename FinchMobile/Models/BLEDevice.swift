@@ -780,6 +780,54 @@ struct BLEFriendlyIdentity: Hashable {
                 evidence: [flock.reason]
             )
         }
+        if let phone = PhoneDetector.matchBLE(device) {
+            return make(
+                phone.title,
+                "Phone / tablet",
+                phone.reason,
+                "Phone / tablet",
+                "iphone",
+                phone.confidence,
+                serviceLabels,
+                evidence: [phone.reason]
+            )
+        }
+        if ComputerDetector.matchBLE(device) {
+            return make(
+                device.broadcastName ?? "Windows / Mac computer",
+                "Computer",
+                "Laptop/desktop BLE (Swift Pair or computer name).",
+                "Computer / Laptop",
+                "laptopcomputer",
+                "high",
+                serviceLabels,
+                evidence: ["computer name or Microsoft Swift Pair"]
+            )
+        }
+        if GamingDetector.matchBLE(device) {
+            return make(
+                device.broadcastName ?? "Game controller",
+                "Game controller",
+                "Controller / console accessory name match.",
+                "Game controller",
+                "gamecontroller",
+                "high",
+                serviceLabels,
+                evidence: ["broadcast name matches a known controller"]
+            )
+        }
+        if BeaconDetector.matchBLE(device) {
+            return make(
+                device.broadcastName ?? "Beacon",
+                "Beacon",
+                "iBeacon, Eddystone, or Estimote-class advertisement.",
+                "Beacon / Wayfinding",
+                "dot.radiowaves.left.and.right",
+                "high",
+                serviceLabels,
+                evidence: ["iBeacon/Eddystone/FEAA"]
+            )
+        }
 
         // --- Explicit name heuristics ---
         if matches(nameBlob, ["flipper", "flipper zero"]) {
@@ -827,13 +875,34 @@ struct BLEFriendlyIdentity: Hashable {
 
         // --- Service data fingerprints ---
         if serviceKeys.contains("FEAA") {
-            return make(device.broadcastName ?? "Eddystone beacon", "Beacon", "Google Eddystone beacon (location / wayfinding).", "Beacon", "dot.radiowaves.left.and.right", "high", serviceLabels)
+            return make(device.broadcastName ?? "Eddystone beacon", "Beacon", "Google Eddystone service FEAA.", "Beacon / Wayfinding", "dot.radiowaves.left.and.right", "high", serviceLabels, evidence: ["service FEAA Eddystone"])
         }
         if serviceKeys.contains("FE2C") {
             return make("Tile tracker", "Tracker", "Tile item finder advertising nearby.", "Tracker", "location.magnifyingglass", "high", serviceLabels)
         }
         if serviceKeys.contains("FD6F") {
-            return make("Phone exposure / proximity beacon", "Phone", "Phone broadcasting a privacy / proximity UUID (often COVID-era or similar).", "Phone", "iphone", "medium", serviceLabels)
+            return make(device.broadcastName ?? "Phone (Exposure Notification)", "Phone / tablet", "FD6F Exposure Notification — almost always a phone.", "Phone / tablet", "iphone", "medium", serviceLabels, evidence: ["service FD6F"])
+        }
+        if serviceKeys.contains("FFF6") || serviceKeys.contains("FFF7") {
+            return make(device.broadcastName ?? "Matter / Thread device", "Smart home", "Matter commissioning BLE UUID.", "Smart Home / IoT", "house.fill", "high", serviceLabels, evidence: ["Matter BLE UUID FFF6/FFF7"])
+        }
+        if serviceKeys.contains("1827") || serviceKeys.contains("1828") {
+            return make(device.broadcastName ?? "Bluetooth Mesh node", "Smart home", "BLE Mesh provisioning/proxy service.", "Smart Home / IoT", "house.fill", "high", serviceLabels, evidence: ["Mesh service 1827/1828"])
+        }
+        if serviceKeys.contains("1816") || serviceKeys.contains("1818") || serviceKeys.contains("1814") {
+            return make(device.broadcastName ?? "Bike / run sensor", "Fitness", "Cycling or running speed/cadence/power service.", "Wearable / Fitness", "bicycle", "high", serviceLabels, evidence: ["CSC/CPS/RSC GATT service"])
+        }
+        if matches(nameBlob, ["oral-b", "oralb", "oral b"]) {
+            return make(device.broadcastName ?? "Oral-B toothbrush", "Personal care", "Oral-B BLE toothbrush.", "Smart Home / IoT", "mouthpiece", "high", serviceLabels, evidence: ["name Oral-B"])
+        }
+        if matches(nameBlob, ["dexcom", "libre", "freestyle"]) {
+            return make(device.broadcastName ?? "CGM / glucose", "Medical / Health", "Continuous glucose monitor name.", "Medical / Health", "cross.case.fill", "high", serviceLabels, evidence: ["CGM brand name"])
+        }
+        if matches(nameBlob, ["logitech", "mx master", "mx keys"]) {
+            return make(device.broadcastName ?? "Logitech accessory", "HID / input", "Logitech keyboard/mouse name.", "Accessory", "keyboard", "high", serviceLabels, evidence: ["Logitech name"])
+        }
+        if device.manufacturerCompanyId == 0x00A7 {
+            return make(device.broadcastName ?? "Flic button", "Smart home", "Flic / Shortcut Labs company ID.", "Smart Home / IoT", "button.programmable", "high", serviceLabels, evidence: ["company 0x00A7 Flic"])
         }
         if serviceKeys.contains("FD69") {
             return make(device.broadcastName ?? "Amazon device", "Smart home", "Amazon BLE advertisement (Echo / Fire / accessory).", "Smart home", "homepod", "medium", serviceLabels)
@@ -1146,6 +1215,9 @@ struct BLEFriendlyIdentity: Hashable {
         case "scalemass", "scalemass.fill": safeIcon = "heart.text.square"
         case "homekit": safeIcon = "house.fill"
         case "gauge.with.dots.needle.33percent": safeIcon = "gauge"
+        case "mouthpiece": safeIcon = "mouth"
+        case "button.programmable": safeIcon = "circle.grid.cross"
+        case "bicycle": safeIcon = "figure.run"
         default: safeIcon = icon
         }
         return BLEFriendlyIdentity(
@@ -1160,7 +1232,7 @@ struct BLEFriendlyIdentity: Hashable {
         )
     }
 
-    private static func matches(_ blob: String, _ needles: [String]) -> Bool {
+    static func matches(_ blob: String, _ needles: [String]) -> Bool {
         guard !blob.isEmpty else { return false }
         for needle in needles {
             let n = needle.lowercased()

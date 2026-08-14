@@ -61,8 +61,29 @@
       "id": "phone",
       "label": "Phone / Tablet",
       "companyIds": [],
-      "nameContains": ["iPhone", "Galaxy", "Pixel", "Phone", "iPad", "OnePlus"],
-      "serviceUUIDs": ["111E", "110B", "1108"]
+      "nameContains": ["iPhone", "iPad", "OnePlus", "Nothing Phone", "Galaxy S", "Galaxy Z", "Pixel 6", "Pixel 7", "Pixel 8", "Pixel 9"],
+      "serviceUUIDs": ["FD6F"]
+    },
+    {
+      "id": "computer",
+      "label": "Computer / Laptop",
+      "companyIds": [],
+      "nameContains": ["MacBook", "iMac", "ThinkPad", "Surface Pro", "Surface Laptop"],
+      "serviceUUIDs": []
+    },
+    {
+      "id": "beacon",
+      "label": "Beacon / Wayfinding",
+      "companyIds": [],
+      "nameContains": ["iBeacon", "Eddystone", "Estimote"],
+      "serviceUUIDs": ["FEAA"]
+    },
+    {
+      "id": "gaming",
+      "label": "Game controller",
+      "companyIds": [],
+      "nameContains": ["DualSense", "DualShock", "Xbox", "Joy-Con", "Nintendo", "Stadia"],
+      "serviceUUIDs": []
     },
     {
       "id": "automotive",

@@ -11,6 +11,9 @@ enum BLEDeviceCategory: String, Codable, Hashable, CaseIterable, Identifiable {
     case tvMedia
     case drone
     case phone
+    case computer
+    case beacon
+    case gaming
     case automotive
     case unknown
 
@@ -27,6 +30,9 @@ enum BLEDeviceCategory: String, Codable, Hashable, CaseIterable, Identifiable {
         case .tvMedia: return "TV / Media"
         case .drone: return "Drone / UAV"
         case .phone: return "Phone / Tablet"
+        case .computer: return "Computer / Laptop"
+        case .beacon: return "Beacon / Wayfinding"
+        case .gaming: return "Game controller"
         case .automotive: return "Car / Automotive"
         case .unknown: return "Unknown / Unclassified"
         }
@@ -43,6 +49,9 @@ enum BLEDeviceCategory: String, Codable, Hashable, CaseIterable, Identifiable {
         case .tvMedia: return "TV / Media"
         case .drone: return "Drones"
         case .phone: return "Phones"
+        case .computer: return "Computers"
+        case .beacon: return "Beacons"
+        case .gaming: return "Gaming"
         case .automotive: return "Cars"
         case .unknown: return "Unknown"
         }
@@ -59,6 +68,9 @@ enum BLEDeviceCategory: String, Codable, Hashable, CaseIterable, Identifiable {
         case .tvMedia: return "tv"
         case .drone: return "airplane"
         case .phone: return "iphone"
+        case .computer: return "laptopcomputer"
+        case .beacon: return "dot.radiowaves.left.and.right"
+        case .gaming: return "gamecontroller"
         case .automotive: return "car.fill"
         case .unknown: return "questionmark.circle"
         }
@@ -66,7 +78,7 @@ enum BLEDeviceCategory: String, Codable, Hashable, CaseIterable, Identifiable {
 
     /// Quick-filter pills (All is separate).
     static var quickFilterCases: [BLEDeviceCategory] {
-        [.cameraSecurity, .tracker, .audio, .wearable, .medical, .smartHome, .tvMedia, .drone, .unknown]
+        [.phone, .computer, .tracker, .audio, .wearable, .cameraSecurity, .beacon, .gaming, .automotive, .smartHome, .tvMedia, .medical, .drone, .unknown]
     }
 }
 
@@ -175,6 +187,18 @@ enum BLECategoryClassifier {
             }
             // Flock / ALPR cameras
             if !matched, cat == .cameraSecurity, FlockCameraDetector.matchBLE(device) != nil {
+                matched = true
+            }
+            if !matched, cat == .phone, PhoneDetector.matchBLE(device) != nil {
+                matched = true
+            }
+            if !matched, cat == .beacon, BeaconDetector.matchBLE(device) != nil {
+                matched = true
+            }
+            if !matched, cat == .computer, ComputerDetector.matchBLE(device) != nil {
+                matched = true
+            }
+            if !matched, cat == .gaming, GamingDetector.matchBLE(device) != nil {
                 matched = true
             }
             if matched { hits.insert(cat) }

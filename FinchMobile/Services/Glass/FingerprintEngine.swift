@@ -346,3 +346,123 @@ enum FlockCameraDetector {
         return false
     }
 }
+
+enum PhoneDetector {
+    struct Hit {
+        var title: String
+        var reason: String
+        var confidence: String
+    }
+
+    static func nameBlob(_ device: BLEDevice) -> String {
+        [device.gattDeviceName, device.localName, device.name]
+            .compactMap { $0?.lowercased() }
+            .joined(separator: " ")
+    }
+
+    static func isAudioAccessory(_ t: String) -> Bool {
+        t.contains("buds") || t.contains("airpods") || t.contains("earbud") || t.contains("headset")
+            || t.contains("headphone") || t.contains("beats") || t.contains("freebuds")
+    }
+
+    static func isWatch(_ t: String) -> Bool {
+        t.contains("watch") || t.contains("galaxy watch") || t.contains("apple watch") || t.contains("pixel watch")
+    }
+
+    static func matchBLE(_ device: BLEDevice) -> Hit? {
+        let t = nameBlob(device)
+        if isAudioAccessory(t) || isWatch(t) { return nil }
+
+        if t.contains("iphone") {
+            return Hit(title: device.broadcastName ?? "iPhone", reason: "Broadcast name contains iPhone.", confidence: "high")
+        }
+        if t.contains("ipad") {
+            return Hit(title: device.broadcastName ?? "iPad", reason: "Broadcast name contains iPad.", confidence: "high")
+        }
+        if BLEFriendlyIdentity.matches(t, ["pixel fold", "pixel tablet", "pixel 6", "pixel 7", "pixel 8", "pixel 9"])
+            || (t.contains("pixel") && !t.contains("buds") && !t.contains("watch") && !t.contains("stand")) {
+            if t.contains("pixel") {
+                return Hit(title: device.broadcastName ?? "Pixel phone", reason: "Broadcast name looks like a Pixel phone, not buds/watch.", confidence: "high")
+            }
+        }
+        if t.contains("galaxy s") || t.contains("galaxy z") || t.contains("galaxy note") || t.contains("galaxy fold")
+            || t.contains("galaxy tab") || t.contains("galaxy a") || t.hasPrefix("sm-") || t.contains(" sm-") {
+            return Hit(title: device.broadcastName ?? "Galaxy phone/tablet", reason: "Samsung Galaxy phone/tablet name pattern.", confidence: "high")
+        }
+        if BLEFriendlyIdentity.matches(t, ["oneplus", "nothing phone", "motorola", "moto g", "moto razr", "redmi note", "poco ", "oppo ", "vivo ", "realme", "honor magic", "sony xperia"]) {
+            return Hit(title: device.broadcastName ?? "Android phone", reason: "Broadcast name matches a phone OEM model pattern.", confidence: "high")
+        }
+
+        if device.manufacturerCompanyId == 0x004C {
+            let payload = BLEValueExplainer.parseHex(device.manufacturerDataHex ?? "")
+            if payload.first == 0x10 {
+                return Hit(title: device.broadcastName ?? "iPhone / iPad (Nearby Info)", reason: "Apple Continuity type 0x10 Nearby Info — phone/tablet, not AirTag/AirPods.", confidence: "high")
+            }
+            if payload.first == 0x0D || payload.first == 0x0E {
+                return Hit(title: device.broadcastName ?? "iPhone Instant Hotspot", reason: "Apple Instant Hotspot Continuity — typically an iPhone.", confidence: "medium")
+            }
+            if payload.first == 0x05 {
+                return Hit(title: device.broadcastName ?? "iPhone AirDrop", reason: "Apple AirDrop Continuity — typically iPhone/iPad.", confidence: "medium")
+            }
+        }
+
+        let shorts = Set(
+            (device.serviceUUIDs + device.overflowServiceUUIDs + Array(device.serviceData.keys))
+                .map { BLEFriendlyIdentity.normalizeUUID($0) }
+        )
+        if shorts.contains("FD6F") {
+            return Hit(title: device.broadcastName ?? "Phone (Exposure Notification)", reason: "Service FD6F Exposure Notification — almost always a phone OS.", confidence: "medium")
+        }
+        return nil
+    }
+}
+
+enum BeaconDetector {
+    static func matchBLE(_ device: BLEDevice) -> Bool {
+        let shorts = Set(
+            (device.serviceUUIDs + device.overflowServiceUUIDs + Array(device.serviceData.keys))
+                .map { BLEFriendlyIdentity.normalizeUUID($0) }
+        )
+        if shorts.contains("FEAA") { return true }
+        if device.manufacturerCompanyId == 0x004C {
+            let payload = BLEValueExplainer.parseHex(device.manufacturerDataHex ?? "")
+            if payload.first == 0x02, payload.count >= 21 { return true }
+        }
+        if let name = device.broadcastName?.lowercased(), name.contains("ibeacon") || name.contains("eddystone") || name.contains("estimote") {
+            return true
+        }
+        return false
+    }
+}
+
+enum ComputerDetector {
+    static func matchBLE(_ device: BLEDevice) -> Bool {
+        let t = [device.gattDeviceName, device.localName, device.name]
+            .compactMap { $0?.lowercased() }
+            .joined(separator: " ")
+        if BLEFriendlyIdentity.matches(t, ["macbook", "imac", "mac mini", "mac studio", "mac pro", "thinkpad", "latitude", "surface laptop", "surface pro", "windows"]) {
+            return true
+        }
+        if device.manufacturerCompanyId == 0x0006 {
+            let payload = BLEValueExplainer.parseHex(device.manufacturerDataHex ?? "")
+            if payload.first == 0x01 { return true }
+        }
+        if device.manufacturerCompanyId == 0x004C {
+            let payload = BLEValueExplainer.parseHex(device.manufacturerDataHex ?? "")
+            if payload.first == 0x0C, t.contains("mac") { return true }
+        }
+        return false
+    }
+}
+
+enum GamingDetector {
+    static func matchBLE(_ device: BLEDevice) -> Bool {
+        let t = [device.gattDeviceName, device.localName, device.name]
+            .compactMap { $0?.lowercased() }
+            .joined(separator: " ")
+        return BLEFriendlyIdentity.matches(t, [
+            "dualsense", "dualshock", "wireless controller", "xbox", "joy-con", "joycon",
+            "nintendo", "pro controller", "stadia", "steam deck", "dualsense edge"
+        ])
+    }
+}
