@@ -27,7 +27,7 @@ enum SentinelExporter {
             "hosts": try encodeJSONObject(report.hosts),
             "ble": try encodeJSONObject(ble.map { d -> BLEDevice in
                 var copy = d
-                BLEEvidenceSanitizer.apply(to: &copy)
+                copy.applyEvidenceSanitizer()
                 return copy
             })
         ]

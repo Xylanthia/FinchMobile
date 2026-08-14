@@ -199,10 +199,51 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         self.latitude = latitude
         self.longitude = longitude
         self.gpsAccuracyMeters = gpsAccuracyMeters
-        BLEEvidenceSanitizer.apply(to: &self)
+        applyEvidenceSanitizer()
         if self.categories.isEmpty {
             self.categories = BLECategoryClassifier.classify(self)
         }
+    }
+
+    mutating func applyEvidenceSanitizer() {
+        let gattChecked = gattDeviceNameStatus != .notChecked
+            || !gattServices.isEmpty
+            || (gattDeviceName?.isEmpty == false)
+        let patch = BLEEvidenceSanitizer.sanitizeDeviceFields(
+            rssi: rssi,
+            rssiPeak: rssiPeak,
+            rssiMin: rssiMin,
+            txPower: txPower,
+            latitude: latitude,
+            longitude: longitude,
+            gpsAccuracyMeters: gpsAccuracyMeters,
+            name: name,
+            localName: localName,
+            gattDeviceName: gattDeviceName,
+            gattWasChecked: gattChecked,
+            lastSeen: lastSeen,
+            firstSeen: firstSeen
+        )
+        rssi = patch.rssi
+        rssiPeak = patch.rssiPeak
+        rssiMin = patch.rssiMin
+        txPower = patch.txPower
+        latitude = patch.latitude
+        longitude = patch.longitude
+        gpsAccuracyMeters = patch.gpsAccuracyMeters
+        name = patch.name
+        nameStatus = patch.nameStatus
+        localName = patch.localName
+        localNameStatus = patch.localNameStatus
+        if gattChecked {
+            gattDeviceName = patch.gattDeviceName
+            gattDeviceNameStatus = patch.gattDeviceNameStatus
+        } else {
+            gattDeviceName = nil
+            gattDeviceNameStatus = .notChecked
+        }
+        if let last = patch.lastSeen { lastSeen = last }
+        firstSeen = patch.firstSeen ?? firstSeen
     }
 
     var resolvedCategories: [BLEDeviceCategory] {
@@ -613,7 +654,7 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         latitude = try c.decodeIfPresent(Double.self, forKey: .latitude)
         longitude = try c.decodeIfPresent(Double.self, forKey: .longitude)
         gpsAccuracyMeters = try c.decodeIfPresent(Double.self, forKey: .gpsAccuracyMeters)
-        BLEEvidenceSanitizer.apply(to: &self)
+        applyEvidenceSanitizer()
         if categories.isEmpty {
             categories = BLECategoryClassifier.classify(self)
         }
@@ -621,7 +662,7 @@ struct BLEDevice: Identifiable, Codable, Hashable {
 
     func encode(to encoder: Encoder) throws {
         var device = self
-        BLEEvidenceSanitizer.apply(to: &device)
+        device.applyEvidenceSanitizer()
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(device.identifier, forKey: .identifier)
         try c.encodeIfPresent(device.name, forKey: .name)
@@ -765,7 +806,7 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         if preservedGattStatus == .notChecked, newer.gattDeviceNameStatus == .notChecked {
             gattDeviceNameStatus = .notChecked
         }
-        BLEEvidenceSanitizer.apply(to: &self)
+        applyEvidenceSanitizer()
         refreshCategories()
     }
 
@@ -800,7 +841,7 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         if manufacturerName == nil, let mfg = found["2A29"] {
             manufacturerName = mfg
         }
-        BLEEvidenceSanitizer.apply(to: &self)
+        applyEvidenceSanitizer()
         refreshCategories()
     }
 }

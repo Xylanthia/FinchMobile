@@ -165,7 +165,7 @@ final class BLEScannerService: NSObject {
         var rows: [AnalystRow] = []
         for d in list {
             var sanitized = d
-            BLEEvidenceSanitizer.apply(to: &sanitized)
+            sanitized.applyEvidenceSanitizer()
             let ident = sanitized.friendly
             if sanitized.broadcastName != nil { named += 1 }
             let flock = FlockCameraDetector.matchBLE(sanitized) != nil
@@ -499,7 +499,7 @@ extension BLEScannerService: CBCentralManagerDelegate {
         let device = BLEDevice.from(peripheral: peripheral, advertisementData: advertisementData, rssi: RSSI)
         DispatchQueue.main.async {
             var incoming = device
-            BLEEvidenceSanitizer.apply(to: &incoming)
+            incoming.applyEvidenceSanitizer()
             if var existing = self.devices[incoming.identifier] {
                 let state = existing.connectionState
                 let gatt = existing.gattServices
@@ -513,7 +513,7 @@ extension BLEScannerService: CBCentralManagerDelegate {
                     existing.gattServices = gatt
                     existing.gattError = err
                 }
-                BLEEvidenceSanitizer.apply(to: &existing)
+                existing.applyEvidenceSanitizer()
                 self.devices[incoming.identifier] = existing
             } else {
                 self.devices[incoming.identifier] = incoming

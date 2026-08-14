@@ -1,5 +1,5 @@
 import Foundation
-import os.log
+import os
 
 /// Distinguishes “never observed” from “observed, empty” so JSON never uses "Unknown" as a stand-in.
 enum ObservationStatus: String, Codable, Hashable {
@@ -193,46 +193,5 @@ enum BLEEvidenceSanitizer {
             firstSeen: first,
             catches: []
         )
-    }
-
-    static func apply(to device: inout BLEDevice) {
-        let gattChecked = device.gattDeviceNameStatus != .notChecked
-            || !device.gattServices.isEmpty
-            || (device.gattDeviceName?.isEmpty == false)
-        let patch = sanitizeDeviceFields(
-            rssi: device.rssi,
-            rssiPeak: device.rssiPeak,
-            rssiMin: device.rssiMin,
-            txPower: device.txPower,
-            latitude: device.latitude,
-            longitude: device.longitude,
-            gpsAccuracyMeters: device.gpsAccuracyMeters,
-            name: device.name,
-            localName: device.localName,
-            gattDeviceName: device.gattDeviceName,
-            gattWasChecked: gattChecked,
-            lastSeen: device.lastSeen,
-            firstSeen: device.firstSeen
-        )
-        device.rssi = patch.rssi
-        device.rssiPeak = patch.rssiPeak
-        device.rssiMin = patch.rssiMin
-        device.txPower = patch.txPower
-        device.latitude = patch.latitude
-        device.longitude = patch.longitude
-        device.gpsAccuracyMeters = patch.gpsAccuracyMeters
-        device.name = patch.name
-        device.nameStatus = patch.nameStatus
-        device.localName = patch.localName
-        device.localNameStatus = patch.localNameStatus
-        if gattChecked {
-            device.gattDeviceName = patch.gattDeviceName
-            device.gattDeviceNameStatus = patch.gattDeviceNameStatus
-        } else {
-            device.gattDeviceName = nil
-            device.gattDeviceNameStatus = .notChecked
-        }
-        if let last = patch.lastSeen { device.lastSeen = last }
-        device.firstSeen = patch.firstSeen ?? device.firstSeen
     }
 }
