@@ -21,18 +21,14 @@ final class SensorHub {
     }
 
     func applyResearchMode(_ on: Bool) {
-        researchMode = on
-        forensic?.researchMode = on
-        forensic?.record(category: "sensor", summary: on ? "Research Mode ON" : "Research Mode OFF")
-        if on {
-            startSyntheticPulse()
-        } else {
-            timer?.invalidate()
-            timer = nil
-            sdrEnabled = false
-            acousticEnabled = false
-            opticalEnabled = false
-        }
+        researchMode = false
+        timer?.invalidate()
+        timer = nil
+        sdrEnabled = false
+        acousticEnabled = false
+        opticalEnabled = false
+        lastClassification = "No SDR/acoustic/optical on stock iPhone"
+        _ = on
     }
 
     func toggleSDR(_ on: Bool) {
@@ -59,18 +55,5 @@ final class SensorHub {
         forensic?.record(category: "sensor", summary: lastClassification)
     }
 
-    private func startSyntheticPulse() {
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 25, repeats: true) { [weak self] _ in
-            guard let self, self.researchMode else { return }
-            let classes: [RFDeviceClass] = [.drone, .flipper, .airtag, .hackrf]
-            let pick = classes.randomElement() ?? .unknown
-            _ = self.fusion?.injectSynthetic(
-                name: "SYN-\(pick.rawValue.uppercased())",
-                deviceClass: pick,
-                threatBoost: 1
-            )
-            self.lastClassification = "Research pulse: \(pick.rawValue)"
-        }
-    }
+    private func startSyntheticPulse() {}
 }

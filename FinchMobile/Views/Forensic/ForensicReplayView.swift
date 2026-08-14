@@ -15,7 +15,7 @@ struct ForensicReplayView: View {
                             .font(FinchTheme.monoSmall)
                             .foregroundStyle(FinchTheme.cyan)
                             .textSelection(.enabled)
-                        Text("\(app.forensic.events.count) events · research=\(app.forensic.researchMode ? "ON" : "OFF")")
+                        Text("\(app.forensic.events.count) events")
                             .font(FinchTheme.monoSmall)
                     }
                     Section("Timeline") {

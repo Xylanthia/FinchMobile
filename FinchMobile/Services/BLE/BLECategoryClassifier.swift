@@ -78,7 +78,7 @@ enum BLEDeviceCategory: String, Codable, Hashable, CaseIterable, Identifiable {
 
     /// Quick-filter pills (All is separate).
     static var quickFilterCases: [BLEDeviceCategory] {
-        [.phone, .computer, .tracker, .audio, .wearable, .cameraSecurity, .beacon, .gaming, .automotive, .smartHome, .tvMedia, .medical, .drone, .unknown]
+        [.phone, .computer, .tracker, .audio, .wearable, .tvMedia, .beacon, .gaming, .automotive, .smartHome, .unknown]
     }
 }
 

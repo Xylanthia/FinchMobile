@@ -17,19 +17,13 @@ struct SettingsView: View {
                         .tint(FinchTheme.cyan)
                 }
 
-                Section("RF Platform") {
-                    Toggle("Research Mode", isOn: Binding(
-                        get: { app.settings.researchMode },
-                        set: { on in
-                            app.settings.researchMode = on
-                            app.sensors.applyResearchMode(on)
-                        }
-                    ))
-                    .tint(FinchTheme.cyan)
-                    Text(app.consent.statusSummary)
+                Section("About") {
+                    Text("Finch Mobile 2.7")
+                        .font(FinchTheme.mono)
+                    Text("Works on this phone: BLE scan, GATT read, LAN Glass, MQTT listen, GPS on dumps, mesh. Does not transmit RF, does not see LTE or classic Bluetooth, does not drive an SDR dongle.")
                         .font(FinchTheme.monoSmall)
                         .foregroundStyle(.secondary)
-                    Text(app.fusion.statusText)
+                    Text("Schema: finch.ble.survey.v2 + finch.sentinel.glass.v1")
                         .font(FinchTheme.monoSmall)
                         .foregroundStyle(.secondary)
                 }
@@ -69,17 +63,6 @@ struct SettingsView: View {
                         FingerprintEngine.shared.loadBundled()
                         status = "Loaded \(FingerprintEngine.shared.rules.count) rules"
                     }
-                }
-
-                Section("About") {
-                    Text("Finch Mobile · RF Engagement 2.0")
-                        .font(FinchTheme.mono)
-                    Text("Passive BLE/LAN fusion + drone detect. Active Tx requires consent + external kit. Authorized use only.")
-                        .font(FinchTheme.monoSmall)
-                        .foregroundStyle(.secondary)
-                    Text("Schema: finch.sentinel.glass.v1 + finch.forensic.v1")
-                        .font(FinchTheme.monoSmall)
-                        .foregroundStyle(FinchTheme.cyan)
                 }
 
                 if !status.isEmpty {
