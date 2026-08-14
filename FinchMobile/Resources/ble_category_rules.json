@@ -5,13 +5,13 @@
       "id": "cameraSecurity",
       "label": "Camera / Security",
       "companyIds": ["0x0171", "0x0DE8"],
-      "nameContains": ["Ring", "Cam", "Doorbell", "Security", "DBC", "Arlo", "Eufy", "Nest Cam", "Wyze", "Blink"],
+      "nameContains": ["Ring", "Doorbell", "Arlo", "Nest Cam", "Wyze", "Blink", "Hikvision", "Dahua"],
       "serviceUUIDs": []
     },
     {
       "id": "tracker",
       "label": "Tracker",
-      "companyIds": ["0x0075", "0x004C", "0x03DA", "0x1011"],
+      "companyIds": ["0x03DA", "0x1011"],
       "nameContains": ["Tile", "SmartTag", "Chipolo", "Find My", "Tracker", "AirTag", "Pebblebee"],
       "serviceUUIDs": ["FE2C", "FD6F"]
     },
@@ -33,21 +33,21 @@
       "id": "medical",
       "label": "Medical / Health",
       "companyIds": [],
-      "nameContains": ["Temp", "BP", "Glucose", "Insulin", "Monitor", "Pulse", "O2", "Oximeter"],
+      "nameContains": ["Temp", "Glucose", "Insulin", "Oximeter"],
       "serviceUUIDs": ["181E", "180A", "1810", "1808", "1809", "181D"]
     },
     {
       "id": "smartHome",
       "label": "Smart Home / IoT",
-      "companyIds": ["0x0075", "0x0000", "0x00A0", "0x0171", "0x0BDB"],
-      "nameContains": ["Hue", "Light", "Bulb", "Smart", "Thermo", "Plug", "Switch", "Lock", "Nest", "Echo"],
+      "companyIds": ["0x00A0", "0x0171", "0x0BDB"],
+      "nameContains": ["Hue", "Bulb", "Thermo", "Plug", "Nest", "Echo"],
       "serviceUUIDs": ["FD69"]
     },
     {
       "id": "tvMedia",
       "label": "TV / Media",
       "companyIds": [],
-      "nameContains": ["TV", "Chromecast", "Fire TV", "Roku", "Apple TV", "Display", "Shield"],
+      "nameContains": ["[TV]", "Chromecast", "Fire TV", "Roku", "Apple TV", "Shield"],
       "serviceUUIDs": ["183A", "1844"]
     },
     {
@@ -68,7 +68,7 @@
       "id": "automotive",
       "label": "Car / Automotive",
       "companyIds": ["0x0175", "0x0A7C"],
-      "nameContains": ["Tesla", "BMW", "Mercedes", "Car", "Auto", "TPMS", "CarPlay"],
+      "nameContains": ["Tesla", "TPMS", "CarPlay"],
       "serviceUUIDs": []
     }
   ]

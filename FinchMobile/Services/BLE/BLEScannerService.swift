@@ -65,6 +65,7 @@ final class BLEScannerService: NSObject {
 
     func start() {
         errorMessage = nil
+        BLESurveyFix.startIfNeeded()
         bleQueue.async { [weak self] in
             guard let self else { return }
             guard self.activePeripheral == nil else {
@@ -119,16 +120,92 @@ final class BLEScannerService: NSObject {
 
     func exportAllJSON() -> String {
         let list = listFilter.activeFilterCount > 0 ? filteredDevices : sortedDevices
+        struct AnalystRow: Codable {
+            var id: String
+            var name: String
+            var brand: String
+            var type: String
+            var category: String
+            var advertisedServices: [String]
+            var rssi: Int
+            var rssiPeak: Int?
+            var rssiMin: Int?
+            var hitCount: Int?
+            var firstSeen: Date?
+            var lastSeen: Date
+            var latitude: Double?
+            var longitude: Double?
+            var gpsAccuracyMeters: Double?
+            var confidence: String
+            var evidence: [String]
+            var flockClass: Bool
+            var connectable: Bool
+        }
+        struct Summary: Codable {
+            var deviceCount: Int
+            var named: Int
+            var unnamed: Int
+            var flockClass: Int
+            var withGPS: Int
+            var byCategory: [String: Int]
+        }
         struct Envelope: Codable {
+            var schema: String
             var exportedAt: Date
             var filterActive: Bool
             var deviceCount: Int
+            var summary: Summary
+            var analyst: [AnalystRow]
             var devices: [BLEDevice]
         }
+        var byCat: [String: Int] = [:]
+        var named = 0
+        var flockN = 0
+        var gpsN = 0
+        var rows: [AnalystRow] = []
+        for d in list {
+            let ident = d.friendly
+            if d.broadcastName != nil { named += 1 }
+            let flock = FlockCameraDetector.matchBLE(d) != nil
+            if flock { flockN += 1 }
+            if d.latitude != nil { gpsN += 1 }
+            byCat[ident.category, default: 0] += 1
+            rows.append(AnalystRow(
+                id: d.identifier.uuidString,
+                name: ident.title,
+                brand: d.manufacturerName ?? ident.category,
+                type: ident.deviceType,
+                category: ident.category,
+                advertisedServices: ident.serviceLabels,
+                rssi: d.rssi,
+                rssiPeak: d.rssiPeak,
+                rssiMin: d.rssiMin,
+                hitCount: d.hitCount,
+                firstSeen: d.firstSeen,
+                lastSeen: d.lastSeen,
+                latitude: d.latitude,
+                longitude: d.longitude,
+                gpsAccuracyMeters: d.gpsAccuracyMeters,
+                confidence: ident.confidence,
+                evidence: ident.evidence,
+                flockClass: flock,
+                connectable: d.connectable
+            ))
+        }
         let env = Envelope(
+            schema: "finch.ble.survey.v2",
             exportedAt: Date(),
             filterActive: listFilter.activeFilterCount > 0,
             deviceCount: list.count,
+            summary: Summary(
+                deviceCount: list.count,
+                named: named,
+                unnamed: list.count - named,
+                flockClass: flockN,
+                withGPS: gpsN,
+                byCategory: byCat
+            ),
+            analyst: rows,
             devices: list
         )
         let encoder = JSONEncoder()

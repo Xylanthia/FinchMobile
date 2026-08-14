@@ -101,6 +101,17 @@ struct BLEDevice: Identifiable, Codable, Hashable {
     var categories: [BLEDeviceCategory]
     /// User re-classification; when set, filters/exports use this alone.
     var manualCategoryOverride: BLEDeviceCategory?
+    /// First advertisement this session (survey).
+    var firstSeen: Date?
+    /// How many ads merged this session — driving quality metric.
+    var hitCount: Int?
+    /// Strongest RSSI (closest pass).
+    var rssiPeak: Int?
+    /// Weakest RSSI kept.
+    var rssiMin: Int?
+    var latitude: Double?
+    var longitude: Double?
+    var gpsAccuracyMeters: Double?
 
     init(
         identifier: UUID,
@@ -128,7 +139,14 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         gattError: String? = nil,
         gattServices: [GATTServiceInfo] = [],
         categories: [BLEDeviceCategory] = [],
-        manualCategoryOverride: BLEDeviceCategory? = nil
+        manualCategoryOverride: BLEDeviceCategory? = nil,
+        firstSeen: Date? = nil,
+        hitCount: Int? = 1,
+        rssiPeak: Int? = nil,
+        rssiMin: Int? = nil,
+        latitude: Double? = nil,
+        longitude: Double? = nil,
+        gpsAccuracyMeters: Double? = nil
     ) {
         self.identifier = identifier
         self.name = name
@@ -156,6 +174,13 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         self.gattServices = gattServices
         self.categories = categories
         self.manualCategoryOverride = manualCategoryOverride
+        self.firstSeen = firstSeen ?? lastSeen
+        self.hitCount = hitCount ?? 1
+        self.rssiPeak = rssiPeak ?? rssi
+        self.rssiMin = rssiMin ?? rssi
+        self.latitude = latitude
+        self.longitude = longitude
+        self.gpsAccuracyMeters = gpsAccuracyMeters
         if self.categories.isEmpty {
             self.categories = BLECategoryClassifier.classify(self)
         }
@@ -271,8 +296,17 @@ struct BLEDevice: Identifiable, Codable, Hashable {
             "Broadcast name: \(broadcastName ?? "—")",
             "Brand hint: \(manufacturerName ?? "—")",
             "Company: \(manufacturerCompanyId.map { BLEValueExplainer.explainCompanyId($0) } ?? "—")",
-            "ID: \(identifier.uuidString)"
+            "ID: \(identifier.uuidString)",
+            "Hits this session: \(hitCount ?? 1)",
+            "RSSI peak/min: \(rssiPeak ?? rssi) / \(rssiMin ?? rssi) dBm",
+            "ID confidence: \(identity.confidence)"
         ]
+        if !identity.evidence.isEmpty {
+            lines.append("Evidence: \(identity.evidence.joined(separator: " | "))")
+        }
+        if let lat = latitude, let lon = longitude {
+            lines.append(String(format: "GPS: %.6f, %.6f (±%.0fm)", lat, lon, gpsAccuracyMeters ?? -1))
+        }
         if let override = manualCategoryOverride {
             lines.append("Manual category override: \(override.label)")
         }
@@ -438,7 +472,14 @@ struct BLEDevice: Identifiable, Codable, Hashable {
             advertisementFlagsSummary: flagsSummary,
             connectable: connectable,
             overflowServiceUUIDs: overflow,
-            solicitedServiceUUIDs: solicited
+            solicitedServiceUUIDs: solicited,
+            firstSeen: Date(),
+            hitCount: 1,
+            rssiPeak: rssi.intValue,
+            rssiMin: rssi.intValue,
+            latitude: BLESurveyFix.latitude,
+            longitude: BLESurveyFix.longitude,
+            gpsAccuracyMeters: BLESurveyFix.accuracyMeters
         )
         device.refreshCategories()
         return device
@@ -544,8 +585,23 @@ struct BLEDevice: Identifiable, Codable, Hashable {
 
     mutating func merge(with newer: BLEDevice) {
         let preservedOverride = manualCategoryOverride
+        if firstSeen == nil { firstSeen = newer.firstSeen ?? lastSeen }
+        hitCount = (hitCount ?? 1) + 1
+        let peak = max(rssiPeak ?? rssi, newer.rssi)
+        let floor = min(rssiMin ?? rssi, newer.rssi)
+        rssiPeak = peak
+        rssiMin = floor
         rssi = newer.rssi
         lastSeen = newer.lastSeen
+        if let lat = newer.latitude, let lon = newer.longitude {
+            let acc = newer.gpsAccuracyMeters ?? 9999
+            let oldAcc = gpsAccuracyMeters ?? 9999
+            if latitude == nil || acc <= oldAcc {
+                latitude = lat
+                longitude = lon
+                gpsAccuracyMeters = newer.gpsAccuracyMeters
+            }
+        }
         if let n = newer.name, !n.isEmpty { name = n }
         if let n = newer.localName, !n.isEmpty { localName = n }
         if let n = newer.gattDeviceName, !n.isEmpty { gattDeviceName = n }
@@ -697,6 +753,8 @@ struct BLEFriendlyIdentity: Hashable {
     var icon: String
     var confidence: String
     var serviceLabels: [String]
+    /// Why this label was chosen. Empty means “name only / unknown”.
+    var evidence: [String]
 
     static func classify(_ device: BLEDevice) -> BLEFriendlyIdentity {
         let nameBlob = [device.gattDeviceName, device.localName, device.name]
@@ -713,12 +771,13 @@ struct BLEFriendlyIdentity: Hashable {
         if let flock = FlockCameraDetector.matchBLE(device) {
             return make(
                 device.broadcastName ?? "\(flock.vendor) \(flock.model)",
-                "ALPR / security camera",
+                flock.model,
                 flock.reason,
-                "Flock-class camera",
+                flock.confidence == "high" ? "Flock-class camera" : "Possible camera",
                 "camera.metering.spot",
                 flock.confidence,
-                serviceLabels
+                serviceLabels,
+                evidence: [flock.reason]
             )
         }
 
@@ -807,16 +866,47 @@ struct BLEFriendlyIdentity: Hashable {
                 return make(device.broadcastName ?? "Bose audio", "Headphones", "Bose speaker or headphones.", "Headphones", "hifispeaker", "high", serviceLabels)
             }
             if company == 0x0171 || company == 0x0BDB {
-                return make(device.broadcastName ?? "Amazon / Nest device", "Smart home", "Amazon or Google Nest smart-home advertisement.", "Smart home", "homepod", "medium", serviceLabels)
+                return make(
+                    device.broadcastName ?? "Unnamed Amazon/Nest-company BLE",
+                    "Unknown (Amazon/Nest radio)",
+                    "Amazon or Nest company ID only — Echo vs camera vs other not proven.",
+                    "Unknown",
+                    "questionmark.circle",
+                    "low",
+                    serviceLabels,
+                    evidence: [String(format: "company ID 0x%04X", company)]
+                )
             }
             if company == 0x0157 || company == 0x005D || company == 0x015A || company == 0x0087 || company == 0x006D || company == 0x01D7 {
                 return make(device.broadcastName ?? "Fitness wearable", "Wearable", "Watch or fitness band.", "Wearable", "applewatch", "medium", serviceLabels)
             }
             if company == 0x02E5 || company == 0x0059 || company == 0x000D || company == 0x0131 {
-                return make(device.broadcastName ?? "IoT / MCU gadget", "IoT / MCU", "Nordic / TI / Espressif / Cypress-class IoT board or product.", "IoT gadget", "cpu", "medium", serviceLabels)
+                let chip = device.manufacturerName ?? String(format: "0x%04X", company)
+                return make(
+                    device.broadcastName ?? "Unnamed BLE (\(chip) radio)",
+                    "Unknown (chip vendor)",
+                    "\(chip) is a Bluetooth chip maker, not the product. Device type unknown without a name or GATT.",
+                    "Unknown",
+                    "cpu",
+                    "low",
+                    serviceLabels,
+                    evidence: ["chip company ID \(chip) — not a product ID"]
+                )
             }
             if company == 0x0175 {
-                return make(device.broadcastName ?? "Tesla / vehicle Bluetooth", "Vehicle", "Vehicle key or car presence advertisement.", "Car", "car.fill", "high", serviceLabels)
+                if matches(nameBlob, ["tesla"]) {
+                    return make(device.broadcastName ?? "Tesla BLE", "Vehicle-related", "Name and Tesla company ID both present.", "Car", "car.fill", "high", serviceLabels, evidence: ["broadcast name tesla", "company 0x0175 Tesla"])
+                }
+                return make(
+                    device.broadcastName ?? "Unnamed Tesla-company BLE",
+                    "Unknown (Tesla radio)",
+                    "Tesla company ID. Could be a car, key, or accessory — not proven.",
+                    "Unknown",
+                    "questionmark.circle",
+                    "low",
+                    serviceLabels,
+                    evidence: ["company ID 0x0175 Tesla"]
+                )
             }
             if company == 0x0D2D {
                 return make(device.broadcastName ?? "Flipper Zero", "RF toolkit", "Flipper Devices BLE advertisement.", "RF / pentest", "wave.3.left.and.right", "high", serviceLabels)
@@ -960,11 +1050,28 @@ struct BLEFriendlyIdentity: Hashable {
     }
 
     private static func googleIdentity(payload: [UInt8], broadcastName: String?, serviceLabels: [String]) -> BLEFriendlyIdentity {
-        // Fast Pair often uses company 0x00E0 with a model ID in the first bytes.
-        if !payload.isEmpty {
-            return make(broadcastName ?? "Google Fast Pair device", "Headphones / accessory", "Google Fast Pair / Pixel-class advertisement — often earbuds, headphones, or a Pixel phone.", "Phone / accessory", "iphone", "medium", serviceLabels)
+        if let name = broadcastName, !name.isEmpty {
+            return make(
+                name,
+                "Google-radio BLE (named)",
+                "Google Bluetooth company ID. Name is from the ad; product not guessed beyond that.",
+                "Nearby Bluetooth",
+                "wave.3.right",
+                "medium",
+                serviceLabels,
+                evidence: ["broadcast name", "Google company ID"]
+            )
         }
-        return make(broadcastName ?? "Google device", "Phone / smart home", "Pixel, Chromebook, Nest, or other Google BLE advertisement.", "Phone / smart home", "iphone", "medium", serviceLabels)
+        return make(
+            "Unnamed Google BLE",
+            "Unknown (Google radio)",
+            "Google company ID (often Fast Pair). Earbuds, Pixel, or Chromebook are possible — none proven.",
+            "Unknown",
+            "questionmark.circle",
+            "low",
+            serviceLabels,
+            evidence: ["Google company ID", "no local name"]
+        )
     }
 
     private static func microsoftIdentity(payload: [UInt8], broadcastName: String?, serviceLabels: [String]) -> BLEFriendlyIdentity {
@@ -975,11 +1082,40 @@ struct BLEFriendlyIdentity: Hashable {
     }
 
     private static func samsungIdentity(payload: [UInt8], broadcastName: String?, serviceLabels: [String]) -> BLEFriendlyIdentity {
-        // SmartTag-ish packets are often longer manufacturer frames without a local name.
-        if payload.count >= 8, broadcastName == nil {
-            return make("Samsung SmartTag / Galaxy device", "Tracker / phone", "Samsung manufacturer frame — often SmartTag, Galaxy Buds, Watch, or phone.", "Phone / tracker", "location.magnifyingglass", "medium", serviceLabels)
+        if let name = broadcastName, name.lowercased().contains("[tv]") {
+            return make(
+                name,
+                "TV / media",
+                "Samsung TV BLE name prefix [TV]. Not a camera or tracker.",
+                "TV",
+                "tv",
+                "high",
+                serviceLabels,
+                evidence: ["local name contains [TV]", "company ID 0x0075 Samsung"]
+            )
         }
-        return make(broadcastName ?? "Samsung device", "Phone / wearable", "Phone, watch, earbuds, TV, or SmartTag.", "Phone / wearable", "iphone", "medium", serviceLabels)
+        if let name = broadcastName, !name.isEmpty {
+            return make(
+                name,
+                "Samsung BLE (named)",
+                "Samsung radio (0x0075). Product is the broadcast name only — not inferred.",
+                "Nearby Bluetooth",
+                "wave.3.right",
+                "medium",
+                serviceLabels,
+                evidence: ["broadcast name", "company ID 0x0075 Samsung"]
+            )
+        }
+        return make(
+            "Unnamed Samsung BLE",
+            "Unknown (Samsung radio)",
+            "Samsung company ID only. Could be TV, phone, buds, tag, or appliance — product not proven.",
+            "Unknown",
+            "questionmark.circle",
+            "low",
+            serviceLabels,
+            evidence: ["company ID 0x0075 Samsung", "no local name"]
+        )
     }
 
     private static func guessTypeFromBrand(_ brand: String, services: Set<String>) -> (type: String, category: String, icon: String) {
@@ -1000,7 +1136,8 @@ struct BLEFriendlyIdentity: Hashable {
         _ category: String,
         _ icon: String,
         _ confidence: String,
-        _ serviceLabels: [String]
+        _ serviceLabels: [String],
+        evidence: [String] = []
     ) -> BLEFriendlyIdentity {
         let safeIcon: String
         switch icon {
@@ -1018,13 +1155,29 @@ struct BLEFriendlyIdentity: Hashable {
             category: category,
             icon: safeIcon,
             confidence: confidence,
-            serviceLabels: serviceLabels
+            serviceLabels: serviceLabels,
+            evidence: evidence.isEmpty ? [summary] : evidence
         )
     }
 
     private static func matches(_ blob: String, _ needles: [String]) -> Bool {
         guard !blob.isEmpty else { return false }
-        return needles.contains { blob.contains($0) }
+        for needle in needles {
+            let n = needle.lowercased()
+            if n.isEmpty { continue }
+            if n.contains(" ") {
+                if blob.contains(n) { return true }
+                continue
+            }
+            if n == "tv" {
+                if blob.contains("[tv]") { return true }
+            }
+            if let regex = try? NSRegularExpression(pattern: "\\b\(NSRegularExpression.escapedPattern(for: n))\\b") {
+                let range = NSRange(blob.startIndex..<blob.endIndex, in: blob)
+                if regex.firstMatch(in: blob, range: range) != nil { return true }
+            }
+        }
+        return false
     }
 
     static func normalizeUUID(_ uuid: String) -> String {

@@ -31,7 +31,7 @@ final class AppModel {
         playbooks.bind(forensic: forensic)
         sensors.bind(fusion: fusion, forensic: forensic)
         playbooks.loadBundled()
-        forensic.record(category: "system", summary: "Finch Mobile 2.2 RF platform boot")
+        forensic.record(category: "system", summary: "Finch Mobile 2.3 survey dump boot")
         if settings.researchMode {
             sensors.applyResearchMode(true)
         }

@@ -15,9 +15,28 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build unsigned IPA
         run: bash BUILD_UNSIGNED_IPA.sh
+      - name: Name IPA for 3uTools
+        run: |
+          cp FinchMobile.ipa FinchMobile-2.4.ipa
+          ls -lh FinchMobile*.ipa
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FinchMobile-LATEST
-          path: FinchMobile.ipa
+          name: FinchMobile-2.4
+          path: |
+            FinchMobile.ipa
+            FinchMobile-2.4.ipa
           if-no-files-found: error
+      - name: Publish download on GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-unsigned
+          name: Finch Mobile — unsigned IPA (3uTools)
+          body: |
+            Unsigned IPA. On Windows: 3uTools → Toolbox → IPA Signature → sign with your Apple ID → install on iPhone.
+            Then Settings → General → VPN & Device Management → trust the cert.
+          files: |
+            FinchMobile.ipa
+            FinchMobile-2.4.ipa
+          make_latest: true
+          fail_on_unmatched_files: true

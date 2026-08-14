@@ -15,8 +15,7 @@
     "patterns": [
       "flock.?safety",
       "flocksafety",
-      "fs.?ext.?battery",
-      "\\bflock\\b"
+      "fs.?ext.?battery"
     ]
   },
   {

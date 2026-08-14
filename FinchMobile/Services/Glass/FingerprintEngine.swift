@@ -225,9 +225,8 @@ enum FlockCameraDetector {
                 reason: "BLE local name matches Penguin surveillance advertisement."
             )
         }
-        // Prefer whole-word-ish flock (avoid random substrings)
-        if nameBlob == "flock" || nameBlob.hasPrefix("flock ") || nameBlob.contains(" flock")
-            || nameBlob.contains("flock safety") || nameBlob.contains("flocksafety") {
+        // Whole-word Flock Safety only. "[TV] Flocka" / Samsung TVs must not match.
+        if FlockCameraDetector.nameLooksLikeFlockSafety(nameBlob) {
             return Hit(
                 vendor: "Flock Safety",
                 model: "ALPR / LPR",
@@ -298,7 +297,7 @@ enum FlockCameraDetector {
             return Hit(vendor: "Penguin", model: "Surveillance / LPR", confidence: "high", reason: "Hostname/banner matched Penguin.")
         }
         if blob.contains("flock safety") || blob.contains("flocksafety") || blob.contains("fs ext battery")
-            || blob.contains(" flock") || blob.hasPrefix("flock") {
+            || FlockCameraDetector.nameLooksLikeFlockSafety(blob) {
             return Hit(vendor: "Flock Safety", model: "ALPR / LPR", confidence: "high", reason: "Hostname/banner matched Flock Safety.")
         }
         if blob.contains("raven") && (blob.contains("lpr") || blob.contains("camera") || blob.contains("alpr")) {
@@ -323,10 +322,26 @@ enum FlockCameraDetector {
         return nil
     }
 
+    /// True only for Flock Safety-style names, not nicknames like Flocka or "[TV] …".
+    static func nameLooksLikeFlockSafety(_ raw: String) -> Bool {
+        let t = raw.lowercased()
+        if t.contains("[tv]") { return false }
+        if t.contains("samsung") && t.contains("tv") { return false }
+        if t.contains("flock safety") || t.contains("flocksafety") || t.contains("fs ext battery") {
+            return true
+        }
+        guard let regex = try? NSRegularExpression(pattern: #"\bflock\b"#) else { return false }
+        let range = NSRange(t.startIndex..<t.endIndex, in: t)
+        return regex.firstMatch(in: t, range: range) != nil
+    }
+
     static func isFlockClass(_ text: String) -> Bool {
         let t = text.lowercased()
-        if t.contains("flock") || t.contains("penguin") || t.contains("pigvision") { return true }
-        if t.contains("fs ext battery") || t.contains("alpr") { return true }
+        if t.contains("[tv]") { return false }
+        if nameLooksLikeFlockSafety(t) { return true }
+        if t.contains("penguin") || t.contains("pigvision") { return true }
+        if t.contains("fs ext battery") { return true }
+        if t.contains("alpr") && !t.contains("[tv]") { return true }
         if t.contains("raven") && (t.contains("lpr") || t.contains("alpr")) { return true }
         return false
     }

@@ -66,6 +66,7 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
         coordinate = loc.coordinate
         accuracyMeters = loc.horizontalAccuracy
         errorMessage = nil
+        BLESurveyFix.ingest(loc)
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
@@ -78,6 +79,23 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         errorMessage = error.localizedDescription
+    }
+}
+
+enum BLESurveyFix {
+    static var latitude: Double?
+    static var longitude: Double?
+    static var accuracyMeters: Double?
+    static let location = LocationProvider()
+
+    static func ingest(_ loc: CLLocation) {
+        latitude = loc.coordinate.latitude
+        longitude = loc.coordinate.longitude
+        accuracyMeters = loc.horizontalAccuracy
+    }
+
+    static func startIfNeeded() {
+        location.requestAndStart()
     }
 }
 

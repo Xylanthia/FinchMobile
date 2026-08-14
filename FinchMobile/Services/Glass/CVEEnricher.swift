@@ -578,95 +578,9 @@ enum CVEEnricher {
 /// Maps Nearby Bluetooth (BLE Radar) device identity to real CVE-IDs for physical RT.
 enum BLECVEEnricher {
     static func cves(for device: BLEDevice) -> [CVERef] {
-        let identity = device.friendly
-        let cat = identity.category.lowercased()
-        let title = identity.title.lowercased()
-        let summary = identity.summary.lowercased()
-        let name = (device.broadcastName ?? "").lowercased()
-        let brand = (device.manufacturerName ?? "").lowercased()
-        let blob = [cat, title, summary, name, brand, identity.serviceLabels.joined(separator: " ")]
-            .joined(separator: " ")
-            .lowercased()
-
-        var out: [CVERef] = []
-
-        func add(_ list: [CVERef]) {
-            for c in list where !out.contains(where: { $0.cve == c.cve }) {
-                out.append(c)
-            }
-        }
-
-        // Only emit CVEs when this device's identity actually matches.
-        // Do NOT stamp a generic BLE-stack pack onto every advertiser.
-
-        // TPMS / tire pressure — priority for physical vehicle engagements
-        if cat.contains("tpms") || cat.contains("car") || title.contains("tire") || name.contains("tpms")
-            || name.contains("tire") || name.contains("tyre") || device.manufacturerCompanyId == 0x0A7C
-            || blob.contains("tire pressure") {
-            add(tpmsCVEs)
-        }
-
-        // Tesla / vehicle BLE
-        if brand.contains("tesla") || name.contains("tesla") || device.manufacturerCompanyId == 0x0175 {
-            add(teslaBLE)
-            add(tpmsCVEs) // Tesla TPMS path is the high-value check
-        }
-
-        // Trackers / Find My / AirTag / Tile
-        if cat.contains("tracker") || title.contains("airtag") || title.contains("find my")
-            || title.contains("tile") || brand.contains("tile") || device.manufacturerCompanyId == 0x03DA {
-            add(trackerCVEs)
-        }
-
-        // Apple Continuity / phones / AirPods
-        let isApple = brand.contains("apple") || device.manufacturerCompanyId == 0x004C
-            || title.contains("iphone") || title.contains("airpods") || title.contains("ipad")
-            || title.contains("apple watch") || title.contains("airtag") || title.contains("find my")
-        if isApple {
-            add(appleBLE)
-        }
-
-        // Headphones / audio (incl. non-Apple) — skip if already handled as Apple
-        if !isApple && (cat.contains("headphones") || title.contains("buds") || title.contains("headset")) {
-            add(audioBLE)
-        }
-
-        // Wearables
-        if cat.contains("wearable") || cat.contains("fitness") || brand.contains("garmin")
-            || brand.contains("fitbit") || brand.contains("amazfit") || brand.contains("huami") {
-            add(wearableBLE)
-        }
-
-        // HID / keyboard / mouse / remote
-        if title.contains("keyboard") || title.contains("mouse") || title.contains("remote")
-            || identity.serviceLabels.contains(where: {
-                let s = $0.lowercased()
-                return s.contains("keyboard") || s.contains("hid") || s.contains("human interface")
-            }) {
-            add(hidBLE)
-        }
-
-        // Nordic SoftDevice (Sweyntooth) — company ID / brand only, never "IoT" catch-all
-        if brand.contains("nordic") || device.manufacturerCompanyId == 0x0059 {
-            add(sweyntooth)
-        }
-        // Espressif — company ID / brand only
-        if brand.contains("espressif") || device.manufacturerCompanyId == 0x02E5 {
-            add(espressifBLE)
-            add(sweyntooth)
-        }
-
-        // Connectable + explicit Android/Linux host clues only (BlueBorne is not for every GATT bulb)
-        if device.connectable {
-            let hostish = brand.contains("google") || brand.contains("samsung") || brand.contains("xiaomi")
-                || name.contains("android") || name.contains("pixel") || name.contains("galaxy")
-                || blob.contains("raspberry") || blob.contains("linux")
-            if hostish {
-                add(connectableBLE)
-            }
-        }
-
-        return out
+        // Advertisements do not include firmware versions. Do not invent CVE hits here.
+        _ = device
+        return []
     }
 
     // MARK: Packs (real CVE-IDs only)

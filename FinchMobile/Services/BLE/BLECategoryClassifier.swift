@@ -137,9 +137,6 @@ enum BLECategoryClassifier {
                         // Apple Continuity Find My / AirTag types
                         let payload = BLEValueExplainer.parseHex(device.manufacturerDataHex ?? "")
                         if let t = payload.first, t == 0x12 || t == 0x16 { matched = true }
-                    } else if cat == .tracker, company == 0x0075 {
-                        let payload = BLEValueExplainer.parseHex(device.manufacturerDataHex ?? "")
-                        if payload.count >= 8, device.broadcastName == nil { matched = true }
                     }
                 } else if company == 0x0000, cat == .smartHome {
                     if matchesName(nameBlob, rule.nameNeedles) { matched = true }
@@ -199,7 +196,22 @@ enum BLECategoryClassifier {
 
     private static func matchesName(_ blob: String, _ needles: [String]) -> Bool {
         guard !blob.isEmpty, !needles.isEmpty else { return false }
-        return needles.contains { blob.contains($0) }
+        for needle in needles {
+            let n = needle.lowercased()
+            if n.contains("[") {
+                if blob.contains(n) { return true }
+                continue
+            }
+            if n.contains(" ") {
+                if blob.contains(n) { return true }
+                continue
+            }
+            if let regex = try? NSRegularExpression(pattern: "\\b\(NSRegularExpression.escapedPattern(for: n))\\b") {
+                let range = NSRange(blob.startIndex..<blob.endIndex, in: blob)
+                if regex.firstMatch(in: blob, range: range) != nil { return true }
+            }
+        }
+        return false
     }
 
     private static func loadRules() -> [BLECategoryRule] {
@@ -213,8 +225,8 @@ enum BLECategoryClassifier {
 
     /// Built-in fallback if JSON missing from bundle.
     private static let fallbackRules: [BLECategoryRule] = [
-        BLECategoryRule(id: "cameraSecurity", label: "Camera / Security", companyIds: ["0x0171", "0x0DE8"], nameContains: ["Ring", "Cam", "Doorbell", "Security", "DBC", "Arlo", "Eufy"], serviceUUIDs: []),
-        BLECategoryRule(id: "tracker", label: "Tracker", companyIds: ["0x0075", "0x004C", "0x03DA"], nameContains: ["Tile", "SmartTag", "Chipolo", "Find My", "Tracker"], serviceUUIDs: ["FE2C"]),
+        BLECategoryRule(id: "cameraSecurity", label: "Camera / Security", companyIds: ["0x0DE8"], nameContains: ["Ring", "Doorbell", "Arlo", "Wyze", "Blink"], serviceUUIDs: []),
+        BLECategoryRule(id: "tracker", label: "Tracker", companyIds: ["0x03DA"], nameContains: ["Tile", "SmartTag", "Chipolo", "AirTag"], serviceUUIDs: ["FE2C"]),
         BLECategoryRule(id: "audio", label: "Audio / Headphones", companyIds: ["0x008A"], nameContains: ["JLab", "Bose", "Sony", "JBL", "AirPods", "Headphones", "Buds", "Speaker"], serviceUUIDs: ["110B", "1108", "111E"]),
         BLECategoryRule(id: "wearable", label: "Wearable / Fitness", companyIds: ["0x015A"], nameContains: ["Fitbit", "Watch", "Band", "HRM", "Oura"], serviceUUIDs: ["180D"]),
         BLECategoryRule(id: "medical", label: "Medical / Health", companyIds: [], nameContains: ["Temp", "BP", "Glucose", "Insulin", "Monitor", "Pulse", "O2"], serviceUUIDs: ["1810", "1808", "1809"]),
