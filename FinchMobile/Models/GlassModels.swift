@@ -63,6 +63,12 @@ struct OffenseHit: Identifiable, Codable, Hashable {
     }
 }
 
+struct IoTHostInferred: Codable, Hashable {
+    var ouiVendor: String?
+    var ouiVendorRule: String?
+    var fingerprint: FingerprintMatch?
+}
+
 struct IoTHost: Identifiable, Codable, Hashable {
     var id: String { ip }
     var ip: String
@@ -110,8 +116,10 @@ struct IoTHost: Identifiable, Codable, Hashable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case ip, mac, vendor, hostname, openProbePorts, services, openPorts, openUDPPorts
-        case banners, fingerprint, mqttMessages, offenseHits, lastSeen
+        case ip, mac, hostname, openProbePorts, services, openPorts, openUDPPorts
+        case banners, mqttMessages, offenseHits, lastSeen
+        case inferred
+        case vendor, fingerprint
     }
 
     init(from decoder: Decoder) throws {
@@ -129,6 +137,32 @@ struct IoTHost: Identifiable, Codable, Hashable {
         mqttMessages = try c.decodeIfPresent([MQTTMessage].self, forKey: .mqttMessages) ?? []
         offenseHits = try c.decodeIfPresent([OffenseHit].self, forKey: .offenseHits) ?? []
         lastSeen = try c.decodeIfPresent(Date.self, forKey: .lastSeen) ?? Date()
+        if vendor == nil || fingerprint == nil,
+           let inferred = try c.decodeIfPresent(IoTHostInferred.self, forKey: .inferred) {
+            if vendor == nil { vendor = inferred.ouiVendor }
+            if fingerprint == nil { fingerprint = inferred.fingerprint }
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(ip, forKey: .ip)
+        try c.encodeIfPresent(mac, forKey: .mac)
+        try c.encodeIfPresent(hostname.flatMap { $0.isEmpty ? nil : $0 }, forKey: .hostname)
+        try c.encode(openProbePorts, forKey: .openProbePorts)
+        try c.encode(services, forKey: .services)
+        try c.encode(openPorts, forKey: .openPorts)
+        try c.encode(openUDPPorts, forKey: .openUDPPorts)
+        try c.encode(banners, forKey: .banners)
+        try c.encode(mqttMessages, forKey: .mqttMessages)
+        try c.encode(offenseHits, forKey: .offenseHits)
+        try c.encode(lastSeen, forKey: .lastSeen)
+        let inferred = IoTHostInferred(
+            ouiVendor: vendor,
+            ouiVendorRule: vendor != nil ? "oui_lookup" : nil,
+            fingerprint: fingerprint
+        )
+        try c.encode(inferred, forKey: .inferred)
     }
 
     var displayLabel: String {

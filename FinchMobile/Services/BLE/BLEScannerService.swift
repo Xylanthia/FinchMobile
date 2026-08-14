@@ -122,12 +122,12 @@ final class BLEScannerService: NSObject {
         let list = listFilter.activeFilterCount > 0 ? filteredDevices : sortedDevices
         struct AnalystRow: Codable {
             var id: String
-            var name: String
-            var brand: String
-            var type: String
-            var category: String
+            var name: String?
+            var brand: String?
+            var type: String?
+            var category: String?
             var advertisedServices: [String]
-            var rssi: Int
+            var rssi: Int?
             var rssiPeak: Int?
             var rssiMin: Int?
             var hitCount: Int?
@@ -136,10 +136,10 @@ final class BLEScannerService: NSObject {
             var latitude: Double?
             var longitude: Double?
             var gpsAccuracyMeters: Double?
-            var confidence: String
             var evidence: [String]
             var flockClass: Bool
             var connectable: Bool
+            var inferred: BLEInferredExport
         }
         struct Summary: Codable {
             var deviceCount: Int
@@ -164,32 +164,47 @@ final class BLEScannerService: NSObject {
         var gpsN = 0
         var rows: [AnalystRow] = []
         for d in list {
-            let ident = d.friendly
-            if d.broadcastName != nil { named += 1 }
-            let flock = FlockCameraDetector.matchBLE(d) != nil
+            var sanitized = d
+            BLEEvidenceSanitizer.apply(to: &sanitized)
+            let ident = sanitized.friendly
+            if sanitized.broadcastName != nil { named += 1 }
+            let flock = FlockCameraDetector.matchBLE(sanitized) != nil
             if flock { flockN += 1 }
-            if d.latitude != nil { gpsN += 1 }
-            byCat[ident.category, default: 0] += 1
+            if sanitized.latitude != nil { gpsN += 1 }
+            let cats = sanitized.resolvedCategories.filter { $0 != .unknown }
+            if let primary = cats.first {
+                byCat[primary.rawValue, default: 0] += 1
+            }
+            let inferred = BLEInferredExport(
+                manufacturerName: sanitized.manufacturerCompanyId != nil ? sanitized.manufacturerName : nil,
+                manufacturerNameRule: (sanitized.manufacturerName != nil && sanitized.manufacturerCompanyId != nil) ? "known_company_id" : nil,
+                categories: cats.isEmpty ? nil : cats.map(\.rawValue),
+                ruleIds: {
+                    let ids = BLECategoryClassifier.matchedRuleIds(for: sanitized)
+                    return ids.isEmpty ? nil : ids
+                }(),
+                estimatedDistanceMeters: sanitized.estimatedDistanceMeters
+            )
             rows.append(AnalystRow(
-                id: d.identifier.uuidString,
-                name: ident.title,
-                brand: d.manufacturerName ?? ident.category,
-                type: ident.deviceType,
-                category: ident.category,
+                id: sanitized.identifier.uuidString,
+                name: sanitized.broadcastName,
+                brand: nil,
+                type: nil,
+                category: nil,
                 advertisedServices: ident.serviceLabels,
-                rssi: d.rssi,
-                rssiPeak: d.rssiPeak,
-                rssiMin: d.rssiMin,
-                hitCount: d.hitCount,
-                firstSeen: d.firstSeen,
-                lastSeen: d.lastSeen,
-                latitude: d.latitude,
-                longitude: d.longitude,
-                gpsAccuracyMeters: d.gpsAccuracyMeters,
-                confidence: ident.confidence,
+                rssi: sanitized.rssi,
+                rssiPeak: sanitized.rssiPeak,
+                rssiMin: sanitized.rssiMin,
+                hitCount: sanitized.hitCount,
+                firstSeen: sanitized.firstSeen,
+                lastSeen: sanitized.lastSeen,
+                latitude: sanitized.latitude,
+                longitude: sanitized.longitude,
+                gpsAccuracyMeters: sanitized.gpsAccuracyMeters,
                 evidence: ident.evidence,
                 flockClass: flock,
-                connectable: d.connectable
+                connectable: sanitized.connectable,
+                inferred: inferred
             ))
         }
         let env = Envelope(
@@ -483,12 +498,14 @@ extension BLEScannerService: CBCentralManagerDelegate {
         knownPeripherals[peripheral.identifier] = peripheral
         let device = BLEDevice.from(peripheral: peripheral, advertisementData: advertisementData, rssi: RSSI)
         DispatchQueue.main.async {
-            if var existing = self.devices[device.identifier] {
+            var incoming = device
+            BLEEvidenceSanitizer.apply(to: &incoming)
+            if var existing = self.devices[incoming.identifier] {
                 let state = existing.connectionState
                 let gatt = existing.gattServices
                 let err = existing.gattError
                 let override = existing.manualCategoryOverride
-                existing.merge(with: device)
+                existing.merge(with: incoming)
                 existing.manualCategoryOverride = override
                 existing.refreshCategories()
                 if state != .disconnected {
@@ -496,9 +513,10 @@ extension BLEScannerService: CBCentralManagerDelegate {
                     existing.gattServices = gatt
                     existing.gattError = err
                 }
-                self.devices[device.identifier] = existing
+                BLEEvidenceSanitizer.apply(to: &existing)
+                self.devices[incoming.identifier] = existing
             } else {
-                self.devices[device.identifier] = device
+                self.devices[incoming.identifier] = incoming
             }
         }
     }

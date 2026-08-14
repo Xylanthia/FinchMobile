@@ -1,6 +1,14 @@
 import Foundation
 import CoreBluetooth
 
+struct BLEInferredExport: Codable, Hashable {
+    var manufacturerName: String?
+    var manufacturerNameRule: String?
+    var categories: [String]?
+    var ruleIds: [String]?
+    var estimatedDistanceMeters: Double?
+}
+
 enum BLEConnectionState: String, Codable, Hashable {
     case disconnected
     case connecting
@@ -69,10 +77,14 @@ struct BLEDevice: Identifiable, Codable, Hashable {
     var id: UUID { identifier }
     var identifier: UUID
     var name: String?
+    var nameStatus: ObservationStatus
     var localName: String?
+    var localNameStatus: ObservationStatus
     /// GAP Device Name (0x2A00), Model Number (0x2A24), or similar after GATT connect.
     var gattDeviceName: String?
-    var rssi: Int
+    var gattDeviceNameStatus: ObservationStatus
+    /// RSSI in dBm. `nil` when CoreBluetooth reports 127 (unavailable) or the value fails sanitizer bounds.
+    var rssi: Int?
     var lastSeen: Date
     var advertisementHex: String
     var manufacturerCompanyId: UInt16?
@@ -116,9 +128,12 @@ struct BLEDevice: Identifiable, Codable, Hashable {
     init(
         identifier: UUID,
         name: String? = nil,
+        nameStatus: ObservationStatus = .notAvailable,
         localName: String? = nil,
+        localNameStatus: ObservationStatus = .notAvailable,
         gattDeviceName: String? = nil,
-        rssi: Int,
+        gattDeviceNameStatus: ObservationStatus = .notChecked,
+        rssi: Int? = nil,
         lastSeen: Date = Date(),
         advertisementHex: String,
         manufacturerCompanyId: UInt16? = nil,
@@ -150,8 +165,11 @@ struct BLEDevice: Identifiable, Codable, Hashable {
     ) {
         self.identifier = identifier
         self.name = name
+        self.nameStatus = nameStatus
         self.localName = localName
+        self.localNameStatus = localNameStatus
         self.gattDeviceName = gattDeviceName
+        self.gattDeviceNameStatus = gattDeviceNameStatus
         self.rssi = rssi
         self.lastSeen = lastSeen
         self.advertisementHex = advertisementHex
@@ -176,11 +194,12 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         self.manualCategoryOverride = manualCategoryOverride
         self.firstSeen = firstSeen ?? lastSeen
         self.hitCount = hitCount ?? 1
-        self.rssiPeak = rssiPeak ?? rssi
-        self.rssiMin = rssiMin ?? rssi
+        self.rssiPeak = rssiPeak
+        self.rssiMin = rssiMin
         self.latitude = latitude
         self.longitude = longitude
         self.gpsAccuracyMeters = gpsAccuracyMeters
+        BLEEvidenceSanitizer.apply(to: &self)
         if self.categories.isEmpty {
             self.categories = BLECategoryClassifier.classify(self)
         }
@@ -228,6 +247,7 @@ struct BLEDevice: Identifiable, Codable, Hashable {
     }
 
     var signalBars: Int {
+        guard let rssi else { return 0 }
         if rssi >= -50 { return 4 }
         if rssi >= -65 { return 3 }
         if rssi >= -80 { return 2 }
@@ -240,6 +260,7 @@ struct BLEDevice: Identifiable, Codable, Hashable {
     }
 
     var signalLabel: String {
+        guard rssi != nil else { return "not_available" }
         switch signalBars {
         case 4: return "Very strong"
         case 3: return "Strong"
@@ -249,17 +270,18 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         }
     }
 
-    var estimatedDistanceMeters: Double {
-        let measuredPower = Double(txPower ?? -59)
+    var estimatedDistanceMeters: Double? {
+        guard let rssi, let tx = txPower else { return nil }
+        let measuredPower = Double(tx)
         let pathLossExponent = 2.2
-        let rssiValue = Double(max(min(rssi, 0), -100))
+        let rssiValue = Double(rssi)
         let exponent = (measuredPower - rssiValue) / (10.0 * pathLossExponent)
         let meters = pow(10.0, exponent)
         return min(max(meters, 0.1), 80.0)
     }
 
     var distanceLabel: String {
-        let m = estimatedDistanceMeters
+        guard let m = estimatedDistanceMeters else { return "not_available" }
         let ft = m * 3.28084
         let band: String
         switch m {
@@ -277,7 +299,7 @@ struct BLEDevice: Identifiable, Codable, Hashable {
     }
 
     var distanceShortLabel: String {
-        let m = estimatedDistanceMeters
+        guard let m = estimatedDistanceMeters else { return "not_available" }
         return m < 10 ? String(format: "~%.1f m", m) : String(format: "~%.0f m", m)
     }
 
@@ -290,7 +312,7 @@ struct BLEDevice: Identifiable, Codable, Hashable {
             "Taxonomy: \(resolvedCategories.map(\.label).joined(separator: ", "))",
             identity.summary,
             "Distance: \(distanceLabel)",
-            "Signal: \(signalLabel) (\(rssi) dBm)",
+            "Signal: \(signalLabel) (\(rssi.map { "\($0) dBm" } ?? "not_available"))",
             "Status: \(connectionLabel)",
             "Connection: \(connectabilityLabel)",
             "Broadcast name: \(broadcastName ?? "—")",
@@ -298,14 +320,15 @@ struct BLEDevice: Identifiable, Codable, Hashable {
             "Company: \(manufacturerCompanyId.map { BLEValueExplainer.explainCompanyId($0) } ?? "—")",
             "ID: \(identifier.uuidString)",
             "Hits this session: \(hitCount ?? 1)",
-            "RSSI peak/min: \(rssiPeak ?? rssi) / \(rssiMin ?? rssi) dBm",
+            "RSSI peak/min: \(rssiPeak.map(String.init) ?? "not_available") / \(rssiMin.map(String.init) ?? "not_available") dBm",
             "ID confidence: \(identity.confidence)"
         ]
         if !identity.evidence.isEmpty {
             lines.append("Evidence: \(identity.evidence.joined(separator: " | "))")
         }
         if let lat = latitude, let lon = longitude {
-            lines.append(String(format: "GPS: %.6f, %.6f (±%.0fm)", lat, lon, gpsAccuracyMeters ?? -1))
+            let accText = gpsAccuracyMeters.map { String(format: "±%.0fm", $0) } ?? "accuracy not_available"
+            lines.append(String(format: "GPS: %.6f, %.6f (%@)", lat, lon, accText))
         }
         if let override = manualCategoryOverride {
             lines.append("Manual category override: \(override.label)")
@@ -452,11 +475,26 @@ struct BLEDevice: Identifiable, Codable, Hashable {
             connectable: connectable
         )
 
+        let rawRSSI = rssi.intValue
+        let sanitizedRSSI = BLEEvidenceSanitizer.sanitizeRSSI(rawRSSI)
+        let (advName, advNameStatus) = BLEEvidenceSanitizer.sanitizeName(peripheral.name, sourceNilMeans: .notAvailable)
+        let (locName, locNameStatus) = BLEEvidenceSanitizer.sanitizeName(localName, sourceNilMeans: .notAvailable)
+        let txSan = BLEEvidenceSanitizer.sanitizeTxPower(tx)
+        let (lat, lon, acc) = BLEEvidenceSanitizer.sanitizeCoordinate(
+            lat: BLESurveyFix.latitude,
+            lon: BLESurveyFix.longitude,
+            accuracy: BLESurveyFix.accuracyMeters
+        )
+
         var device = BLEDevice(
             identifier: peripheral.identifier,
-            name: peripheral.name,
-            localName: localName,
-            rssi: rssi.intValue,
+            name: advName,
+            nameStatus: advNameStatus,
+            localName: locName,
+            localNameStatus: locNameStatus,
+            gattDeviceName: nil,
+            gattDeviceNameStatus: .notChecked,
+            rssi: sanitizedRSSI,
             lastSeen: Date(),
             advertisementHex: encodeAdvertisement(advertisementData),
             manufacturerCompanyId: mfgCompany,
@@ -465,8 +503,8 @@ struct BLEDevice: Identifiable, Codable, Hashable {
             manufacturerName: mfgName,
             serviceUUIDs: services,
             serviceData: serviceDataMap,
-            txPower: tx,
-            txPowerHex: txHex,
+            txPower: txSan,
+            txPowerHex: txSan == nil ? nil : txHex,
             advertisementFlags: flags,
             advertisementFlagsHex: flagsHex,
             advertisementFlagsSummary: flagsSummary,
@@ -475,11 +513,11 @@ struct BLEDevice: Identifiable, Codable, Hashable {
             solicitedServiceUUIDs: solicited,
             firstSeen: Date(),
             hitCount: 1,
-            rssiPeak: rssi.intValue,
-            rssiMin: rssi.intValue,
-            latitude: BLESurveyFix.latitude,
-            longitude: BLESurveyFix.longitude,
-            gpsAccuracyMeters: BLESurveyFix.accuracyMeters
+            rssiPeak: sanitizedRSSI,
+            rssiMin: sanitizedRSSI,
+            latitude: lat,
+            longitude: lon,
+            gpsAccuracyMeters: acc
         )
         device.refreshCategories()
         return device
@@ -523,22 +561,30 @@ struct BLEDevice: Identifiable, Codable, Hashable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case identifier, name, localName, gattDeviceName, rssi, lastSeen, advertisementHex
+        case identifier, name, nameStatus, localName, localNameStatus
+        case gattDeviceName, gattDeviceNameStatus, rssi, lastSeen, advertisementHex
         case manufacturerCompanyId, manufacturerDataHex, manufacturerDataRawHex, manufacturerName
         case serviceUUIDs, serviceData, txPower, txPowerHex
         case advertisementFlags, advertisementFlagsHex, advertisementFlagsSummary
         case connectable, overflowServiceUUIDs, solicitedServiceUUIDs
         case connectionState, gattError, gattServices
         case categories, manualCategoryOverride
+        case firstSeen, hitCount, rssiPeak, rssiMin
+        case latitude, longitude, gpsAccuracyMeters
+        case inferred
     }
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         identifier = try c.decode(UUID.self, forKey: .identifier)
         name = try c.decodeIfPresent(String.self, forKey: .name)
+        nameStatus = try c.decodeIfPresent(ObservationStatus.self, forKey: .nameStatus) ?? (name == nil ? .notAvailable : .present)
         localName = try c.decodeIfPresent(String.self, forKey: .localName)
+        localNameStatus = try c.decodeIfPresent(ObservationStatus.self, forKey: .localNameStatus) ?? (localName == nil ? .notAvailable : .present)
         gattDeviceName = try c.decodeIfPresent(String.self, forKey: .gattDeviceName)
-        rssi = try c.decodeIfPresent(Int.self, forKey: .rssi) ?? -100
+        gattDeviceNameStatus = try c.decodeIfPresent(ObservationStatus.self, forKey: .gattDeviceNameStatus)
+            ?? (gattDeviceName == nil ? .notChecked : .present)
+        rssi = try c.decodeIfPresent(Int.self, forKey: .rssi)
         lastSeen = try c.decodeIfPresent(Date.self, forKey: .lastSeen) ?? Date()
         advertisementHex = try c.decodeIfPresent(String.self, forKey: .advertisementHex) ?? ""
         manufacturerCompanyId = try c.decodeIfPresent(UInt16.self, forKey: .manufacturerCompanyId)
@@ -560,8 +606,79 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         gattServices = try c.decodeIfPresent([GATTServiceInfo].self, forKey: .gattServices) ?? []
         categories = try c.decodeIfPresent([BLEDeviceCategory].self, forKey: .categories) ?? []
         manualCategoryOverride = try c.decodeIfPresent(BLEDeviceCategory.self, forKey: .manualCategoryOverride)
+        firstSeen = try c.decodeIfPresent(Date.self, forKey: .firstSeen)
+        hitCount = try c.decodeIfPresent(Int.self, forKey: .hitCount)
+        rssiPeak = try c.decodeIfPresent(Int.self, forKey: .rssiPeak)
+        rssiMin = try c.decodeIfPresent(Int.self, forKey: .rssiMin)
+        latitude = try c.decodeIfPresent(Double.self, forKey: .latitude)
+        longitude = try c.decodeIfPresent(Double.self, forKey: .longitude)
+        gpsAccuracyMeters = try c.decodeIfPresent(Double.self, forKey: .gpsAccuracyMeters)
+        BLEEvidenceSanitizer.apply(to: &self)
         if categories.isEmpty {
             categories = BLECategoryClassifier.classify(self)
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var device = self
+        BLEEvidenceSanitizer.apply(to: &device)
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(device.identifier, forKey: .identifier)
+        try c.encodeIfPresent(device.name, forKey: .name)
+        try c.encode(device.nameStatus, forKey: .nameStatus)
+        try c.encodeIfPresent(device.localName, forKey: .localName)
+        try c.encode(device.localNameStatus, forKey: .localNameStatus)
+        try c.encodeIfPresent(device.gattDeviceName, forKey: .gattDeviceName)
+        try c.encode(device.gattDeviceNameStatus, forKey: .gattDeviceNameStatus)
+        try encodeNullOrValue(device.rssi, forKey: .rssi, into: &c)
+        try c.encode(device.lastSeen, forKey: .lastSeen)
+        try c.encode(device.advertisementHex, forKey: .advertisementHex)
+        try c.encodeIfPresent(device.manufacturerCompanyId, forKey: .manufacturerCompanyId)
+        try c.encodeIfPresent(device.manufacturerDataHex, forKey: .manufacturerDataHex)
+        try c.encodeIfPresent(device.manufacturerDataRawHex, forKey: .manufacturerDataRawHex)
+        try c.encode(device.serviceUUIDs, forKey: .serviceUUIDs)
+        try c.encode(device.serviceData, forKey: .serviceData)
+        try encodeNullOrValue(device.txPower, forKey: .txPower, into: &c)
+        try c.encodeIfPresent(device.txPowerHex, forKey: .txPowerHex)
+        try c.encodeIfPresent(device.advertisementFlags, forKey: .advertisementFlags)
+        try c.encodeIfPresent(device.advertisementFlagsHex, forKey: .advertisementFlagsHex)
+        try c.encodeIfPresent(device.advertisementFlagsSummary, forKey: .advertisementFlagsSummary)
+        try c.encode(device.connectable, forKey: .connectable)
+        try c.encode(device.overflowServiceUUIDs, forKey: .overflowServiceUUIDs)
+        try c.encode(device.solicitedServiceUUIDs, forKey: .solicitedServiceUUIDs)
+        try c.encode(device.connectionState, forKey: .connectionState)
+        try c.encodeIfPresent(device.gattError, forKey: .gattError)
+        try c.encode(device.gattServices, forKey: .gattServices)
+        try c.encodeIfPresent(device.manualCategoryOverride, forKey: .manualCategoryOverride)
+        try c.encodeIfPresent(device.firstSeen, forKey: .firstSeen)
+        try c.encodeIfPresent(device.hitCount, forKey: .hitCount)
+        try encodeNullOrValue(device.rssiPeak, forKey: .rssiPeak, into: &c)
+        try encodeNullOrValue(device.rssiMin, forKey: .rssiMin, into: &c)
+        try encodeNullOrValue(device.latitude, forKey: .latitude, into: &c)
+        try encodeNullOrValue(device.longitude, forKey: .longitude, into: &c)
+        try encodeNullOrValue(device.gpsAccuracyMeters, forKey: .gpsAccuracyMeters, into: &c)
+
+        let ruleIds = BLECategoryClassifier.matchedRuleIds(for: device)
+        let cats = device.resolvedCategories.filter { $0 != .unknown }
+        let inferred = BLEInferredExport(
+            manufacturerName: device.manufacturerCompanyId != nil ? device.manufacturerName : nil,
+            manufacturerNameRule: (device.manufacturerName != nil && device.manufacturerCompanyId != nil) ? "known_company_id" : nil,
+            categories: cats.isEmpty ? nil : cats.map(\.rawValue),
+            ruleIds: ruleIds.isEmpty ? nil : ruleIds,
+            estimatedDistanceMeters: device.estimatedDistanceMeters
+        )
+        try c.encode(inferred, forKey: .inferred)
+    }
+
+    private func encodeNullOrValue<T: Encodable>(
+        _ value: T?,
+        forKey key: CodingKeys,
+        into c: inout KeyedEncodingContainer<CodingKeys>
+    ) throws {
+        if let value {
+            try c.encode(value, forKey: key)
+        } else {
+            try c.encodeNil(forKey: key)
         }
     }
 
@@ -585,26 +702,39 @@ struct BLEDevice: Identifiable, Codable, Hashable {
 
     mutating func merge(with newer: BLEDevice) {
         let preservedOverride = manualCategoryOverride
+        let preservedGattStatus = gattDeviceNameStatus
         if firstSeen == nil { firstSeen = newer.firstSeen ?? lastSeen }
         hitCount = (hitCount ?? 1) + 1
-        let peak = max(rssiPeak ?? rssi, newer.rssi)
-        let floor = min(rssiMin ?? rssi, newer.rssi)
-        rssiPeak = peak
-        rssiMin = floor
-        rssi = newer.rssi
+        let extrema = BLEEvidenceSanitizer.mergeRSSIExtrema(
+            current: rssi,
+            incoming: newer.rssi,
+            peak: rssiPeak,
+            floor: rssiMin
+        )
+        rssi = extrema.rssi
+        rssiPeak = extrema.peak
+        rssiMin = extrema.min
         lastSeen = newer.lastSeen
-        if let lat = newer.latitude, let lon = newer.longitude {
-            let acc = newer.gpsAccuracyMeters ?? 9999
-            let oldAcc = gpsAccuracyMeters ?? 9999
-            if latitude == nil || acc <= oldAcc {
+        if let lat = newer.latitude, let lon = newer.longitude, let acc = newer.gpsAccuracyMeters {
+            let oldAcc = gpsAccuracyMeters
+            if latitude == nil || oldAcc == nil || acc <= (oldAcc ?? acc) {
                 latitude = lat
                 longitude = lon
-                gpsAccuracyMeters = newer.gpsAccuracyMeters
+                gpsAccuracyMeters = acc
             }
         }
-        if let n = newer.name, !n.isEmpty { name = n }
-        if let n = newer.localName, !n.isEmpty { localName = n }
-        if let n = newer.gattDeviceName, !n.isEmpty { gattDeviceName = n }
+        if let n = newer.name, !n.isEmpty {
+            name = n
+            nameStatus = .present
+        }
+        if let n = newer.localName, !n.isEmpty {
+            localName = n
+            localNameStatus = .present
+        }
+        if let n = newer.gattDeviceName, !n.isEmpty {
+            gattDeviceName = n
+            gattDeviceNameStatus = .present
+        }
         if newer.manufacturerCompanyId != nil {
             manufacturerCompanyId = newer.manufacturerCompanyId
             manufacturerDataHex = newer.manufacturerDataHex
@@ -632,6 +762,10 @@ struct BLEDevice: Identifiable, Codable, Hashable {
             gattError = newer.gattError
         }
         manualCategoryOverride = preservedOverride
+        if preservedGattStatus == .notChecked, newer.gattDeviceNameStatus == .notChecked {
+            gattDeviceNameStatus = .notChecked
+        }
+        BLEEvidenceSanitizer.apply(to: &self)
         refreshCategories()
     }
 
@@ -652,15 +786,21 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         }
         if let deviceName = found["2A00"] {
             gattDeviceName = deviceName
+            gattDeviceNameStatus = .present
         } else if let model = found["2A24"] {
             let mfg = found["2A29"]
             gattDeviceName = mfg.map { "\($0) \(model)" } ?? model
+            gattDeviceNameStatus = .present
         } else if let mfg = found["2A29"] {
             gattDeviceName = mfg
+            gattDeviceNameStatus = .present
+        } else {
+            gattDeviceNameStatus = .notAvailable
         }
         if manufacturerName == nil, let mfg = found["2A29"] {
             manufacturerName = mfg
         }
+        BLEEvidenceSanitizer.apply(to: &self)
         refreshCategories()
     }
 }

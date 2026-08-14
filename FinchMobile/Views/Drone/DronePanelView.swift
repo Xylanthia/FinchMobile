@@ -44,7 +44,7 @@ struct DronePanelView: View {
                         ForEach(bleDroneDevices) { device in
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(device.displayName).font(FinchTheme.mono)
-                                Text("\(device.rssi) dBm · \(device.distanceShortLabel)")
+                                Text("\(device.rssi.map { "\($0) dBm" } ?? "not_available") · \(device.distanceShortLabel)")
                                     .font(FinchTheme.monoSmall)
                                     .foregroundStyle(.secondary)
                                 if !device.friendly.evidence.isEmpty {

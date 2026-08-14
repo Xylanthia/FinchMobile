@@ -25,7 +25,11 @@ enum SentinelExporter {
             "mdnsServiceCount": report.mdnsServiceCount,
             "ssdpDeviceCount": report.ssdpDeviceCount,
             "hosts": try encodeJSONObject(report.hosts),
-            "ble": try encodeJSONObject(ble)
+            "ble": try encodeJSONObject(ble.map { d -> BLEDevice in
+                var copy = d
+                BLEEvidenceSanitizer.apply(to: &copy)
+                return copy
+            })
         ]
         return try JSONSerialization.data(withJSONObject: envelope, options: [.prettyPrinted, .sortedKeys])
     }
@@ -34,7 +38,7 @@ enum SentinelExporter {
         var lines: [String] = ["ip,mac,vendor,hostname,open_ports,fingerprint,services,cves,vuln_summaries"]
         for h in report.hosts {
             let ports = h.openPorts.map(String.init).joined(separator: ";")
-            let fp = h.fingerprint.map { "\($0.vendor) \($0.model) (\($0.confidence))" } ?? ""
+            let fp = h.fingerprint.map { "\($0.vendor) \($0.model) (inferred)" } ?? ""
             let svc = h.services.map(\.type).joined(separator: ";")
             let cves = Array(Set(h.offenseHits.flatMap { $0.cves.map(\.cve) })).sorted().joined(separator: ";")
             let summaries = h.offenseHits.map(\.summary).joined(separator: " | ")

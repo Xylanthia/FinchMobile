@@ -26,9 +26,11 @@ final class TrackFusionEngine {
             let classGuess = ThreatScorer.classifyBLE(device)
             let key = device.identifier
             var hist = rssiHistory[key] ?? []
-            hist.append(device.rssi)
-            if hist.count > 24 { hist.removeFirst(hist.count - 24) }
-            rssiHistory[key] = hist
+            if let r = device.rssi {
+                hist.append(r)
+                if hist.count > 24 { hist.removeFirst(hist.count - 24) }
+                rssiHistory[key] = hist
+            }
 
             let distance = estimateDistanceM(rssi: device.rssi, txPower: device.txPower)
             var track = tracks[key] ?? RFTrack(
@@ -194,9 +196,9 @@ final class TrackFusionEngine {
         tracks = tracks.filter { $0.value.isSynthetic || $0.value.lastSeen >= cutoff }
     }
 
-    private func estimateDistanceM(rssi: Int, txPower: Int?) -> Double {
-        let tx = Double(txPower ?? -59)
-        let ratio = (tx - Double(rssi)) / 20.0
+    private func estimateDistanceM(rssi: Int?, txPower: Int?) -> Double? {
+        guard let rssi, let txPower else { return nil }
+        let ratio = (Double(txPower) - Double(rssi)) / 20.0
         return max(0.5, pow(10.0, ratio))
     }
 

@@ -655,7 +655,7 @@ struct BLEDeviceDetailSheet: View {
                                     .finchCopyable(flock.reason)
                             }
                             copyRow("Distance", device.distanceLabel)
-                            copyRow("Signal", "\(device.signalLabel) (\(device.rssi) dBm)")
+                            copyRow("Signal", "\(device.signalLabel) (\(device.rssi.map { "\($0) dBm" } ?? "not_available"))")
                             copyRow("Status", device.connectionLabel)
                             copyRow("Connection", device.connectabilityLabel)
                             if let name = device.broadcastName {

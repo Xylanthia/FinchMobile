@@ -147,9 +147,10 @@ struct LiveProximityMapView: View {
 
             if let origin = location.coordinate {
                 ForEach(devices) { device in
+                    if let dist = device.estimatedDistanceMeters {
                     let coord = ProximityGeo.coordinate(
                         from: origin,
-                        distanceMeters: device.estimatedDistanceMeters,
+                        distanceMeters: dist,
                         bearingDegrees: ProximityGeo.bearingDegrees(for: device.identifier)
                     )
                     Annotation(device.friendly.title, coordinate: coord) {
@@ -175,6 +176,7 @@ struct LiveProximityMapView: View {
                             }
                         }
                         .buttonStyle(.plain)
+                    }
                     }
                 }
             }
@@ -233,15 +235,15 @@ struct LiveProximityMapView: View {
     }
 
     private func refreshMaxRing() {
-        let farthest = devices.map(\.estimatedDistanceMeters).max() ?? 15
+        let farthest = devices.compactMap(\.estimatedDistanceMeters).max() ?? 15
         maxRingMeters = min(max(farthest * 1.15, 12), 80)
     }
 
     private func focus(on device: BLEDevice) {
-        guard let origin = location.coordinate else { return }
+        guard let origin = location.coordinate, let dist = device.estimatedDistanceMeters else { return }
         let coord = ProximityGeo.coordinate(
             from: origin,
-            distanceMeters: device.estimatedDistanceMeters,
+            distanceMeters: dist,
             bearingDegrees: ProximityGeo.bearingDegrees(for: device.identifier)
         )
         withAnimation {
@@ -260,9 +262,10 @@ struct LiveProximityMapView: View {
 
     private func pinColor(for device: BLEDevice) -> Color {
         switch device.estimatedDistanceMeters {
-        case ..<2: return FinchTheme.cyan
-        case ..<8: return FinchTheme.warn
-        default: return FinchTheme.danger
+        case .some(let m) where m < 2: return FinchTheme.cyan
+        case .some(let m) where m < 8: return FinchTheme.warn
+        case .some: return FinchTheme.danger
+        case .none: return FinchTheme.textSecondary
         }
     }
 }
@@ -320,7 +323,7 @@ private struct ProximityRadarCanvas: View {
 
                 // Devices
                 for device in devices {
-                    let dist = device.estimatedDistanceMeters
+                    guard let dist = device.estimatedDistanceMeters else { continue }
                     let t = min(dist / max(maxMeters, 1), 1.0)
                     var bearing = ProximityGeo.bearingDegrees(for: device.identifier)
                     if let heading = phoneHeading {

@@ -213,8 +213,29 @@ enum BLECategoryClassifier {
             hits.remove(.wearable)
         }
 
-        if hits.isEmpty { return [.unknown] }
+        if hits.isEmpty { return [] }
         return BLEDeviceCategory.allCases.filter { hits.contains($0) && $0 != .unknown }
+    }
+
+    /// Categories that came from an explicit rule (name substring, company ID, or service UUID).
+    static func matchedRuleIds(for device: BLEDevice) -> [String] {
+        let nameBlob = [device.gattDeviceName, device.localName, device.name]
+            .compactMap { $0?.lowercased() }
+            .joined(separator: " ")
+        let serviceKeys = Set(
+            (device.serviceUUIDs + device.overflowServiceUUIDs + Array(device.serviceData.keys))
+                .map { BLEFriendlyIdentity.normalizeUUID($0) }
+        )
+        let company = device.manufacturerCompanyId
+        var ids: [String] = []
+        for rule in rules {
+            var matched = false
+            if let company, rule.parsedCompanyIds.contains(company) { matched = true }
+            if matchesName(nameBlob, rule.nameNeedles) { matched = true }
+            if !serviceKeys.isDisjoint(with: rule.normalizedServices) { matched = true }
+            if matched { ids.append(rule.id) }
+        }
+        return ids
     }
 
     static func primary(_ device: BLEDevice) -> BLEDeviceCategory {

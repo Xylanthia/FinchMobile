@@ -148,13 +148,16 @@ enum BLEListFilterEngine {
 
         let rssiLo = min(state.rssiMin, state.rssiMax)
         let rssiHi = max(state.rssiMin, state.rssiMax)
-        let rssi = Double(device.rssi)
-        guard rssi >= rssiLo && rssi <= rssiHi else { return false }
+        if let rssi = device.rssi {
+            let rssiD = Double(rssi)
+            guard rssiD >= rssiLo && rssiD <= rssiHi else { return false }
+        }
 
         let distLo = min(state.distanceMin, state.distanceMax)
         let distHi = max(state.distanceMin, state.distanceMax)
-        let dist = device.estimatedDistanceMeters
-        guard dist >= distLo && dist <= distHi else { return false }
+        if let dist = device.estimatedDistanceMeters {
+            guard dist >= distLo && dist <= distHi else { return false }
+        }
 
         let companyQuery = state.companyIdText.trimmingCharacters(in: .whitespacesAndNewlines)
         if !companyQuery.isEmpty {
@@ -215,9 +218,9 @@ enum BLEListFilterEngine {
     static func sort(_ devices: inout [BLEDevice], mode: BLESortMode) {
         switch mode {
         case .rssi:
-            devices.sort { $0.rssi > $1.rssi }
+            devices.sort { ($0.rssi ?? Int.min) > ($1.rssi ?? Int.min) }
         case .distance:
-            devices.sort { $0.estimatedDistanceMeters < $1.estimatedDistanceMeters }
+            devices.sort { ($0.estimatedDistanceMeters ?? .greatestFiniteMagnitude) < ($1.estimatedDistanceMeters ?? .greatestFiniteMagnitude) }
         case .name:
             devices.sort {
                 $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending
@@ -227,7 +230,7 @@ enum BLEListFilterEngine {
                 let a = $0.primaryCategory.label
                 let b = $1.primaryCategory.label
                 if a != b { return a < b }
-                return $0.rssi > $1.rssi
+                return ($0.rssi ?? Int.min) > ($1.rssi ?? Int.min)
             }
         case .lastSeen:
             devices.sort { $0.lastSeen > $1.lastSeen }
@@ -245,7 +248,7 @@ enum BLEListFilterEngine {
             }
             if d.connectable { connectable += 1 }
             if let s = strongest {
-                strongest = max(s, d.rssi)
+                if let r = d.rssi { strongest = max(s, r) }
             } else {
                 strongest = d.rssi
             }

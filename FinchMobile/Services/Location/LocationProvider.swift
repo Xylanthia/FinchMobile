@@ -64,6 +64,12 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let loc = locations.last else { return }
         coordinate = loc.coordinate
+        if loc.horizontalAccuracy < 0 {
+            accuracyMeters = nil
+            coordinate = nil
+            BLEEvidenceSanitizer.logCatch("CLLocation horizontalAccuracy=\(loc.horizontalAccuracy) invalid — GPS not ingested")
+            return
+        }
         accuracyMeters = loc.horizontalAccuracy
         errorMessage = nil
         BLESurveyFix.ingest(loc)
@@ -72,8 +78,10 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
         if newHeading.trueHeading >= 0 {
             headingDegrees = newHeading.trueHeading
-        } else {
+        } else if newHeading.magneticHeading >= 0 {
             headingDegrees = newHeading.magneticHeading
+        } else {
+            headingDegrees = nil
         }
     }
 
@@ -89,6 +97,10 @@ enum BLESurveyFix {
     static let location = LocationProvider()
 
     static func ingest(_ loc: CLLocation) {
+        guard loc.horizontalAccuracy >= 0 else {
+            BLEEvidenceSanitizer.logCatch("BLESurveyFix skipped invalid GPS accuracy \(loc.horizontalAccuracy)")
+            return
+        }
         latitude = loc.coordinate.latitude
         longitude = loc.coordinate.longitude
         accuracyMeters = loc.horizontalAccuracy
