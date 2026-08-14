@@ -201,6 +201,9 @@ enum BLECategoryClassifier {
             if !matched, cat == .gaming, GamingDetector.matchBLE(device) != nil {
                 matched = true
             }
+            if !matched, cat == .automotive, AutomotiveDetector.matchBLE(device) != nil {
+                matched = true
+            }
             if matched { hits.insert(cat) }
         }
 

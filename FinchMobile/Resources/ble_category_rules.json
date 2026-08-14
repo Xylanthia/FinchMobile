@@ -89,7 +89,7 @@
       "id": "automotive",
       "label": "Car / Automotive",
       "companyIds": ["0x0175", "0x0A7C"],
-      "nameContains": ["Tesla", "TPMS", "CarPlay"],
+      "nameContains": ["Jeep", "Uconnect", "Wrangler", "Tesla", "TPMS", "CarPlay", "OBD", "ELM327"],
       "serviceUUIDs": []
     }
   ]

@@ -466,3 +466,70 @@ enum GamingDetector {
         ])
     }
 }
+
+enum AutomotiveDetector {
+    struct Hit {
+        var title: String
+        var reason: String
+        var confidence: String
+    }
+
+    static func blob(_ device: BLEDevice) -> String {
+        [device.gattDeviceName, device.localName, device.name]
+            .compactMap { $0?.lowercased() }
+            .joined(separator: " ")
+    }
+
+    static func matchBLE(_ device: BLEDevice) -> Hit? {
+        let t = blob(device)
+
+        if BLEFriendlyIdentity.matches(t, [
+            "jeep", "uconnect", "wrangler", "gladiator", "cherokee", "grand cherokee",
+            "wagoneer", "compass", "renegade", "gladiator", "ram 1500", "ram 2500", "ram 3500",
+            "dodge", "chrysler", "stellantis"
+        ]) {
+            return Hit(
+                title: device.broadcastName ?? "Stellantis / Jeep / Uconnect",
+                reason: "Name matches Jeep / Uconnect / RAM / Dodge / Chrysler.",
+                confidence: "high"
+            )
+        }
+
+        if BLEFriendlyIdentity.matches(t, [
+            "tesla", "carplay", "android auto", "onstar", "sync ", "fordpass", "bluelink",
+            "uvo ", "hyundai", "kia ", "bmw", "mini cooper", "mercedes", "mbux", "audi ",
+            "vw ", "carnet", "car-net", "hondalink", "toyota", "lexus", "subaru", "mazda",
+            "gm ", "chevrolet", "silverado", "gmc ", "cadillac", "nissan", "infiniti",
+            "volvo", "polestar", "rivian", "lucid", "cybertruck"
+        ]) {
+            return Hit(
+                title: device.broadcastName ?? "Vehicle Bluetooth",
+                reason: "Broadcast name matches a vehicle / infotainment brand.",
+                confidence: "high"
+            )
+        }
+
+        if BLEFriendlyIdentity.matches(t, [
+            "obd", "elm327", "veepeak", "vgate", "viecar", "carista", "nonda", "bafx",
+            "konnwei", "obdlink", "fixd", "torque"
+        ]) {
+            return Hit(
+                title: device.broadcastName ?? "OBD / car dongle",
+                reason: "BLE OBD adapter name — car diagnostic dongle, not the radio.",
+                confidence: "high"
+            )
+        }
+
+        if device.manufacturerCompanyId == 0x0A7C {
+            return Hit(title: "TPMS sensor", reason: "Bluetooth company ID 0x0A7C (TPMS).", confidence: "high")
+        }
+        if device.manufacturerCompanyId == 0x0175 {
+            return Hit(
+                title: device.broadcastName ?? "Tesla-company BLE",
+                reason: "Tesla Bluetooth company ID 0x0175. Could be the car or a Tesla accessory.",
+                confidence: "medium"
+            )
+        }
+        return nil
+    }
+}

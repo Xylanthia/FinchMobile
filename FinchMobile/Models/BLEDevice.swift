@@ -816,6 +816,18 @@ struct BLEFriendlyIdentity: Hashable {
                 evidence: ["broadcast name matches a known controller"]
             )
         }
+        if let car = AutomotiveDetector.matchBLE(device) {
+            return make(
+                car.title,
+                "Vehicle",
+                car.reason,
+                "Car / Automotive",
+                "car.fill",
+                car.confidence,
+                serviceLabels,
+                evidence: [car.reason]
+            )
+        }
         if BeaconDetector.matchBLE(device) {
             return make(
                 device.broadcastName ?? "Beacon",
