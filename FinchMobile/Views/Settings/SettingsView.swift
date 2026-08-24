@@ -23,10 +23,10 @@ struct SettingsView: View {
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                         .keyboardType(.URL)
-                    Text("On your PC: python -m backend serve --host 0.0.0.0 --port 8765")
+                    Text("Required for web app parity (address owners, county assessor, full dossier). On your PC: python -m backend serve --host 0.0.0.0 --port 8765")
                         .font(FinchTheme.monoSmall)
                         .foregroundStyle(.secondary)
-                    Text("Phone and PC on same Wi‑Fi. Enter http://YOUR_PC_IP:8765 (no trailing slash). Engage then uses the same Python rails as the web app.")
+                    Text("Phone and PC on same Wi‑Fi. Enter http://YOUR_PC_IP:8765 (no trailing slash). Engage uses the same Python engine as the web app.")
                         .font(FinchTheme.monoSmall)
                         .foregroundStyle(.secondary)
                 }
