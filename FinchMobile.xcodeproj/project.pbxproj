@@ -11,6 +11,9 @@
 		B557C9FE577141AA85180EEE /* BLEDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = F81F212DEBFF4093AC985F99 /* BLEDevice.swift */; };
 		B6E25D4952494302A5BA8192 /* GlassModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66F6325C3A584120AF8F465B /* GlassModels.swift */; };
 		2F3CBF3F4A0744059AE6C40D /* InputRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F86692A60D749DBBF1B834F /* InputRouter.swift */; };
+		BB01B2C3D4E5F60718293A01 /* OsintModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01B2C3D4E5F60718293A01 /* OsintModels.swift */; };
+		BB01B2C3D4E5F60718293A02 /* OsintEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01B2C3D4E5F60718293A02 /* OsintEngine.swift */; };
+		BB01B2C3D4E5F60718293A03 /* OsintLatticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01B2C3D4E5F60718293A03 /* OsintLatticeView.swift */; };
 		7A0645BF56164BE0B036D6D1 /* BLEScannerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331E71C9BE074DF99A1F8A8D /* BLEScannerService.swift */; };
 		E8BLECATCL01B2C3D4E5F60718 /* BLECategoryClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8BLECATCL01B2C3D4E5F60718 /* BLECategoryClassifier.swift */; };
 		E3BLEEVSAN01B2C3D4E5F60718 /* BLEEvidenceSanitizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BLEEVSAN01B2C3D4E5F60718 /* BLEEvidenceSanitizer.swift */; };
@@ -67,6 +70,9 @@
 		F81F212DEBFF4093AC985F99 /* BLEDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEDevice.swift; sourceTree = "<group>"; };
 		66F6325C3A584120AF8F465B /* GlassModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassModels.swift; sourceTree = "<group>"; };
 		5F86692A60D749DBBF1B834F /* InputRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputRouter.swift; sourceTree = "<group>"; };
+		AA01B2C3D4E5F60718293A01 /* OsintModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OsintModels.swift; sourceTree = "<group>"; };
+		AA01B2C3D4E5F60718293A02 /* OsintEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OsintEngine.swift; sourceTree = "<group>"; };
+		AA01B2C3D4E5F60718293A03 /* OsintLatticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OsintLatticeView.swift; sourceTree = "<group>"; };
 		331E71C9BE074DF99A1F8A8D /* BLEScannerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEScannerService.swift; sourceTree = "<group>"; };
 		F8BLECATCL01B2C3D4E5F60718 /* BLECategoryClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLECategoryClassifier.swift; sourceTree = "<group>"; };
 		F3BLEEVSAN01B2C3D4E5F60718 /* BLEEvidenceSanitizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEEvidenceSanitizer.swift; sourceTree = "<group>"; };
@@ -168,6 +174,7 @@
 				F81F212DEBFF4093AC985F99 /* BLEDevice.swift */,
 				66F6325C3A584120AF8F465B /* GlassModels.swift */,
 				5F86692A60D749DBBF1B834F /* InputRouter.swift */,
+				AA01B2C3D4E5F60718293A01 /* OsintModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -189,6 +196,7 @@
 			children = (
 				04ACB68674854586B13FC474 /* BLE */,
 				6408515A77C8445499437B69 /* Glass */,
+				CC01B2C3D4E5F60718293A04 /* Osint */,
 				A3LOC4T10N5ERV1CE0000001 /* Location */,
 				8AAD2C9AACFC48B1A16B9738 /* Network */,
 				083278C791D64609BF8A3DAD /* Vault */,
@@ -256,6 +264,14 @@
 			path = BLE;
 			sourceTree = "<group>";
 		};
+		CC01B2C3D4E5F60718293A04 /* Osint */ = {
+			isa = PBXGroup;
+			children = (
+				AA01B2C3D4E5F60718293A02 /* OsintEngine.swift */,
+			);
+			path = Osint;
+			sourceTree = "<group>";
+		};
 		6408515A77C8445499437B69 /* Glass */ = {
 			isa = PBXGroup;
 			children = (
@@ -301,6 +317,7 @@
 			isa = PBXGroup;
 			children = (
 				AAA483931D2B424DAAA4F86F /* EngageView.swift */,
+				AA01B2C3D4E5F60718293A03 /* OsintLatticeView.swift */,
 				80278AA587C341558CE78ED4 /* LatticeView.swift */,
 			);
 			path = Engage;
@@ -491,6 +508,9 @@
 				B557C9FE577141AA85180EEE /* BLEDevice.swift in Sources */,
 				B6E25D4952494302A5BA8192 /* GlassModels.swift in Sources */,
 				2F3CBF3F4A0744059AE6C40D /* InputRouter.swift in Sources */,
+				BB01B2C3D4E5F60718293A01 /* OsintModels.swift in Sources */,
+				BB01B2C3D4E5F60718293A02 /* OsintEngine.swift in Sources */,
+				BB01B2C3D4E5F60718293A03 /* OsintLatticeView.swift in Sources */,
 				7A0645BF56164BE0B036D6D1 /* BLEScannerService.swift in Sources */,
 				E8BLECATCL01B2C3D4E5F60718 /* BLECategoryClassifier.swift in Sources */,
 				E3BLEEVSAN01B2C3D4E5F60718 /* BLEEvidenceSanitizer.swift in Sources */,
@@ -588,7 +608,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 31;
+				CURRENT_PROJECT_VERSION = 32;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				ENABLE_TESTABILITY = YES;
@@ -599,7 +619,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.7;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rockstars4nny.finchmobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -619,7 +639,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 31;
+				CURRENT_PROJECT_VERSION = 32;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -629,7 +649,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.7;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rockstars4nny.finchmobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

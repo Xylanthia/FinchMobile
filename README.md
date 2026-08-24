@@ -1,14 +1,14 @@
-# Finch Mobile — RF Engagement Platform (Glass Fabric 2.0)
+# Finch Mobile — THE MACHINE (OSINT + Glass Fabric 3.0)
 
-Standalone iOS 17+ app for **authorized** on-device BLE radar, LAN IoT assessment, multi-sensor track fusion, drone-class detection, and consent-gated active-ops auditing. No backend. Apple frameworks only.
+Standalone iOS 17+ app for **authorized** on-device OSINT (identity, address, plate, cyber, web3), BLE radar, LAN IoT assessment, multi-sensor track fusion, and drone-class detection. No laptop backend. Apple frameworks only + public APIs.
 
-**Version 2.0 — RF Platform:** fused tracks · threat scoring · AR overlay · drone module · consent/arm · forensic chain · Multipeer mesh · research playbooks.
+**Version 3.0 — THE MACHINE on phone:** Engage seed router like desktop Finch · OSINT lattice · Glass Fabric · Nearby BLE.
 
 ## Tabs
 
 | Tab | Capability |
 |-----|------------|
-| **Engage** | CIDR / private IP → Glass Fabric (subnet sweep, mDNS, SSDP, deep ports, offense probes, banners, fingerprints, MQTT listen, SENTINEL export). |
+| **Engage** | Seed bar like desktop Finch: name / email / phone / @handle / address / plate / domain / IP / `0x…` / CIDR. OSINT rails hit public APIs on-device; Glass Fabric for LAN. |
 | **Nearby** | Continuous CoreBluetooth scan + Connect / GATT map / characteristic **read**. |
 | **Tracks** | Multi-source fusion (BLE + Glass hosts + synthetic/mesh) with 1–10 threat scores. |
 | **Drone** | Passive drone/controller classification; Observe MAVLink surfaces; active ops are **consent-gated** and do **not** Tx on stock iOS. |
@@ -18,17 +18,17 @@ Standalone iOS 17+ app for **authorized** on-device BLE radar, LAN IoT assessmen
 
 | Feature | Stock iPhone |
 |---------|--------------|
+| Identity / email / @handle OSINT | Yes (public APIs; HIBP needs key) |
+| Address geocode + Census | Yes (no DMV / paid assessor scrape) |
+| Plate / VIN (NHTSA) | Yes (no DMV) |
+| Domain / IP cyber (DoH, CT, RDAP, InternetDB) | Yes (Shodan host needs key) |
+| Web3 ETH balance | Yes (Etherscan txs need key) |
 | BLE scan / GATT read | Yes |
 | LAN IoT / MQTT listen | Yes |
 | Track fusion + threat score | Yes |
-| AR reticles for tracks | Yes (ARKit devices) |
-| Forensic SHA-256 chain export | Yes |
-| Consent token + kill switch | Yes |
-| Mesh share of track summaries | Yes (Multipeer) |
-| Research Mode synthetic inject | Yes |
 | SDR / RF capture / replay | Needs external SDR |
 | BLE write / MITM / clone | Not implemented (read-only) |
-| MAVLink command / GPS spoof / jam | Consent + external authorized kit only — app audits, does not transmit |
+| MAVLink Tx / jam / GPS spoof | Not on stock iOS |
 
 ## Requirements
 

@@ -15,6 +15,9 @@ final class AppModel {
     let glassPipeline = GlassFabricPipeline()
     let vaultManager = VaultManager()
     let settings = SettingsStore()
+    let osintEngine = OsintEngine()
+    var caseSeeds: [CaseSeed] = []
+    var lastKind: PipelineKind = .auto
 
     let fusion = TrackFusionEngine()
     let consent = ConsentGate()
@@ -31,7 +34,7 @@ final class AppModel {
         playbooks.bind(forensic: forensic)
         sensors.bind(fusion: fusion, forensic: forensic)
         playbooks.loadBundled()
-        forensic.record(category: "system", summary: "Finch Mobile 2.7 boot")
+        forensic.record(category: "system", summary: "Finch Mobile 3.0 boot")
     }
 
     func refreshFusion() {
@@ -46,6 +49,9 @@ final class AppModel {
     func clearEphemeral() {
         reportContainer.clear()
         glassPipeline.reset()
+        osintEngine.reset()
+        caseSeeds = []
+        lastKind = .auto
         statusMessage = ""
     }
 }
@@ -54,16 +60,18 @@ final class AppModel {
 final class ReportContainer {
     var glassReport: GlassFabricReport?
     var bleSnapshot: [BLEDevice] = []
+    var osint: OsintReport?
     var title: String = ""
     var createdAt: Date = Date()
 
     var isEmpty: Bool {
-        glassReport == nil && bleSnapshot.isEmpty
+        glassReport == nil && bleSnapshot.isEmpty && osint == nil
     }
 
     func clear() {
         glassReport = nil
         bleSnapshot = []
+        osint = nil
         title = ""
         createdAt = Date()
     }
@@ -73,7 +81,8 @@ final class ReportContainer {
             title: title.isEmpty ? "Glass Fabric \(ISO8601DateFormatter().string(from: createdAt))" : title,
             createdAt: createdAt,
             glass: glassReport,
-            ble: bleSnapshot
+            ble: bleSnapshot,
+            osint: osint
         )
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -87,4 +96,5 @@ struct PersistEnvelope: Codable {
     var createdAt: Date
     var glass: GlassFabricReport?
     var ble: [BLEDevice]?
+    var osint: OsintReport?
 }

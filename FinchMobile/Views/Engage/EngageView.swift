@@ -25,13 +25,22 @@ struct EngageView: View {
                     engageBar
                     pipelinePicker
                     actionRow
-                    if !app.statusMessage.isEmpty || app.glassPipeline.isRunning {
-                        Text(app.glassPipeline.progressText.isEmpty ? app.statusMessage : app.glassPipeline.progressText)
+                    if !app.statusMessage.isEmpty || app.glassPipeline.isRunning || app.osintEngine.isRunning {
+                        Text(statusLine)
                             .font(FinchTheme.monoSmall)
                             .foregroundStyle(FinchTheme.cyan)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal)
                     }
+                    if shouldShowOsint {
+                        if let report = app.osintEngine.report {
+                            OsintLatticeView(report: report, onAction: followOsintAction)
+                        } else if app.osintEngine.isRunning {
+                            ProgressView(app.osintEngine.progressText)
+                                .tint(FinchTheme.cyan)
+                                .padding()
+                        }
+                    } else {
                     LatticeView(
                         report: app.glassPipeline.report,
                         onDeepScan: {
@@ -56,20 +65,22 @@ struct EngageView: View {
                         },
                         onExport: exportSentinel
                     )
+                    }
                 }
                 .padding(.top, 8)
             }
-            .navigationTitle("FINCH · GLASS 2.0")
+            .navigationTitle("THE MACHINE")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Persist") { preparePersist() }
-                        .disabled(app.reportContainer.isEmpty && app.glassPipeline.report == nil)
+                        .disabled(app.reportContainer.isEmpty && app.glassPipeline.report == nil && app.osintEngine.report == nil)
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Clear") {
                         app.clearEphemeral()
                         app.engageQuery = ""
+                        app.osintEngine.reset()
                     }
                 }
             }
@@ -82,12 +93,22 @@ struct EngageView: View {
             .onChange(of: app.glassPipeline.progressText) { _, text in
                 if !text.isEmpty { app.statusMessage = text }
             }
+            .onChange(of: app.osintEngine.isRunning) { _, running in
+                if !running, let r = app.osintEngine.report {
+                    app.reportContainer.osint = r
+                    app.reportContainer.title = "OSINT \(r.pipeline.label)"
+                    app.statusMessage = app.osintEngine.progressText
+                }
+            }
+            .onChange(of: app.osintEngine.progressText) { _, text in
+                if !text.isEmpty { app.statusMessage = text }
+            }
         }
     }
 
     private var engageBar: some View {
         HStack(spacing: 8) {
-            TextField("Wi‑Fi range · IP · nearby bluetooth", text: Bindable(app).engageQuery)
+            TextField("name · email · address · plate · domain · 0x · CIDR", text: Bindable(app).engageQuery)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .font(FinchTheme.mono)
@@ -110,20 +131,61 @@ struct EngageView: View {
     }
 
     private var pipelinePicker: some View {
-        Picker("Pipeline", selection: Bindable(app).selectedPipeline) {
-            ForEach(PipelineKind.allCases) { kind in
-                Text(kind.label).tag(kind)
+        VStack(alignment: .leading, spacing: 6) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(PipelineKind.allCases) { kind in
+                        Button {
+                            app.selectedPipeline = kind
+                        } label: {
+                            Text(kind.label)
+                                .font(FinchTheme.monoSmall)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(app.selectedPipeline == kind ? FinchTheme.cyan.opacity(0.22) : FinchTheme.surface)
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(app.selectedPipeline == kind ? FinchTheme.cyan : FinchTheme.cyan.opacity(0.25), lineWidth: 1)
+                                )
+                                .foregroundStyle(app.selectedPipeline == kind ? FinchTheme.cyan : FinchTheme.textSecondary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal)
             }
-        }
-        .pickerStyle(.segmented)
-        .padding(.horizontal)
-        .overlay(alignment: .bottom) {
             Text("detected: \(detected.label)")
                 .font(FinchTheme.monoSmall)
                 .foregroundStyle(FinchTheme.textSecondary)
-                .offset(y: 18)
+                .padding(.horizontal)
+            if !app.caseSeeds.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(app.caseSeeds) { seed in
+                            Button {
+                                app.engageQuery = seed.value
+                                app.selectedPipeline = seed.kind
+                                engage()
+                            } label: {
+                                Text("\(seed.kind.label) · \(seed.value)")
+                                    .font(FinchTheme.monoSmall)
+                                    .lineLimit(1)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 5)
+                                    .background(Capsule().stroke(FinchTheme.cyan.opacity(0.45), lineWidth: 1))
+                                    .foregroundStyle(FinchTheme.textPrimary)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+            }
         }
-        .padding(.bottom, 8)
+        .padding(.bottom, 4)
     }
 
     private var actionRow: some View {
@@ -147,9 +209,36 @@ struct EngageView: View {
         .padding(.top, 8)
     }
 
+    private var shouldShowOsint: Bool {
+        app.lastKind.isOsint || app.osintEngine.isRunning || app.osintEngine.report != nil && app.lastKind.isOsint
+    }
+
+    private var statusLine: String {
+        if app.osintEngine.isRunning, !app.osintEngine.progressText.isEmpty { return app.osintEngine.progressText }
+        if app.glassPipeline.isRunning, !app.glassPipeline.progressText.isEmpty { return app.glassPipeline.progressText }
+        return app.statusMessage
+    }
+
+    private func followOsintAction(_ action: OsintAction) {
+        app.engageQuery = action.seed
+        app.selectedPipeline = action.pipeline
+        engage()
+    }
+
+    private func rememberSeed(_ kind: PipelineKind, _ value: String) {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        if !app.caseSeeds.contains(where: { $0.value == trimmed && $0.kind == kind }) {
+            app.caseSeeds.insert(CaseSeed(kind: kind, value: trimmed), at: 0)
+            if app.caseSeeds.count > 12 { app.caseSeeds = Array(app.caseSeeds.prefix(12)) }
+        }
+    }
+
     private func engage() {
         let kind = InputRouter.resolve(query: app.engageQuery, override: app.selectedPipeline)
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        app.lastKind = kind
+        rememberSeed(kind, app.engageQuery)
         switch kind {
         case .ble:
             app.statusMessage = "Opening Nearby Bluetooth…"
@@ -161,6 +250,9 @@ struct EngageView: View {
             app.statusMessage = "Dispatch → Glass Fabric"
             app.glassPipeline.engage(query: app.engageQuery.isEmpty ? "scan my network" : app.engageQuery)
             syncReport()
+        case .identity, .property, .plate, .cyber, .web3:
+            app.statusMessage = "Dispatch → \(kind.label)"
+            app.osintEngine.run(query: app.engageQuery, kind: kind, settings: app.settings)
         }
     }
 
@@ -168,6 +260,9 @@ struct EngageView: View {
         if let r = app.glassPipeline.report {
             app.reportContainer.glassReport = r
             app.reportContainer.title = "Glass \(r.cidr)"
+        }
+        if let o = app.osintEngine.report {
+            app.reportContainer.osint = o
         }
     }
 
@@ -187,8 +282,11 @@ struct EngageView: View {
         if let r = app.glassPipeline.report {
             app.reportContainer.glassReport = r
         }
+        if let o = app.osintEngine.report {
+            app.reportContainer.osint = o
+        }
         app.reportContainer.bleSnapshot = app.bleScanner.sortedDevices
-        persistTitle = app.reportContainer.title.isEmpty ? "Glass Fabric" : app.reportContainer.title
+        persistTitle = app.reportContainer.title.isEmpty ? "Finch report" : app.reportContainer.title
         showPersist = true
     }
 

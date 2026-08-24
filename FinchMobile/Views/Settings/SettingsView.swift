@@ -18,12 +18,12 @@ struct SettingsView: View {
                 }
 
                 Section("About") {
-                    Text("Finch Mobile 2.7")
+                    Text("Finch Mobile 3.0")
                         .font(FinchTheme.mono)
-                    Text("Works on this phone: BLE scan, GATT read, LAN Glass, MQTT listen, GPS on dumps, mesh. Does not transmit RF, does not see LTE or classic Bluetooth, does not drive an SDR dongle.")
+                    Text("On this phone: Engage OSINT (identity, address, plate, cyber, web3), BLE scan, GATT read, LAN Glass, MQTT listen. Does not transmit RF, does not query DMV, does not invent handles from a bare name.")
                         .font(FinchTheme.monoSmall)
                         .foregroundStyle(.secondary)
-                    Text("Schema: finch.ble.survey.v2 + finch.sentinel.glass.v1")
+                    Text("Schema: finch.osint.v1 + finch.ble.survey.v2 + finch.sentinel.glass.v1")
                         .font(FinchTheme.monoSmall)
                         .foregroundStyle(.secondary)
                 }
@@ -51,6 +51,18 @@ struct SettingsView: View {
                         .font(FinchTheme.mono)
                     SecureField("Password", text: Bindable(app.settings).mqttPassword)
                         .font(FinchTheme.mono)
+                }
+
+                Section("OSINT API keys (optional)") {
+                    SecureField("Have I Been Pwned", text: Bindable(app.settings).hibpApiKey)
+                        .font(FinchTheme.mono)
+                    SecureField("Etherscan", text: Bindable(app.settings).etherscanApiKey)
+                        .font(FinchTheme.mono)
+                    SecureField("Shodan", text: Bindable(app.settings).shodanApiKey)
+                        .font(FinchTheme.mono)
+                    Text("Public rails run without keys. These only unlock HIBP, Etherscan txs, and Shodan host.")
+                        .font(FinchTheme.monoSmall)
+                        .foregroundStyle(.secondary)
                 }
 
                 Section("Fingerprints") {

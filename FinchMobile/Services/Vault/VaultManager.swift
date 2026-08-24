@@ -250,6 +250,31 @@ final class SettingsStore {
         set { UserDefaults.standard.set(newValue, forKey: "fpUpdateURL") }
     }
 
+
+    var hibpApiKey: String {
+        get {
+            if let d = KeychainStore.load(account: "osint.hibp"), let s = String(data: d, encoding: .utf8) { return s }
+            return ""
+        }
+        set { KeychainStore.save(account: "osint.hibp", data: Data(newValue.utf8)) }
+    }
+
+    var etherscanApiKey: String {
+        get {
+            if let d = KeychainStore.load(account: "osint.etherscan"), let s = String(data: d, encoding: .utf8) { return s }
+            return ""
+        }
+        set { KeychainStore.save(account: "osint.etherscan", data: Data(newValue.utf8)) }
+    }
+
+    var shodanApiKey: String {
+        get {
+            if let d = KeychainStore.load(account: "osint.shodan"), let s = String(data: d, encoding: .utf8) { return s }
+            return ""
+        }
+        set { KeychainStore.save(account: "osint.shodan", data: Data(newValue.utf8)) }
+    }
+
     var researchMode: Bool {
         get { UserDefaults.standard.bool(forKey: "researchMode") }
         set { UserDefaults.standard.set(newValue, forKey: "researchMode") }
