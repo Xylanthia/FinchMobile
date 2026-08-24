@@ -279,4 +279,10 @@ final class SettingsStore {
         get { UserDefaults.standard.bool(forKey: "researchMode") }
         set { UserDefaults.standard.set(newValue, forKey: "researchMode") }
     }
+
+    /// Desktop Finch backend, e.g. http://192.168.1.42:8765 — same rails as the web app.
+    var finchBackendURL: String {
+        get { UserDefaults.standard.string(forKey: "finchBackendURL") ?? "" }
+        set { UserDefaults.standard.set(newValue, forKey: "finchBackendURL") }
+    }
 }

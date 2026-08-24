@@ -9,7 +9,7 @@ enum OsintHTTP {
         config.timeoutIntervalForRequest = 12
         config.timeoutIntervalForResource = 18
         config.httpAdditionalHeaders = [
-            "User-Agent": "FinchMobile/3.0 (authorized OSINT; on-device)",
+            "User-Agent": "FinchMobile/3.1 (authorized OSINT; on-device)",
             "Accept": "application/json, text/plain, */*"
         ]
         return URLSession(configuration: config)
@@ -61,12 +61,12 @@ final class OsintEngine {
         progressText = ""
     }
 
-    func run(query: String, kind: PipelineKind, settings: SettingsStore) {
+    func run(query: String, kind: PipelineKind, settings: SettingsStore, caseSeeds: [CaseSeed] = []) {
         runTask?.cancel()
-        runTask = Task { await execute(query: query, kind: kind, settings: settings) }
+        runTask = Task { await execute(query: query, kind: kind, settings: settings, caseSeeds: caseSeeds) }
     }
 
-    private func execute(query: String, kind: PipelineKind, settings: SettingsStore) async {
+    private func execute(query: String, kind: PipelineKind, settings: SettingsStore, caseSeeds: [CaseSeed]) async {
         isRunning = true
         progressText = "Engage → \(kind.label)"
         report = nil
@@ -75,6 +75,22 @@ final class OsintEngine {
         var actions: [OsintAction] = []
         var brief: [String] = []
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if !settings.finchBackendURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            progressText = "Finch backend → full rails…"
+            if let backendReport = await FinchBackendClient.run(
+                query: q,
+                kind: kind,
+                caseSeeds: caseSeeds,
+                settings: settings
+            ) {
+                report = backendReport
+                isRunning = false
+                progressText = "Done · \(backendReport.findings.count) findings (desktop Finch)"
+                return
+            }
+            brief.append("Finch backend unreachable — falling back to on-device rails.")
+        }
 
         switch kind {
             case .identity:

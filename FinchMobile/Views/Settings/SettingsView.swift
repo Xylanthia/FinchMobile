@@ -17,10 +17,24 @@ struct SettingsView: View {
                         .tint(FinchTheme.cyan)
                 }
 
-                Section("About") {
-                    Text("Finch Mobile 3.0")
+                Section("Finch backend (same results as web app)") {
+                    TextField("Backend URL", text: Bindable(app.settings).finchBackendURL)
                         .font(FinchTheme.mono)
-                    Text("On this phone: Engage OSINT (identity, address, plate, cyber, web3), BLE scan, GATT read, LAN Glass, MQTT listen. Does not transmit RF, does not query DMV, does not invent handles from a bare name.")
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .keyboardType(.URL)
+                    Text("On your PC: python -m backend serve --host 0.0.0.0 --port 8765")
+                        .font(FinchTheme.monoSmall)
+                        .foregroundStyle(.secondary)
+                    Text("Phone and PC on same Wi‑Fi. Enter http://YOUR_PC_IP:8765 (no trailing slash). Engage then uses the same Python rails as the web app.")
+                        .font(FinchTheme.monoSmall)
+                        .foregroundStyle(.secondary)
+                }
+
+                Section("About") {
+                    Text("Finch Mobile 3.1")
+                        .font(FinchTheme.mono)
+                    Text("With a Finch backend URL set, OSINT searches use the same desktop Python engine as the web app. Without it: on-device public rails only (identity, address, plate, cyber, web3). Also: BLE scan, GATT read, LAN Glass, MQTT listen.")
                         .font(FinchTheme.monoSmall)
                         .foregroundStyle(.secondary)
                     Text("Schema: finch.osint.v1 + finch.ble.survey.v2 + finch.sentinel.glass.v1")

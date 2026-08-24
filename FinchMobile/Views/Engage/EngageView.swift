@@ -252,7 +252,12 @@ struct EngageView: View {
             syncReport()
         case .identity, .property, .plate, .cyber, .web3:
             app.statusMessage = "Dispatch → \(kind.label)"
-            app.osintEngine.run(query: app.engageQuery, kind: kind, settings: app.settings)
+            app.osintEngine.run(
+                query: app.engageQuery,
+                kind: kind,
+                settings: app.settings,
+                caseSeeds: app.caseSeeds
+            )
         }
     }
 

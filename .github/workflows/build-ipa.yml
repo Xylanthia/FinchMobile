@@ -17,15 +17,17 @@ jobs:
         run: bash BUILD_UNSIGNED_IPA.sh
       - name: Name IPA for 3uTools
         run: |
+          cp FinchMobile.ipa FinchMobile-3.1.ipa
           cp FinchMobile.ipa FinchMobile-3.0.ipa
           cp FinchMobile.ipa FinchMobile-2.7.ipa
           ls -lh FinchMobile*.ipa
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FinchMobile-3.0
+          name: FinchMobile-3.1
           path: |
             FinchMobile.ipa
+            FinchMobile-3.1.ipa
             FinchMobile-3.0.ipa
             FinchMobile-2.7.ipa
           if-no-files-found: error
@@ -39,6 +41,7 @@ jobs:
             Then Settings → General → VPN & Device Management → trust the cert.
           files: |
             FinchMobile.ipa
+            FinchMobile-3.1.ipa
             FinchMobile-3.0.ipa
             FinchMobile-2.7.ipa
           make_latest: true
