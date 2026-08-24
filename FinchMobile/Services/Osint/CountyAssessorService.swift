@@ -322,8 +322,8 @@ enum CountyAssessorService {
                     kind: "name",
                     value: name,
                     relevance: "signal",
-                    note: "\(county) County public record",
-                    url: url
+                    url: url,
+                    note: "\(county) County public record"
                 ))
                 actions.append(OsintAction(title: "Engage owner \(name)", seed: name, pipeline: .identity))
             }
@@ -355,7 +355,7 @@ enum CountyAssessorService {
         guard !num.isEmpty, !sname.isEmpty else { return }
 
         let whereTemplate = row.gis_where ?? "BLDG_NO='{num}' AND UPPER(ST_NAME) LIKE '%{street_name}%'"
-        let where = whereTemplate
+        let whereClause = whereTemplate
             .replacingOccurrences(of: "{num}", with: num.replacingOccurrences(of: "'", with: "''"))
             .replacingOccurrences(of: "{street_name}", with: sname.replacingOccurrences(of: "'", with: "''"))
             .replacingOccurrences(of: "{street}", with: street.replacingOccurrences(of: "'", with: "''"))
@@ -364,7 +364,7 @@ enum CountyAssessorService {
         let outFields = row.gis_out_fields ?? "*"
         var urlComps = URLComponents(string: base)
         urlComps?.queryItems = [
-            URLQueryItem(name: "where", value: where),
+            URLQueryItem(name: "where", value: whereClause),
             URLQueryItem(name: "outFields", value: outFields),
             URLQueryItem(name: "returnGeometry", value: "false"),
             URLQueryItem(name: "f", value: "json")
@@ -406,8 +406,8 @@ enum CountyAssessorService {
                 kind: "name",
                 value: name,
                 relevance: "signal",
-                note: "\(county) assessor · \(fld)",
-                url: pivot
+                url: pivot,
+                note: "\(county) assessor · \(fld)"
             ))
             actions.append(OsintAction(title: "Engage owner \(name)", seed: name, pipeline: .identity))
         }
@@ -419,18 +419,18 @@ enum CountyAssessorService {
         appendGISDetail("MAILTOADD", attrs, label: "mailing address", county: county, pivot: pivot, into: &findings)
 
         if let year = attrs["YEAR_BUILD"] {
-            findings.append(OsintFinding(source: "gis", kind: "property", value: "built \(year)", relevance: "signal", note: county, url: pivot))
+            findings.append(OsintFinding(source: "gis", kind: "property", value: "built \(year)", relevance: "signal", url: pivot, note: county))
         }
         if let sqft = attrs["STRUCTAREA"] {
-            findings.append(OsintFinding(source: "gis", kind: "property", value: "\(sqft) sqft", relevance: "signal", note: county, url: pivot))
+            findings.append(OsintFinding(source: "gis", kind: "property", value: "\(sqft) sqft", relevance: "signal", url: pivot, note: county))
         }
         if let tax = attrs["TAXBASE"] {
-            findings.append(OsintFinding(source: "gis", kind: "property", value: "tax base $\(tax)", relevance: "signal", note: county, url: pivot))
+            findings.append(OsintFinding(source: "gis", kind: "property", value: "tax base $\(tax)", relevance: "signal", url: pivot, note: county))
         }
         if let sale = attrs["SALEPRIC"], "\(sale)" != "0" {
             var note = county
             if let sd = attrs["SALEDATE"] as? String, !sd.isEmpty { note += " · sold \(formatSaleDate(sd))" }
-            findings.append(OsintFinding(source: "gis", kind: "property", value: "last sale $\(sale)", relevance: "signal", note: note, url: pivot))
+            findings.append(OsintFinding(source: "gis", kind: "property", value: "last sale $\(sale)", relevance: "signal", url: pivot, note: note))
         }
         if let deedBook = attrs["DEEDBOOK"] as? String, let deedPage = attrs["DEEDPAGE"] as? String,
            !deedBook.trimmingCharacters(in: .whitespaces).isEmpty || !deedPage.trimmingCharacters(in: .whitespaces).isEmpty {
@@ -439,8 +439,8 @@ enum CountyAssessorService {
                 kind: "record",
                 value: "deed \(deedBook.trimmingCharacters(in: .whitespaces)) / \(deedPage.trimmingCharacters(in: .whitespaces))",
                 relevance: "static",
-                note: county,
-                url: pivot
+                url: pivot,
+                note: county
             ))
         }
         if let sdat = attrs["SDATLINK"] as? String, sdat.hasPrefix("http") {
@@ -459,7 +459,7 @@ enum CountyAssessorService {
         guard let raw = attrs[key] else { return }
         let val = "\(raw)".trimmingCharacters(in: .whitespacesAndNewlines)
         guard !val.isEmpty else { return }
-        findings.append(OsintFinding(source: "gis", kind: "property", value: "\(label): \(val)", relevance: "signal", note: county, url: pivot))
+        findings.append(OsintFinding(source: "gis", kind: "property", value: "\(label): \(val)", relevance: "signal", url: pivot, note: county))
     }
 
     // MARK: - Parsing helpers

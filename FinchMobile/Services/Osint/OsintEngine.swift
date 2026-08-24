@@ -92,19 +92,33 @@ final class OsintEngine {
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
 
         if !settings.finchBackendURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            progressText = "Finch backend → full rails…"
-            if let backendReport = await FinchBackendClient.run(
+            progressText = "Finch backend → same rails as web app…"
+            switch await FinchBackendClient.runOrExplainFailure(
                 query: q,
                 kind: kind,
                 caseSeeds: caseSeeds,
                 settings: settings
             ) {
+            case .success(let backendReport):
                 report = backendReport
                 isRunning = false
-                progressText = "Done · \(backendReport.findings.count) findings (desktop Finch)"
+                progressText = "Done · \(backendReport.findings.count) findings (Finch web parity)"
+                return
+            case .failure(let failure):
+                report = FinchBackendClient.failureReport(
+                    query: q,
+                    kind: kind,
+                    failure: failure,
+                    backendURL: settings.finchBackendURL
+                )
+                isRunning = false
+                progressText = "Backend unreachable — set PC URL in Settings"
                 return
             }
-            brief.append("Finch backend unreachable — falling back to on-device rails.")
+        }
+
+        if kind.isOsint && InputRouter.looksLikeAddress(q) {
+            brief.append("Tip: set Finch backend URL in Settings to match web app address dossiers.")
         }
 
         switch kind {
