@@ -252,7 +252,8 @@ enum FinchBackendClient {
         var extras: [[String: Any]] = []
         let addr = (blob["standardized_address"] as? String) ?? (row["value"] as? String) ?? ""
 
-        if let summary = propertySummary(from: blob["property_details"] as? [String: Any], county: blob["county"] as? String), !summary.isEmpty {
+        let summary = propertySummary(from: blob["property_details"] as? [String: Any], county: blob["county"] as? String)
+        if !summary.isEmpty {
             extras.append([
                 "source": "reverse_address.property",
                 "kind": "property",
