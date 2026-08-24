@@ -48,7 +48,6 @@ enum OsintHTTP {
 }
 
 @Observable
-@MainActor
 final class OsintEngine {
     var report: OsintReport?
     var isRunning: Bool = false
