@@ -1,0 +1,5149 @@
+{
+  "counties": [
+    {
+      "state": "TX",
+      "county": "Harris",
+      "zip_prefixes": [
+        "770",
+        "772",
+        "773",
+        "774",
+        "775"
+      ],
+      "search_url": "https://www.hcad.org/property-search/?q={q}",
+      "gis_url": "https://www.harriscounty.gov/GIS?q={q}"
+    },
+    {
+      "state": "TX",
+      "county": "Dallas",
+      "zip_prefixes": [
+        "750",
+        "751",
+        "752",
+        "753"
+      ],
+      "search_url": "https://www.dallascad.org/SearchOwner.aspx?addr={street}",
+      "gis_url": null
+    },
+    {
+      "state": "TX",
+      "county": "Tarrant",
+      "zip_prefixes": [
+        "760",
+        "761"
+      ],
+      "search_url": "https://www.tad.org/property-search/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "TX",
+      "county": "Bexar",
+      "zip_prefixes": [
+        "780",
+        "781",
+        "782"
+      ],
+      "search_url": "https://bexar.trueautomation.com/clientdb/?cid=110&addr={street}",
+      "gis_url": null
+    },
+    {
+      "state": "TX",
+      "county": "Travis",
+      "zip_prefixes": [
+        "786",
+        "787"
+      ],
+      "search_url": "https://geosearch.travis.prodigycad.com/PropertySearch/?addr={q}",
+      "gis_url": null
+    },
+    {
+      "state": "TX",
+      "county": "Collin",
+      "zip_prefixes": [
+        "750"
+      ],
+      "search_url": "https://www.collincad.org/propertysearch/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "TX",
+      "county": "Denton",
+      "zip_prefixes": [
+        "750",
+        "762"
+      ],
+      "search_url": "https://www.dentoncad.com/property-search?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "TX",
+      "county": "Fort Bend",
+      "zip_prefixes": [
+        "774"
+      ],
+      "search_url": "https://esearch.fbcad.org/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "TX",
+      "county": "El Paso",
+      "zip_prefixes": [
+        "799"
+      ],
+      "search_url": "https://www.epcad.org/Search?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "TX",
+      "county": "Hidalgo",
+      "zip_prefixes": [
+        "785"
+      ],
+      "search_url": "https://www.hidalgoad.org/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "CA",
+      "county": "Los Angeles",
+      "zip_prefixes": [
+        "900",
+        "901",
+        "902",
+        "903",
+        "904",
+        "905",
+        "906",
+        "907",
+        "908",
+        "910",
+        "911",
+        "912",
+        "913",
+        "914",
+        "915",
+        "916",
+        "917",
+        "918"
+      ],
+      "search_url": "https://portal.assessor.lacounty.gov/parceldetail/{q}",
+      "gis_url": "https://portal.assessor.lacounty.gov/map/?q={q}"
+    },
+    {
+      "state": "CA",
+      "county": "San Diego",
+      "zip_prefixes": [
+        "919",
+        "920",
+        "921"
+      ],
+      "search_url": "https://srweb.sandiegocounty.gov/scripts/asr.dll?cmd=search&addr={street}",
+      "gis_url": null
+    },
+    {
+      "state": "CA",
+      "county": "Orange",
+      "zip_prefixes": [
+        "926",
+        "927",
+        "928"
+      ],
+      "search_url": "https://www.ocgov.com/residents/propertytaxes?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "CA",
+      "county": "Riverside",
+      "zip_prefixes": [
+        "917",
+        "922",
+        "925"
+      ],
+      "search_url": "https://assessment.rivco.org/search?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "CA",
+      "county": "San Bernardino",
+      "zip_prefixes": [
+        "917",
+        "922",
+        "923",
+        "924"
+      ],
+      "search_url": "https://www.sbcounty.gov/assessor/search?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "CA",
+      "county": "Santa Clara",
+      "zip_prefixes": [
+        "940",
+        "943",
+        "950",
+        "951"
+      ],
+      "search_url": "https://www.sccassessor.org/index.php/online-services/search?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "CA",
+      "county": "Alameda",
+      "zip_prefixes": [
+        "945",
+        "946",
+        "947"
+      ],
+      "search_url": "https://www.acgov.org/assessor/search?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "CA",
+      "county": "Sacramento",
+      "zip_prefixes": [
+        "942",
+        "956",
+        "957",
+        "958"
+      ],
+      "search_url": "https://assessorparcelviewer.saccounty.net/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "CA",
+      "county": "Contra Costa",
+      "zip_prefixes": [
+        "945"
+      ],
+      "search_url": "https://www.contracosta.ca.gov/assessor?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "CA",
+      "county": "Fresno",
+      "zip_prefixes": [
+        "936",
+        "937"
+      ],
+      "search_url": "https://www.co.fresno.ca.us/assessor?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "CA",
+      "county": "Kern",
+      "zip_prefixes": [
+        "932",
+        "933"
+      ],
+      "search_url": "https://assessor.co.kern.ca.us/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "CA",
+      "county": "San Francisco",
+      "zip_prefixes": [
+        "941"
+      ],
+      "search_url": "https://sfassessor.org/search?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "CA",
+      "county": "Ventura",
+      "zip_prefixes": [
+        "913",
+        "930"
+      ],
+      "search_url": "https://assessor.countyofventura.org/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "CA",
+      "county": "San Mateo",
+      "zip_prefixes": [
+        "940",
+        "944"
+      ],
+      "search_url": "https://www.smcacre.org/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "NY",
+      "county": "New York",
+      "zip_prefixes": [
+        "100",
+        "101",
+        "102"
+      ],
+      "search_url": "https://a836-acris.nyc.gov/DS/DocumentSearch/Address?addr={street}",
+      "gis_url": "https://maps.nyc.gov/doitt/nycitymap/?q={q}"
+    },
+    {
+      "state": "NY",
+      "county": "Kings",
+      "zip_prefixes": [
+        "112"
+      ],
+      "search_url": "https://a836-acris.nyc.gov/DS/DocumentSearch/Address?addr={street}",
+      "gis_url": null
+    },
+    {
+      "state": "NY",
+      "county": "Queens",
+      "zip_prefixes": [
+        "110",
+        "111",
+        "113",
+        "114",
+        "116"
+      ],
+      "search_url": "https://a836-acris.nyc.gov/DS/DocumentSearch/Address?addr={street}",
+      "gis_url": null
+    },
+    {
+      "state": "NY",
+      "county": "Bronx",
+      "zip_prefixes": [
+        "104"
+      ],
+      "search_url": "https://a836-acris.nyc.gov/DS/DocumentSearch/Address?addr={street}",
+      "gis_url": null
+    },
+    {
+      "state": "NY",
+      "county": "Richmond",
+      "zip_prefixes": [
+        "103"
+      ],
+      "search_url": "https://a836-acris.nyc.gov/DS/DocumentSearch/Address?addr={street}",
+      "gis_url": null
+    },
+    {
+      "state": "NY",
+      "county": "Nassau",
+      "zip_prefixes": [
+        "110",
+        "115",
+        "117"
+      ],
+      "search_url": "https://lrv.nassaucountyny.gov/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "NY",
+      "county": "Suffolk",
+      "zip_prefixes": [
+        "117",
+        "119"
+      ],
+      "search_url": "https://apps.suffolkcountyny.gov/realproperty/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "NY",
+      "county": "Westchester",
+      "zip_prefixes": [
+        "105",
+        "106",
+        "107",
+        "108"
+      ],
+      "search_url": "https://westchestergov.com/assessment?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "FL",
+      "county": "Miami-Dade",
+      "zip_prefixes": [
+        "330",
+        "331",
+        "332"
+      ],
+      "search_url": "https://www.miamidade.gov/Apps/PA/propertysearch/#/?addr={street}",
+      "gis_url": "https://gisweb.miamidade.gov/GIS/?q={q}"
+    },
+    {
+      "state": "FL",
+      "county": "Broward",
+      "zip_prefixes": [
+        "330",
+        "333"
+      ],
+      "search_url": "https://web.bcpa.net/BcpaClient/#/Record-Search?addr={street}",
+      "gis_url": null
+    },
+    {
+      "state": "FL",
+      "county": "Palm Beach",
+      "zip_prefixes": [
+        "334"
+      ],
+      "search_url": "https://www.pbcgov.org/papa/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "FL",
+      "county": "Hillsborough",
+      "zip_prefixes": [
+        "335",
+        "336"
+      ],
+      "search_url": "https://gis.hcpafl.org/propertysearch/#/nav/Basic%20Search?addr={street}",
+      "gis_url": null
+    },
+    {
+      "state": "FL",
+      "county": "Orange",
+      "zip_prefixes": [
+        "327",
+        "328"
+      ],
+      "search_url": "https://ocpaweb.ocpafl.org/parcelsearch?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "FL",
+      "county": "Duval",
+      "zip_prefixes": [
+        "320",
+        "322"
+      ],
+      "search_url": "https://paopropertysearch.coj.net/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "FL",
+      "county": "Pinellas",
+      "zip_prefixes": [
+        "337"
+      ],
+      "search_url": "https://www.pcpao.gov/search?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "FL",
+      "county": "Lee",
+      "zip_prefixes": [
+        "339"
+      ],
+      "search_url": "https://www.leepa.org/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "FL",
+      "county": "Polk",
+      "zip_prefixes": [
+        "338"
+      ],
+      "search_url": "https://www.polkpa.org/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "FL",
+      "county": "Brevard",
+      "zip_prefixes": [
+        "329"
+      ],
+      "search_url": "https://www.bcpao.us/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "IL",
+      "county": "Cook",
+      "zip_prefixes": [
+        "600",
+        "601",
+        "602",
+        "603",
+        "604",
+        "605",
+        "606",
+        "607",
+        "608"
+      ],
+      "search_url": "https://www.cookcountyassessor.com/address-search?addr={street}",
+      "gis_url": "https://maps.cookcountyil.gov/?q={q}"
+    },
+    {
+      "state": "IL",
+      "county": "DuPage",
+      "zip_prefixes": [
+        "601",
+        "605"
+      ],
+      "search_url": "https://www.dupageco.org/SOA/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "IL",
+      "county": "Lake",
+      "zip_prefixes": [
+        "600"
+      ],
+      "search_url": "https://www.lakecountyil.gov/assessor?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "IL",
+      "county": "Will",
+      "zip_prefixes": [
+        "604"
+      ],
+      "search_url": "https://www.willcountyillinois.com/County-Offices/Taxation-and-Finance/Supervisor-of-Assessments?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "PA",
+      "county": "Philadelphia",
+      "zip_prefixes": [
+        "190",
+        "191"
+      ],
+      "search_url": "https://property.phila.gov/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "PA",
+      "county": "Allegheny",
+      "zip_prefixes": [
+        "150",
+        "151",
+        "152"
+      ],
+      "search_url": "https://www2.alleghenycounty.us/RealEstate/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "PA",
+      "county": "Montgomery",
+      "zip_prefixes": [
+        "190",
+        "194"
+      ],
+      "search_url": "https://www.montcopa.org/assessment?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "PA",
+      "county": "Bucks",
+      "zip_prefixes": [
+        "189",
+        "190"
+      ],
+      "search_url": "https://www.buckscounty.gov/assessment?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "OH",
+      "county": "Cuyahoga",
+      "zip_prefixes": [
+        "440",
+        "441"
+      ],
+      "search_url": "https://myplace.cuyahogacounty.us/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "OH",
+      "county": "Franklin",
+      "zip_prefixes": [
+        "430",
+        "431",
+        "432"
+      ],
+      "search_url": "https://property.franklincountyauditor.com/_web/search/commonsearch.aspx?mode=address&addr={street}",
+      "gis_url": null
+    },
+    {
+      "state": "OH",
+      "county": "Hamilton",
+      "zip_prefixes": [
+        "450",
+        "452"
+      ],
+      "search_url": "https://wedge.hcauditor.org/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "OH",
+      "county": "Summit",
+      "zip_prefixes": [
+        "442",
+        "443"
+      ],
+      "search_url": "https://fiscaloffice.summitoh.net/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "MI",
+      "county": "Wayne",
+      "zip_prefixes": [
+        "480",
+        "481",
+        "482"
+      ],
+      "search_url": "https://wayne.maps.arcgis.com/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "MI",
+      "county": "Oakland",
+      "zip_prefixes": [
+        "480",
+        "483"
+      ],
+      "search_url": "https://www.oakgov.com/assessor?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "MI",
+      "county": "Macomb",
+      "zip_prefixes": [
+        "480"
+      ],
+      "search_url": "https://www.macombgov.org/assessor?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "GA",
+      "county": "Fulton",
+      "zip_prefixes": [
+        "300",
+        "303"
+      ],
+      "search_url": "https://qpublic.schneidercorp.com/Application.aspx?AppID=620&LayerID=11117&PageTypeID=2&PageID=4570&Q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "GA",
+      "county": "Gwinnett",
+      "zip_prefixes": [
+        "300"
+      ],
+      "search_url": "https://www.gwinnettassessor.com/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "GA",
+      "county": "DeKalb",
+      "zip_prefixes": [
+        "300",
+        "303"
+      ],
+      "search_url": "https://propertyappraisal.dekalbcountyga.gov/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "GA",
+      "county": "Cobb",
+      "zip_prefixes": [
+        "300",
+        "301"
+      ],
+      "search_url": "https://www.cobbassessor.org/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "NC",
+      "county": "Mecklenburg",
+      "zip_prefixes": [
+        "280",
+        "281",
+        "282"
+      ],
+      "search_url": "https://polaris3g.mecklenburgcountync.gov/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "NC",
+      "county": "Wake",
+      "zip_prefixes": [
+        "275",
+        "276"
+      ],
+      "search_url": "https://services.wakegov.com/realestate/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "NC",
+      "county": "Guilford",
+      "zip_prefixes": [
+        "272",
+        "273",
+        "274"
+      ],
+      "search_url": "https://tax.guilfordcountync.gov/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "VA",
+      "county": "Fairfax",
+      "zip_prefixes": [
+        "220",
+        "221"
+      ],
+      "search_url": "https://icare.fairfaxcounty.gov/ffxcare/search/commonsearch.aspx?mode=address&addr={street}",
+      "gis_url": null
+    },
+    {
+      "state": "VA",
+      "county": "Prince William",
+      "zip_prefixes": [
+        "201"
+      ],
+      "search_url": "https://www.pwcva.gov/department/finance/real-estate-assessments?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "VA",
+      "county": "Loudoun",
+      "zip_prefixes": [
+        "201"
+      ],
+      "search_url": "https://elandings.loudoun.gov/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "VA",
+      "county": "Arlington",
+      "zip_prefixes": [
+        "222"
+      ],
+      "search_url": "https://propertysearch.arlingtonva.us/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "MD",
+      "county": "Montgomery",
+      "zip_prefixes": [
+        "208",
+        "209"
+      ],
+      "search_url": "https://sdat.dat.maryland.gov/RealProperty/Pages/default.aspx?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "MD",
+      "county": "Prince George's",
+      "zip_prefixes": [
+        "206",
+        "207"
+      ],
+      "search_url": "https://sdat.dat.maryland.gov/RealProperty/Pages/default.aspx?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "MD",
+      "county": "Baltimore",
+      "zip_prefixes": [
+        "210",
+        "211",
+        "212"
+      ],
+      "search_url": "https://sdat.dat.maryland.gov/RealProperty/Pages/default.aspx?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "MD",
+      "county": "Baltimore City",
+      "city_aliases": [
+        "baltimore",
+        "baltimore city"
+      ],
+      "zip_prefixes": [
+        "212"
+      ],
+      "search_url": "https://sdat.dat.maryland.gov/RealProperty/Pages/default.aspx?q={q}",
+      "gis_url": "https://geodata.baltimorecity.gov/egis/rest/services/CityView/Realproperty_OB/MapServer/0/query",
+      "gis_kind": "arcgis_query",
+      "gis_where": "BLDG_NO='{num}' AND UPPER(ST_NAME) LIKE '%{street_name}%'",
+      "gis_out_fields": "OWNER_1,OWNER_2,OWNER_3,FULLADDR,MAILTOADD,BLOCKLOT,PIN,SALEDATE,SALEPRIC,YEAR_BUILD,STRUCTAREA,LOT_SIZE,TAXBASE,DEEDBOOK,DEEDPAGE,OWNMDE,NEIGHBOR,ZIP_CODE,SDATLINK",
+      "gis_owner_fields": [
+        "OWNER_1",
+        "OWNER_2",
+        "OWNER_3"
+      ]
+    },
+    {
+      "state": "MA",
+      "county": "Suffolk",
+      "zip_prefixes": [
+        "021",
+        "022"
+      ],
+      "search_url": "https://www.cityofboston.gov/assessing/search/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "MA",
+      "county": "Middlesex",
+      "zip_prefixes": [
+        "017",
+        "018",
+        "021",
+        "024"
+      ],
+      "search_url": "https://www.masslandrecords.com/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "WA",
+      "county": "King",
+      "zip_prefixes": [
+        "980",
+        "981"
+      ],
+      "search_url": "https://blue.kingcounty.com/Assessor/eRealProperty/default.aspx?q={q}",
+      "gis_url": "https://gismaps.kingcounty.gov/parcelviewer2/?q={q}"
+    },
+    {
+      "state": "WA",
+      "county": "Pierce",
+      "zip_prefixes": [
+        "983",
+        "984"
+      ],
+      "search_url": "https://epip.co.pierce.wa.us/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "WA",
+      "county": "Snohomish",
+      "zip_prefixes": [
+        "980",
+        "982"
+      ],
+      "search_url": "https://www.snoco.org/assessor?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "AZ",
+      "county": "Maricopa",
+      "zip_prefixes": [
+        "850",
+        "851",
+        "852",
+        "853"
+      ],
+      "search_url": "https://mcassessor.maricopa.gov/parcel/?q={q}",
+      "gis_url": "https://maps.mcassessor.maricopa.gov/?q={q}"
+    },
+    {
+      "state": "AZ",
+      "county": "Pima",
+      "zip_prefixes": [
+        "857"
+      ],
+      "search_url": "https://www.asr.pima.gov/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "CO",
+      "county": "Denver",
+      "zip_prefixes": [
+        "802"
+      ],
+      "search_url": "https://www.denvergov.org/Property/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "CO",
+      "county": "El Paso",
+      "zip_prefixes": [
+        "809"
+      ],
+      "search_url": "https://property.elpasoco.com/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "CO",
+      "county": "Arapahoe",
+      "zip_prefixes": [
+        "800",
+        "801"
+      ],
+      "search_url": "https://www.arapahoegov.com/assessor?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "CO",
+      "county": "Jefferson",
+      "zip_prefixes": [
+        "800",
+        "804"
+      ],
+      "search_url": "https://jeffco.us/assessor?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "NV",
+      "county": "Clark",
+      "zip_prefixes": [
+        "889",
+        "890",
+        "891"
+      ],
+      "search_url": "https://www.clarkcountynv.gov/assessor?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "NV",
+      "county": "Washoe",
+      "zip_prefixes": [
+        "894",
+        "895"
+      ],
+      "search_url": "https://www.washoecounty.gov/assessor/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "OR",
+      "county": "Multnomah",
+      "zip_prefixes": [
+        "970",
+        "972"
+      ],
+      "search_url": "https://www.portlandmaps.com/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "OR",
+      "county": "Washington",
+      "zip_prefixes": [
+        "970",
+        "971"
+      ],
+      "search_url": "https://www.washingtoncountyor.gov/assessment?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "MN",
+      "county": "Hennepin",
+      "zip_prefixes": [
+        "553",
+        "554"
+      ],
+      "search_url": "https://www16.co.hennepin.mn.us/pins/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "MN",
+      "county": "Ramsey",
+      "zip_prefixes": [
+        "551"
+      ],
+      "search_url": "https://www.ramseycounty.us/residents/property/property-tax-assessment?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "MO",
+      "county": "St. Louis",
+      "zip_prefixes": [
+        "630",
+        "631"
+      ],
+      "search_url": "https://stlouiscountymo.gov/st-louis-county-departments/revenue/assessor/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "MO",
+      "county": "Jackson",
+      "zip_prefixes": [
+        "640",
+        "641"
+      ],
+      "search_url": "https://www.jacksongov.org/Assessor?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "TN",
+      "county": "Davidson",
+      "zip_prefixes": [
+        "370",
+        "371",
+        "372"
+      ],
+      "search_url": "https://www.padctn.org/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "TN",
+      "county": "Shelby",
+      "zip_prefixes": [
+        "380",
+        "381"
+      ],
+      "search_url": "https://www.assessor.shelby.tn.us/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "IN",
+      "county": "Marion",
+      "zip_prefixes": [
+        "462"
+      ],
+      "search_url": "https://www.indy.gov/agency/office-of-the-assessor?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "WI",
+      "county": "Milwaukee",
+      "zip_prefixes": [
+        "532"
+      ],
+      "search_url": "https://assessments.milwaukee.gov/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "NJ",
+      "county": "Bergen",
+      "zip_prefixes": [
+        "070",
+        "074",
+        "076"
+      ],
+      "search_url": "https://njactb.org/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "NJ",
+      "county": "Essex",
+      "zip_prefixes": [
+        "070",
+        "071"
+      ],
+      "search_url": "https://njactb.org/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "NJ",
+      "county": "Hudson",
+      "zip_prefixes": [
+        "070",
+        "073"
+      ],
+      "search_url": "https://njactb.org/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "NJ",
+      "county": "Middlesex",
+      "zip_prefixes": [
+        "088",
+        "089"
+      ],
+      "search_url": "https://njactb.org/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "CT",
+      "county": "Fairfield",
+      "zip_prefixes": [
+        "068",
+        "069"
+      ],
+      "search_url": "https://www.fairfieldct.org/assessor?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "CT",
+      "county": "Hartford",
+      "zip_prefixes": [
+        "060",
+        "061"
+      ],
+      "search_url": "https://www.hartford.gov/assessor?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "DC",
+      "county": "District of Columbia",
+      "zip_prefixes": [
+        "200",
+        "202",
+        "203",
+        "204",
+        "205"
+      ],
+      "search_url": "https://www.taxpayerservicecenter.com/RP_Search.jsp?search_type=Address&search={street}",
+      "gis_url": "https://maps.dcgis.dc.gov/?q={q}"
+    },
+    {
+      "state": "SC",
+      "county": "Charleston",
+      "zip_prefixes": [
+        "294"
+      ],
+      "search_url": "https://sc-charleston-county.publicaccessnow.com/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "SC",
+      "county": "Greenville",
+      "zip_prefixes": [
+        "296"
+      ],
+      "search_url": "https://www.greenvillecounty.org/asw/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "SC",
+      "county": "Richland",
+      "zip_prefixes": [
+        "292"
+      ],
+      "search_url": "https://www.richlandcountysc.gov/assessor?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "AL",
+      "county": "Jefferson",
+      "zip_prefixes": [
+        "350",
+        "351",
+        "352"
+      ],
+      "search_url": "https://jeffconline.jccal.org/propertysearch/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "KY",
+      "county": "Jefferson",
+      "zip_prefixes": [
+        "400",
+        "402"
+      ],
+      "search_url": "https://jeffersonpva.ky.gov/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "LA",
+      "county": "Orleans",
+      "zip_prefixes": [
+        "701"
+      ],
+      "search_url": "https://www.nola.gov/assessor/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "LA",
+      "county": "East Baton Rouge",
+      "zip_prefixes": [
+        "708"
+      ],
+      "search_url": "https://www.ebrassessor.com/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "OK",
+      "county": "Oklahoma",
+      "zip_prefixes": [
+        "730",
+        "731"
+      ],
+      "search_url": "https://docs.oklahomacounty.org/assessorWP5/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "OK",
+      "county": "Tulsa",
+      "zip_prefixes": [
+        "740",
+        "741"
+      ],
+      "search_url": "https://www.assessor.tulsacounty.org/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "KS",
+      "county": "Johnson",
+      "zip_prefixes": [
+        "660",
+        "662"
+      ],
+      "search_url": "https://www.jocogov.org/department/appraiser?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "NE",
+      "county": "Douglas",
+      "zip_prefixes": [
+        "680",
+        "681"
+      ],
+      "search_url": "https://www.dcassessor.org/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "IA",
+      "county": "Polk",
+      "zip_prefixes": [
+        "500",
+        "503"
+      ],
+      "search_url": "https://www.assess.co.polk.ia.us/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "UT",
+      "county": "Salt Lake",
+      "zip_prefixes": [
+        "840",
+        "841"
+      ],
+      "search_url": "https://slco.org/assessor/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "NM",
+      "county": "Bernalillo",
+      "zip_prefixes": [
+        "871"
+      ],
+      "search_url": "https://www.bernco.gov/assessor/?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "HI",
+      "county": "Honolulu",
+      "zip_prefixes": [
+        "967",
+        "968"
+      ],
+      "search_url": "https://qpublic.schneidercorp.com/Application.aspx?AppID=1045&Q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "AK",
+      "county": "Anchorage",
+      "zip_prefixes": [
+        "995"
+      ],
+      "search_url": "https://www.muni.org/pw/public.html?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "WV",
+      "county": "Jefferson",
+      "zip_prefixes": [
+        "254"
+      ],
+      "search_url": "https://www.jeffersoncountywv.org/assessor?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "WV",
+      "county": "Kanawha",
+      "zip_prefixes": [
+        "253"
+      ],
+      "search_url": "https://www.kanawha.us/assessor?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "WV",
+      "county": "Monongalia",
+      "zip_prefixes": [
+        "265"
+      ],
+      "search_url": "https://www.monongaliacounty.gov/assessor?q={q}",
+      "gis_url": null
+    },
+    {
+      "state": "AL",
+      "county": "AL-354*",
+      "zip_prefixes": [
+        "354"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AL",
+      "county": "AL-355*",
+      "zip_prefixes": [
+        "355"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AL",
+      "county": "AL-356*",
+      "zip_prefixes": [
+        "356"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AL",
+      "county": "AL-357*",
+      "zip_prefixes": [
+        "357"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AL",
+      "county": "AL-358*",
+      "zip_prefixes": [
+        "358"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AL",
+      "county": "AL-359*",
+      "zip_prefixes": [
+        "359"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AL",
+      "county": "AL-360*",
+      "zip_prefixes": [
+        "360"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AL",
+      "county": "AL-361*",
+      "zip_prefixes": [
+        "361"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AL",
+      "county": "AL-362*",
+      "zip_prefixes": [
+        "362"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AL",
+      "county": "AL-363*",
+      "zip_prefixes": [
+        "363"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AL",
+      "county": "AL-364*",
+      "zip_prefixes": [
+        "364"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AL",
+      "county": "AL-365*",
+      "zip_prefixes": [
+        "365"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AL",
+      "county": "AL-366*",
+      "zip_prefixes": [
+        "366"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AL",
+      "county": "AL-367*",
+      "zip_prefixes": [
+        "367"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AL",
+      "county": "AL-368*",
+      "zip_prefixes": [
+        "368"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AK",
+      "county": "AK-996*",
+      "zip_prefixes": [
+        "996"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AK",
+      "county": "AK-997*",
+      "zip_prefixes": [
+        "997"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AK",
+      "county": "AK-998*",
+      "zip_prefixes": [
+        "998"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AK",
+      "county": "AK-999*",
+      "zip_prefixes": [
+        "999"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AZ",
+      "county": "AZ-855*",
+      "zip_prefixes": [
+        "855"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AZ",
+      "county": "AZ-856*",
+      "zip_prefixes": [
+        "856"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AZ",
+      "county": "AZ-859*",
+      "zip_prefixes": [
+        "859"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AZ",
+      "county": "AZ-860*",
+      "zip_prefixes": [
+        "860"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AZ",
+      "county": "AZ-863*",
+      "zip_prefixes": [
+        "863"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AZ",
+      "county": "AZ-864*",
+      "zip_prefixes": [
+        "864"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AZ",
+      "county": "AZ-865*",
+      "zip_prefixes": [
+        "865"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AR",
+      "county": "AR-716*",
+      "zip_prefixes": [
+        "716"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AR",
+      "county": "AR-717*",
+      "zip_prefixes": [
+        "717"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AR",
+      "county": "AR-718*",
+      "zip_prefixes": [
+        "718"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AR",
+      "county": "AR-719*",
+      "zip_prefixes": [
+        "719"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AR",
+      "county": "AR-720*",
+      "zip_prefixes": [
+        "720"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AR",
+      "county": "AR-721*",
+      "zip_prefixes": [
+        "721"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AR",
+      "county": "AR-722*",
+      "zip_prefixes": [
+        "722"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AR",
+      "county": "AR-723*",
+      "zip_prefixes": [
+        "723"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AR",
+      "county": "AR-724*",
+      "zip_prefixes": [
+        "724"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AR",
+      "county": "AR-725*",
+      "zip_prefixes": [
+        "725"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AR",
+      "county": "AR-726*",
+      "zip_prefixes": [
+        "726"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AR",
+      "county": "AR-727*",
+      "zip_prefixes": [
+        "727"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AR",
+      "county": "AR-728*",
+      "zip_prefixes": [
+        "728"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "AR",
+      "county": "AR-729*",
+      "zip_prefixes": [
+        "729"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CA",
+      "county": "CA-931*",
+      "zip_prefixes": [
+        "931"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CA",
+      "county": "CA-934*",
+      "zip_prefixes": [
+        "934"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CA",
+      "county": "CA-935*",
+      "zip_prefixes": [
+        "935"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CA",
+      "county": "CA-938*",
+      "zip_prefixes": [
+        "938"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CA",
+      "county": "CA-939*",
+      "zip_prefixes": [
+        "939"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CA",
+      "county": "CA-948*",
+      "zip_prefixes": [
+        "948"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CA",
+      "county": "CA-949*",
+      "zip_prefixes": [
+        "949"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CA",
+      "county": "CA-952*",
+      "zip_prefixes": [
+        "952"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CA",
+      "county": "CA-953*",
+      "zip_prefixes": [
+        "953"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CA",
+      "county": "CA-954*",
+      "zip_prefixes": [
+        "954"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CA",
+      "county": "CA-955*",
+      "zip_prefixes": [
+        "955"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CA",
+      "county": "CA-959*",
+      "zip_prefixes": [
+        "959"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CA",
+      "county": "CA-960*",
+      "zip_prefixes": [
+        "960"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CA",
+      "county": "CA-961*",
+      "zip_prefixes": [
+        "961"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CO",
+      "county": "CO-803*",
+      "zip_prefixes": [
+        "803"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CO",
+      "county": "CO-805*",
+      "zip_prefixes": [
+        "805"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CO",
+      "county": "CO-806*",
+      "zip_prefixes": [
+        "806"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CO",
+      "county": "CO-807*",
+      "zip_prefixes": [
+        "807"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CO",
+      "county": "CO-808*",
+      "zip_prefixes": [
+        "808"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CO",
+      "county": "CO-810*",
+      "zip_prefixes": [
+        "810"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CO",
+      "county": "CO-811*",
+      "zip_prefixes": [
+        "811"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CO",
+      "county": "CO-812*",
+      "zip_prefixes": [
+        "812"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CO",
+      "county": "CO-813*",
+      "zip_prefixes": [
+        "813"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CO",
+      "county": "CO-814*",
+      "zip_prefixes": [
+        "814"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CO",
+      "county": "CO-815*",
+      "zip_prefixes": [
+        "815"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CO",
+      "county": "CO-816*",
+      "zip_prefixes": [
+        "816"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CT",
+      "county": "CT-062*",
+      "zip_prefixes": [
+        "062"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CT",
+      "county": "CT-063*",
+      "zip_prefixes": [
+        "063"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CT",
+      "county": "CT-064*",
+      "zip_prefixes": [
+        "064"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CT",
+      "county": "CT-065*",
+      "zip_prefixes": [
+        "065"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CT",
+      "county": "CT-066*",
+      "zip_prefixes": [
+        "066"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "CT",
+      "county": "CT-067*",
+      "zip_prefixes": [
+        "067"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "DE",
+      "county": "DE-197*",
+      "zip_prefixes": [
+        "197"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "DE",
+      "county": "DE-198*",
+      "zip_prefixes": [
+        "198"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "DE",
+      "county": "DE-199*",
+      "zip_prefixes": [
+        "199"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "FL",
+      "county": "FL-321*",
+      "zip_prefixes": [
+        "321"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "FL",
+      "county": "FL-323*",
+      "zip_prefixes": [
+        "323"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "FL",
+      "county": "FL-324*",
+      "zip_prefixes": [
+        "324"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "FL",
+      "county": "FL-325*",
+      "zip_prefixes": [
+        "325"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "FL",
+      "county": "FL-326*",
+      "zip_prefixes": [
+        "326"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "FL",
+      "county": "FL-341*",
+      "zip_prefixes": [
+        "341"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "FL",
+      "county": "FL-342*",
+      "zip_prefixes": [
+        "342"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "FL",
+      "county": "FL-344*",
+      "zip_prefixes": [
+        "344"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "FL",
+      "county": "FL-346*",
+      "zip_prefixes": [
+        "346"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "FL",
+      "county": "FL-347*",
+      "zip_prefixes": [
+        "347"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "FL",
+      "county": "FL-349*",
+      "zip_prefixes": [
+        "349"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "GA",
+      "county": "GA-302*",
+      "zip_prefixes": [
+        "302"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "GA",
+      "county": "GA-304*",
+      "zip_prefixes": [
+        "304"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "GA",
+      "county": "GA-305*",
+      "zip_prefixes": [
+        "305"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "GA",
+      "county": "GA-306*",
+      "zip_prefixes": [
+        "306"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "GA",
+      "county": "GA-307*",
+      "zip_prefixes": [
+        "307"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "GA",
+      "county": "GA-308*",
+      "zip_prefixes": [
+        "308"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "GA",
+      "county": "GA-309*",
+      "zip_prefixes": [
+        "309"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "GA",
+      "county": "GA-310*",
+      "zip_prefixes": [
+        "310"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "GA",
+      "county": "GA-312*",
+      "zip_prefixes": [
+        "312"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "GA",
+      "county": "GA-313*",
+      "zip_prefixes": [
+        "313"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "GA",
+      "county": "GA-314*",
+      "zip_prefixes": [
+        "314"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "GA",
+      "county": "GA-315*",
+      "zip_prefixes": [
+        "315"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "GA",
+      "county": "GA-316*",
+      "zip_prefixes": [
+        "316"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "GA",
+      "county": "GA-317*",
+      "zip_prefixes": [
+        "317"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "GA",
+      "county": "GA-318*",
+      "zip_prefixes": [
+        "318"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "GA",
+      "county": "GA-319*",
+      "zip_prefixes": [
+        "319"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "ID",
+      "county": "ID-832*",
+      "zip_prefixes": [
+        "832"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "ID",
+      "county": "ID-833*",
+      "zip_prefixes": [
+        "833"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "ID",
+      "county": "ID-834*",
+      "zip_prefixes": [
+        "834"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "ID",
+      "county": "ID-835*",
+      "zip_prefixes": [
+        "835"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "ID",
+      "county": "ID-836*",
+      "zip_prefixes": [
+        "836"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "ID",
+      "county": "ID-837*",
+      "zip_prefixes": [
+        "837"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "ID",
+      "county": "ID-838*",
+      "zip_prefixes": [
+        "838"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-609*",
+      "zip_prefixes": [
+        "609"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-610*",
+      "zip_prefixes": [
+        "610"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-611*",
+      "zip_prefixes": [
+        "611"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-612*",
+      "zip_prefixes": [
+        "612"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-613*",
+      "zip_prefixes": [
+        "613"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-614*",
+      "zip_prefixes": [
+        "614"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-615*",
+      "zip_prefixes": [
+        "615"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-616*",
+      "zip_prefixes": [
+        "616"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-617*",
+      "zip_prefixes": [
+        "617"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-618*",
+      "zip_prefixes": [
+        "618"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-619*",
+      "zip_prefixes": [
+        "619"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-620*",
+      "zip_prefixes": [
+        "620"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-622*",
+      "zip_prefixes": [
+        "622"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-623*",
+      "zip_prefixes": [
+        "623"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-624*",
+      "zip_prefixes": [
+        "624"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-625*",
+      "zip_prefixes": [
+        "625"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-626*",
+      "zip_prefixes": [
+        "626"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-627*",
+      "zip_prefixes": [
+        "627"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-628*",
+      "zip_prefixes": [
+        "628"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IL",
+      "county": "IL-629*",
+      "zip_prefixes": [
+        "629"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-460*",
+      "zip_prefixes": [
+        "460"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-461*",
+      "zip_prefixes": [
+        "461"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-463*",
+      "zip_prefixes": [
+        "463"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-464*",
+      "zip_prefixes": [
+        "464"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-465*",
+      "zip_prefixes": [
+        "465"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-466*",
+      "zip_prefixes": [
+        "466"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-467*",
+      "zip_prefixes": [
+        "467"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-468*",
+      "zip_prefixes": [
+        "468"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-469*",
+      "zip_prefixes": [
+        "469"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-470*",
+      "zip_prefixes": [
+        "470"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-471*",
+      "zip_prefixes": [
+        "471"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-472*",
+      "zip_prefixes": [
+        "472"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-473*",
+      "zip_prefixes": [
+        "473"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-474*",
+      "zip_prefixes": [
+        "474"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-475*",
+      "zip_prefixes": [
+        "475"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-476*",
+      "zip_prefixes": [
+        "476"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-477*",
+      "zip_prefixes": [
+        "477"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-478*",
+      "zip_prefixes": [
+        "478"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IN",
+      "county": "IN-479*",
+      "zip_prefixes": [
+        "479"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-501*",
+      "zip_prefixes": [
+        "501"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-502*",
+      "zip_prefixes": [
+        "502"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-504*",
+      "zip_prefixes": [
+        "504"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-505*",
+      "zip_prefixes": [
+        "505"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-506*",
+      "zip_prefixes": [
+        "506"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-507*",
+      "zip_prefixes": [
+        "507"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-508*",
+      "zip_prefixes": [
+        "508"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-510*",
+      "zip_prefixes": [
+        "510"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-511*",
+      "zip_prefixes": [
+        "511"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-512*",
+      "zip_prefixes": [
+        "512"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-513*",
+      "zip_prefixes": [
+        "513"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-514*",
+      "zip_prefixes": [
+        "514"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-515*",
+      "zip_prefixes": [
+        "515"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-516*",
+      "zip_prefixes": [
+        "516"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-520*",
+      "zip_prefixes": [
+        "520"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-521*",
+      "zip_prefixes": [
+        "521"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-522*",
+      "zip_prefixes": [
+        "522"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-523*",
+      "zip_prefixes": [
+        "523"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-524*",
+      "zip_prefixes": [
+        "524"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-525*",
+      "zip_prefixes": [
+        "525"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-526*",
+      "zip_prefixes": [
+        "526"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "IA",
+      "county": "IA-527*",
+      "zip_prefixes": [
+        "527"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KS",
+      "county": "KS-661*",
+      "zip_prefixes": [
+        "661"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KS",
+      "county": "KS-664*",
+      "zip_prefixes": [
+        "664"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KS",
+      "county": "KS-665*",
+      "zip_prefixes": [
+        "665"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KS",
+      "county": "KS-666*",
+      "zip_prefixes": [
+        "666"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KS",
+      "county": "KS-667*",
+      "zip_prefixes": [
+        "667"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KS",
+      "county": "KS-668*",
+      "zip_prefixes": [
+        "668"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KS",
+      "county": "KS-669*",
+      "zip_prefixes": [
+        "669"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KS",
+      "county": "KS-670*",
+      "zip_prefixes": [
+        "670"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KS",
+      "county": "KS-671*",
+      "zip_prefixes": [
+        "671"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KS",
+      "county": "KS-672*",
+      "zip_prefixes": [
+        "672"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KS",
+      "county": "KS-673*",
+      "zip_prefixes": [
+        "673"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KS",
+      "county": "KS-674*",
+      "zip_prefixes": [
+        "674"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KS",
+      "county": "KS-675*",
+      "zip_prefixes": [
+        "675"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KS",
+      "county": "KS-676*",
+      "zip_prefixes": [
+        "676"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KS",
+      "county": "KS-677*",
+      "zip_prefixes": [
+        "677"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KS",
+      "county": "KS-678*",
+      "zip_prefixes": [
+        "678"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KS",
+      "county": "KS-679*",
+      "zip_prefixes": [
+        "679"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-401*",
+      "zip_prefixes": [
+        "401"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-403*",
+      "zip_prefixes": [
+        "403"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-404*",
+      "zip_prefixes": [
+        "404"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-405*",
+      "zip_prefixes": [
+        "405"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-406*",
+      "zip_prefixes": [
+        "406"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-407*",
+      "zip_prefixes": [
+        "407"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-408*",
+      "zip_prefixes": [
+        "408"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-409*",
+      "zip_prefixes": [
+        "409"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-410*",
+      "zip_prefixes": [
+        "410"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-411*",
+      "zip_prefixes": [
+        "411"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-412*",
+      "zip_prefixes": [
+        "412"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-413*",
+      "zip_prefixes": [
+        "413"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-414*",
+      "zip_prefixes": [
+        "414"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-415*",
+      "zip_prefixes": [
+        "415"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-416*",
+      "zip_prefixes": [
+        "416"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-417*",
+      "zip_prefixes": [
+        "417"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-418*",
+      "zip_prefixes": [
+        "418"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-420*",
+      "zip_prefixes": [
+        "420"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-421*",
+      "zip_prefixes": [
+        "421"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-422*",
+      "zip_prefixes": [
+        "422"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-423*",
+      "zip_prefixes": [
+        "423"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-424*",
+      "zip_prefixes": [
+        "424"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-425*",
+      "zip_prefixes": [
+        "425"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-426*",
+      "zip_prefixes": [
+        "426"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "KY",
+      "county": "KY-427*",
+      "zip_prefixes": [
+        "427"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "LA",
+      "county": "LA-700*",
+      "zip_prefixes": [
+        "700"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "LA",
+      "county": "LA-703*",
+      "zip_prefixes": [
+        "703"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "LA",
+      "county": "LA-704*",
+      "zip_prefixes": [
+        "704"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "LA",
+      "county": "LA-705*",
+      "zip_prefixes": [
+        "705"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "LA",
+      "county": "LA-706*",
+      "zip_prefixes": [
+        "706"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "LA",
+      "county": "LA-707*",
+      "zip_prefixes": [
+        "707"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "LA",
+      "county": "LA-710*",
+      "zip_prefixes": [
+        "710"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "LA",
+      "county": "LA-711*",
+      "zip_prefixes": [
+        "711"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "LA",
+      "county": "LA-712*",
+      "zip_prefixes": [
+        "712"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "LA",
+      "county": "LA-713*",
+      "zip_prefixes": [
+        "713"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "LA",
+      "county": "LA-714*",
+      "zip_prefixes": [
+        "714"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "ME",
+      "county": "ME-039*",
+      "zip_prefixes": [
+        "039"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "ME",
+      "county": "ME-040*",
+      "zip_prefixes": [
+        "040"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "ME",
+      "county": "ME-041*",
+      "zip_prefixes": [
+        "041"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "ME",
+      "county": "ME-042*",
+      "zip_prefixes": [
+        "042"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "ME",
+      "county": "ME-043*",
+      "zip_prefixes": [
+        "043"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "ME",
+      "county": "ME-044*",
+      "zip_prefixes": [
+        "044"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "ME",
+      "county": "ME-045*",
+      "zip_prefixes": [
+        "045"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "ME",
+      "county": "ME-046*",
+      "zip_prefixes": [
+        "046"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "ME",
+      "county": "ME-047*",
+      "zip_prefixes": [
+        "047"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "ME",
+      "county": "ME-048*",
+      "zip_prefixes": [
+        "048"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "ME",
+      "county": "ME-049*",
+      "zip_prefixes": [
+        "049"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MD",
+      "county": "MD-214*",
+      "zip_prefixes": [
+        "214"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MD",
+      "county": "MD-215*",
+      "zip_prefixes": [
+        "215"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MD",
+      "county": "MD-216*",
+      "zip_prefixes": [
+        "216"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MD",
+      "county": "MD-217*",
+      "zip_prefixes": [
+        "217"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MD",
+      "county": "MD-218*",
+      "zip_prefixes": [
+        "218"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MD",
+      "county": "MD-219*",
+      "zip_prefixes": [
+        "219"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MA",
+      "county": "MA-010*",
+      "zip_prefixes": [
+        "010"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MA",
+      "county": "MA-011*",
+      "zip_prefixes": [
+        "011"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MA",
+      "county": "MA-012*",
+      "zip_prefixes": [
+        "012"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MA",
+      "county": "MA-013*",
+      "zip_prefixes": [
+        "013"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MA",
+      "county": "MA-014*",
+      "zip_prefixes": [
+        "014"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MA",
+      "county": "MA-015*",
+      "zip_prefixes": [
+        "015"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MA",
+      "county": "MA-016*",
+      "zip_prefixes": [
+        "016"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MA",
+      "county": "MA-019*",
+      "zip_prefixes": [
+        "019"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MA",
+      "county": "MA-020*",
+      "zip_prefixes": [
+        "020"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MA",
+      "county": "MA-023*",
+      "zip_prefixes": [
+        "023"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MA",
+      "county": "MA-025*",
+      "zip_prefixes": [
+        "025"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MA",
+      "county": "MA-026*",
+      "zip_prefixes": [
+        "026"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MA",
+      "county": "MA-027*",
+      "zip_prefixes": [
+        "027"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MI",
+      "county": "MI-484*",
+      "zip_prefixes": [
+        "484"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MI",
+      "county": "MI-485*",
+      "zip_prefixes": [
+        "485"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MI",
+      "county": "MI-486*",
+      "zip_prefixes": [
+        "486"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MI",
+      "county": "MI-487*",
+      "zip_prefixes": [
+        "487"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MI",
+      "county": "MI-488*",
+      "zip_prefixes": [
+        "488"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MI",
+      "county": "MI-489*",
+      "zip_prefixes": [
+        "489"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MI",
+      "county": "MI-490*",
+      "zip_prefixes": [
+        "490"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MI",
+      "county": "MI-491*",
+      "zip_prefixes": [
+        "491"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MI",
+      "county": "MI-492*",
+      "zip_prefixes": [
+        "492"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MI",
+      "county": "MI-493*",
+      "zip_prefixes": [
+        "493"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MI",
+      "county": "MI-494*",
+      "zip_prefixes": [
+        "494"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MI",
+      "county": "MI-495*",
+      "zip_prefixes": [
+        "495"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MI",
+      "county": "MI-496*",
+      "zip_prefixes": [
+        "496"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MI",
+      "county": "MI-497*",
+      "zip_prefixes": [
+        "497"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MI",
+      "county": "MI-498*",
+      "zip_prefixes": [
+        "498"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MI",
+      "county": "MI-499*",
+      "zip_prefixes": [
+        "499"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MN",
+      "county": "MN-550*",
+      "zip_prefixes": [
+        "550"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MN",
+      "county": "MN-556*",
+      "zip_prefixes": [
+        "556"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MN",
+      "county": "MN-557*",
+      "zip_prefixes": [
+        "557"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MN",
+      "county": "MN-558*",
+      "zip_prefixes": [
+        "558"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MN",
+      "county": "MN-559*",
+      "zip_prefixes": [
+        "559"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MN",
+      "county": "MN-560*",
+      "zip_prefixes": [
+        "560"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MN",
+      "county": "MN-561*",
+      "zip_prefixes": [
+        "561"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MN",
+      "county": "MN-562*",
+      "zip_prefixes": [
+        "562"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MN",
+      "county": "MN-563*",
+      "zip_prefixes": [
+        "563"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MN",
+      "county": "MN-564*",
+      "zip_prefixes": [
+        "564"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MN",
+      "county": "MN-565*",
+      "zip_prefixes": [
+        "565"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MN",
+      "county": "MN-566*",
+      "zip_prefixes": [
+        "566"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MN",
+      "county": "MN-567*",
+      "zip_prefixes": [
+        "567"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MS",
+      "county": "MS-386*",
+      "zip_prefixes": [
+        "386"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MS",
+      "county": "MS-387*",
+      "zip_prefixes": [
+        "387"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MS",
+      "county": "MS-388*",
+      "zip_prefixes": [
+        "388"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MS",
+      "county": "MS-389*",
+      "zip_prefixes": [
+        "389"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MS",
+      "county": "MS-390*",
+      "zip_prefixes": [
+        "390"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MS",
+      "county": "MS-391*",
+      "zip_prefixes": [
+        "391"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MS",
+      "county": "MS-392*",
+      "zip_prefixes": [
+        "392"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MS",
+      "county": "MS-393*",
+      "zip_prefixes": [
+        "393"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MS",
+      "county": "MS-394*",
+      "zip_prefixes": [
+        "394"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MS",
+      "county": "MS-395*",
+      "zip_prefixes": [
+        "395"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MS",
+      "county": "MS-396*",
+      "zip_prefixes": [
+        "396"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MS",
+      "county": "MS-397*",
+      "zip_prefixes": [
+        "397"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-633*",
+      "zip_prefixes": [
+        "633"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-634*",
+      "zip_prefixes": [
+        "634"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-635*",
+      "zip_prefixes": [
+        "635"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-636*",
+      "zip_prefixes": [
+        "636"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-637*",
+      "zip_prefixes": [
+        "637"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-638*",
+      "zip_prefixes": [
+        "638"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-639*",
+      "zip_prefixes": [
+        "639"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-644*",
+      "zip_prefixes": [
+        "644"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-645*",
+      "zip_prefixes": [
+        "645"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-646*",
+      "zip_prefixes": [
+        "646"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-647*",
+      "zip_prefixes": [
+        "647"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-648*",
+      "zip_prefixes": [
+        "648"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-650*",
+      "zip_prefixes": [
+        "650"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-651*",
+      "zip_prefixes": [
+        "651"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-652*",
+      "zip_prefixes": [
+        "652"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-653*",
+      "zip_prefixes": [
+        "653"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-654*",
+      "zip_prefixes": [
+        "654"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-655*",
+      "zip_prefixes": [
+        "655"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-656*",
+      "zip_prefixes": [
+        "656"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-657*",
+      "zip_prefixes": [
+        "657"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MO",
+      "county": "MO-658*",
+      "zip_prefixes": [
+        "658"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MT",
+      "county": "MT-590*",
+      "zip_prefixes": [
+        "590"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MT",
+      "county": "MT-591*",
+      "zip_prefixes": [
+        "591"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MT",
+      "county": "MT-592*",
+      "zip_prefixes": [
+        "592"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MT",
+      "county": "MT-593*",
+      "zip_prefixes": [
+        "593"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MT",
+      "county": "MT-594*",
+      "zip_prefixes": [
+        "594"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MT",
+      "county": "MT-595*",
+      "zip_prefixes": [
+        "595"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MT",
+      "county": "MT-596*",
+      "zip_prefixes": [
+        "596"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MT",
+      "county": "MT-597*",
+      "zip_prefixes": [
+        "597"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MT",
+      "county": "MT-598*",
+      "zip_prefixes": [
+        "598"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "MT",
+      "county": "MT-599*",
+      "zip_prefixes": [
+        "599"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NE",
+      "county": "NE-683*",
+      "zip_prefixes": [
+        "683"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NE",
+      "county": "NE-684*",
+      "zip_prefixes": [
+        "684"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NE",
+      "county": "NE-685*",
+      "zip_prefixes": [
+        "685"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NE",
+      "county": "NE-686*",
+      "zip_prefixes": [
+        "686"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NE",
+      "county": "NE-687*",
+      "zip_prefixes": [
+        "687"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NE",
+      "county": "NE-688*",
+      "zip_prefixes": [
+        "688"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NE",
+      "county": "NE-689*",
+      "zip_prefixes": [
+        "689"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NE",
+      "county": "NE-690*",
+      "zip_prefixes": [
+        "690"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NE",
+      "county": "NE-691*",
+      "zip_prefixes": [
+        "691"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NE",
+      "county": "NE-692*",
+      "zip_prefixes": [
+        "692"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NE",
+      "county": "NE-693*",
+      "zip_prefixes": [
+        "693"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NV",
+      "county": "NV-893*",
+      "zip_prefixes": [
+        "893"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NV",
+      "county": "NV-897*",
+      "zip_prefixes": [
+        "897"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NV",
+      "county": "NV-898*",
+      "zip_prefixes": [
+        "898"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NH",
+      "county": "NH-030*",
+      "zip_prefixes": [
+        "030"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NH",
+      "county": "NH-031*",
+      "zip_prefixes": [
+        "031"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NH",
+      "county": "NH-032*",
+      "zip_prefixes": [
+        "032"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NH",
+      "county": "NH-033*",
+      "zip_prefixes": [
+        "033"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NH",
+      "county": "NH-034*",
+      "zip_prefixes": [
+        "034"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NH",
+      "county": "NH-035*",
+      "zip_prefixes": [
+        "035"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NH",
+      "county": "NH-036*",
+      "zip_prefixes": [
+        "036"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NH",
+      "county": "NH-037*",
+      "zip_prefixes": [
+        "037"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NH",
+      "county": "NH-038*",
+      "zip_prefixes": [
+        "038"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NJ",
+      "county": "NJ-072*",
+      "zip_prefixes": [
+        "072"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NJ",
+      "county": "NJ-075*",
+      "zip_prefixes": [
+        "075"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NJ",
+      "county": "NJ-077*",
+      "zip_prefixes": [
+        "077"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NJ",
+      "county": "NJ-078*",
+      "zip_prefixes": [
+        "078"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NJ",
+      "county": "NJ-079*",
+      "zip_prefixes": [
+        "079"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NJ",
+      "county": "NJ-080*",
+      "zip_prefixes": [
+        "080"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NJ",
+      "county": "NJ-081*",
+      "zip_prefixes": [
+        "081"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NJ",
+      "county": "NJ-082*",
+      "zip_prefixes": [
+        "082"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NJ",
+      "county": "NJ-083*",
+      "zip_prefixes": [
+        "083"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NJ",
+      "county": "NJ-084*",
+      "zip_prefixes": [
+        "084"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NJ",
+      "county": "NJ-085*",
+      "zip_prefixes": [
+        "085"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NJ",
+      "county": "NJ-086*",
+      "zip_prefixes": [
+        "086"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NJ",
+      "county": "NJ-087*",
+      "zip_prefixes": [
+        "087"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NM",
+      "county": "NM-870*",
+      "zip_prefixes": [
+        "870"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NM",
+      "county": "NM-873*",
+      "zip_prefixes": [
+        "873"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NM",
+      "county": "NM-874*",
+      "zip_prefixes": [
+        "874"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NM",
+      "county": "NM-875*",
+      "zip_prefixes": [
+        "875"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NM",
+      "county": "NM-877*",
+      "zip_prefixes": [
+        "877"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NM",
+      "county": "NM-878*",
+      "zip_prefixes": [
+        "878"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NM",
+      "county": "NM-879*",
+      "zip_prefixes": [
+        "879"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NM",
+      "county": "NM-880*",
+      "zip_prefixes": [
+        "880"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NM",
+      "county": "NM-881*",
+      "zip_prefixes": [
+        "881"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NM",
+      "county": "NM-882*",
+      "zip_prefixes": [
+        "882"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NM",
+      "county": "NM-883*",
+      "zip_prefixes": [
+        "883"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NM",
+      "county": "NM-884*",
+      "zip_prefixes": [
+        "884"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NY",
+      "county": "NY-109*",
+      "zip_prefixes": [
+        "109"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NY",
+      "county": "NY-118*",
+      "zip_prefixes": [
+        "118"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NY",
+      "county": "NY-120*",
+      "zip_prefixes": [
+        "120"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NY",
+      "county": "NY-121*",
+      "zip_prefixes": [
+        "121"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NY",
+      "county": "NY-122*",
+      "zip_prefixes": [
+        "122"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    },
+    {
+      "state": "NY",
+      "county": "NY-123*",
+      "zip_prefixes": [
+        "123"
+      ],
+      "search_url": "https://www.google.com/search?q=site:.gov+assessor+OR+appraisal+OR+%22property+search%22+{q}",
+      "gis_url": null,
+      "generic": true
+    }
+  ],
+  "voter_portals": {
+    "AL": "https://myinfo.alabamavotes.gov/VoterView",
+    "AK": "https://myvoterinformation.alaska.gov/",
+    "AZ": "https://my.arizona.vote/PortalList.aspx",
+    "AR": "https://www.voterview.ar-nova.org/VoterView",
+    "CA": "https://voterstatus.sos.ca.gov/",
+    "CO": "https://www.sos.state.co.us/voter/pages/pub/olvr/findVoterReg.xhtml",
+    "CT": "https://portaldir.ct.gov/sots/LookUp.aspx",
+    "DE": "https://ivote.de.gov/VoterView",
+    "DC": "https://www.dcboe.org/Voters/Register-to-Vote/Check-Voter-Registration-Status",
+    "FL": "https://registration.elections.myflorida.com/CheckVoterStatus",
+    "GA": "https://www.mvp.sos.ga.gov/MVP/mvp.do",
+    "HI": "https://olvr.hawaii.gov/",
+    "ID": "https://elections.sos.idaho.gov/ElectionLink/ElectionLink/VoterSearch.aspx",
+    "IL": "https://ova.elections.il.gov/RegistrationLookup.aspx",
+    "IN": "https://indianavoters.in.gov/",
+    "IA": "https://sos.iowa.gov/elections/voterreg/regtovote/search.aspx",
+    "KS": "https://myvoteinfo.voteks.org/VoterView",
+    "KY": "https://vrsws.sos.ky.gov/vic/",
+    "LA": "https://voterportal.sos.la.gov/",
+    "ME": "https://www.maine.gov/portal/government/edemocracy/voter_lookup.php",
+    "MD": "https://voterservices.elections.maryland.gov/VoterSearch",
+    "MA": "https://www.sec.state.ma.us/VoterRegistrationSearch/MyVoterRegStatus.aspx",
+    "MI": "https://mvic.sos.state.mi.us/",
+    "MN": "https://mnvotes.sos.mn.gov/VoterStatus",
+    "MS": "https://www.ms.gov/sos/voter_registration",
+    "MO": "https://voteroutreach.sos.mo.gov/portal/",
+    "MT": "https://app.mt.gov/voterinfo/",
+    "NE": "https://www.votercheck.necvr.ne.gov/VoterView",
+    "NV": "https://www.nvsos.gov/votersearch/",
+    "NH": "https://app.sos.nh.gov/voterinformation",
+    "NJ": "https://voter.svrs.nj.gov/registration-status",
+    "NM": "https://voterportal.servis.sos.state.nm.us/WhereToVote.aspx",
+    "NY": "https://voterlookup.elections.ny.gov/",
+    "NC": "https://vt.ncsbe.gov/RegLkup/",
+    "ND": "https://vip.sos.nd.gov/WhereToVote.aspx",
+    "OH": "https://voterlookup.ohiosos.gov/voterlookup.aspx",
+    "OK": "https://okvoterportal.okelections.us/",
+    "OR": "https://secure.sos.state.or.us/orestar/vr/showVoterSearch.do",
+    "PA": "https://www.pavoterservices.pa.gov/pages/voterregistrationstatus.aspx",
+    "RI": "https://vote.sos.ri.gov/",
+    "SC": "https://vrems.scvotes.gov/VoterSearch/Index",
+    "SD": "https://vip.sdsos.gov/VIPLogin.aspx",
+    "TN": "https://tnmap.tn.gov/voterlookup/",
+    "TX": "https://teamrv-mvp.sos.texas.gov/MVP/mvp.do",
+    "UT": "https://votes.utah.gov/voteutah/voter-info",
+    "VT": "https://mvp.vermont.gov/",
+    "VA": "https://vote.elections.virginia.gov/VoterInformation",
+    "WA": "https://voter.votewa.gov/WhereToVote.aspx",
+    "WV": "https://services.sos.wv.gov/Elections/Voter/AmIRegisteredToVote",
+    "WI": "https://myvote.wi.gov/en-us/My-Voter-Info",
+    "WY": "https://www.gopets.state.wy.us/"
+  },
+  "sos_portals": {
+    "CA": "https://bizfileonline.sos.ca.gov/search/business",
+    "TX": "https://mycpa.cpa.state.tx.us/coa/",
+    "NY": "https://apps.dos.ny.gov/publicInquiry/",
+    "FL": "https://search.sunbiz.org/Inquiry/CorporationSearch/ByName",
+    "IL": "https://apps.ilsos.gov/businessentitysearch/",
+    "PA": "https://file.dos.pa.gov/search/business",
+    "OH": "https://businesssearch.ohiosos.gov/",
+    "GA": "https://ecorp.sos.ga.gov/BusinessSearch",
+    "NC": "https://www.sosnc.gov/online_services/search/by_title/_Business_Registration",
+    "MI": "https://cofs.lara.state.mi.us/SearchApi/Search/Search",
+    "NJ": "https://www.njportal.com/DOR/BusinessNameSearch/",
+    "VA": "https://cis.scc.virginia.gov/",
+    "WA": "https://ccfs.sos.wa.gov/#/",
+    "MA": "https://corp.sec.state.ma.us/corpweb/CorpSearch/CorpSearch.aspx",
+    "AZ": "https://ecorp.azcc.gov/EntitySearch/Index",
+    "CO": "https://www.coloradosos.gov/biz/BusinessEntityCriteriaExt.do",
+    "MD": "https://egov.maryland.gov/BusinessExpress/EntitySearch",
+    "MN": "https://mblsportal.sos.state.mn.us/Business/Search",
+    "WI": "https://www.wdfi.org/apps/CorpSearch/Search.aspx",
+    "TN": "https://tnbear.tn.gov/Ecommerce/FilingSearch.aspx",
+    "IN": "https://bsd.sos.in.gov/publicbusinesssearch",
+    "MO": "https://bsd.sos.mo.gov/BusinessEntity/BESearch.aspx",
+    "OR": "https://sos.oregon.gov/business/Pages/find.aspx",
+    "SC": "https://businessfilings.sc.gov/BusinessFiling/Entity/Search",
+    "AL": "https://arc-sos.state.al.us/CGI/CORPNAME.MBR/INPUT",
+    "KY": "https://web.sos.ky.gov/ftsearch/",
+    "LA": "https://coraweb.sos.la.gov/commercialsearch/commercialsearch.aspx",
+    "OK": "https://www.sos.ok.gov/corp/corpInquiryFind.aspx",
+    "CT": "https://service.ct.gov/business/s/onlinebusinesssearch",
+    "IA": "https://sos.iowa.gov/search/business/",
+    "KS": "https://www.kansas.gov/bess/",
+    "NV": "https://esos.nv.gov/EntitySearch/OnlineEntitySearch",
+    "UT": "https://businessregistration.utah.gov/",
+    "NM": "https://enterprise.sos.nm.gov/",
+    "NE": "https://www.nebraska.gov/sos/ccorp/",
+    "ID": "https://sosbiz.idaho.gov/search/business",
+    "HI": "https://hbe.ehawaii.gov/documents/search.html",
+    "NH": "https://quickstart.sos.nh.gov/online/BusinessInquire",
+    "ME": "https://icrs.informe.org/nei-sos-icrs/ICRS",
+    "RI": "https://business.sos.ri.gov/CorpWeb/CorpSearch/CorpSearch.aspx",
+    "MT": "https://biz.sosmt.gov/search",
+    "SD": "https://sosenterprise.sd.gov/BusinessServices/Business/FilingSearch.aspx",
+    "ND": "https://firststop.sos.nd.gov/search/business",
+    "VT": "https://bizfilings.vermont.gov/online/BusinessInquire/",
+    "DE": "https://icis.corp.delaware.gov/Ecorp/EntitySearch/NameSearch.aspx",
+    "WV": "https://apps.sos.wv.gov/business/corporations/",
+    "WY": "https://wyobiz.wyo.gov/Business/FilingSearch.aspx",
+    "AR": "https://www.sos.arkansas.gov/business-commercial-services-bcs",
+    "MS": "https://corp.sos.ms.gov/corp/portal/c/page/corpBusinessIdSearch/portal.aspx",
+    "AK": "https://www.commerce.alaska.gov/cbp/main/search/entities",
+    "DC": "https://corponline.dcra.dc.gov/Home.aspx"
+  },
+  "notes": "Public appraisal / GIS / voter / SOS URL templates. Prefer official portals; generic rows fall back to Google site:.gov."
+}

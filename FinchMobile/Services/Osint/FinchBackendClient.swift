@@ -6,7 +6,7 @@ enum FinchBackendClient {
         config.timeoutIntervalForRequest = 180
         config.timeoutIntervalForResource = 240
         config.httpAdditionalHeaders = [
-            "User-Agent": "FinchMobile/3.1 (Finch backend client)",
+            "User-Agent": "FinchMobile/3.2 (Finch backend client)",
             "Accept": "application/json"
         ]
         return URLSession(configuration: config)

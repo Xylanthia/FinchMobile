@@ -9,18 +9,31 @@ enum OsintHTTP {
         config.timeoutIntervalForRequest = 12
         config.timeoutIntervalForResource = 18
         config.httpAdditionalHeaders = [
-            "User-Agent": "FinchMobile/3.1 (authorized OSINT; on-device)",
+            "User-Agent": "FinchMobile/3.2 (authorized OSINT; on-device)",
             "Accept": "application/json, text/plain, */*"
         ]
         return URLSession(configuration: config)
     }()
 
-    static func get(url: URL, headers: [String: String] = [:]) async -> (Int, Data) {
+    /// Longer budget for EmailOSINT (module_timeout_ms ~15s + upstream).
+    static let longSession: URLSession = {
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 45
+        config.timeoutIntervalForResource = 60
+        config.httpAdditionalHeaders = [
+            "User-Agent": "FinchMobile/3.2 (authorized OSINT; on-device)",
+            "Accept": "application/json"
+        ]
+        return URLSession(configuration: config)
+    }()
+
+    static func get(url: URL, headers: [String: String] = [:], long: Bool = false) async -> (Int, Data) {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         for (k, v) in headers { request.setValue(v, forHTTPHeaderField: k) }
+        let sess = long ? longSession : session
         do {
-            let (data, response) = try await session.data(for: request)
+            let (data, response) = try await sess.data(for: request)
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
             return (code, data)
         } catch {
@@ -28,13 +41,15 @@ enum OsintHTTP {
         }
     }
 
-    static func postJSON(url: URL, body: [String: Any]) async -> (Int, Data) {
+    static func postJSON(url: URL, body: [String: Any], headers: [String: String] = [:], long: Bool = false) async -> (Int, Data) {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        for (k, v) in headers { request.setValue(v, forHTTPHeaderField: k) }
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        let sess = long ? longSession : session
         do {
-            let (data, response) = try await session.data(for: request)
+            let (data, response) = try await sess.data(for: request)
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
             return (code, data)
         } catch {
@@ -152,7 +167,19 @@ final class OsintEngine {
         let lower = q.lowercased()
 
         if InputRouter.isEmail(q) {
-            brief.append("Email seed — public reputation, mail host, optional HIBP.")
+            brief.append("Email seed — EmailOSINT, EmailRep, Gravatar, optional HIBP.")
+            if !settings.emailOsintApiKey.isEmpty {
+                progressText = "EmailOSINT…"
+                await emailOsint(q, key: settings.emailOsintApiKey, into: &findings)
+            } else {
+                findings.append(OsintFinding(
+                    source: "emailosint",
+                    kind: "note",
+                    value: "EmailOSINT skipped — add an eo_… API key in Settings (emailosint.org).",
+                    relevance: "static",
+                    url: "https://emailosint.org/dashboard/api-keys"
+                ))
+            }
             await emailRep(q, into: &findings)
             await gravatar(q, into: &findings)
             if !settings.hibpApiKey.isEmpty {
@@ -175,21 +202,30 @@ final class OsintEngine {
             }
         } else if InputRouter.isPhone(q) {
             let digits = InputRouter.digitsOnly(q)
-            brief.append("Phone seed — E.164 format only on-device. Carrier APIs need a key.")
+            let e164 = phoneE164(digits)
+            brief.append("Phone seed — geo, optional NumlookupAPI (carrier/line), public OSINT footprints.")
             findings.append(OsintFinding(
                 source: "phone",
                 kind: "phone",
                 value: InputRouter.formatNANP(digits),
                 relevance: "signal",
-                note: "Normalized. No CNAM without a paid key."
+                note: "Normalized E.164 \(e164)"
             ))
-            findings.append(OsintFinding(
-                source: "dork",
-                kind: "url",
-                value: "Public web mentions",
-                relevance: "static",
-                url: "https://duckduckgo.com/?q=%22\(digits)%22"
-            ))
+            progressText = "Phone geo…"
+            await phoneGeo(digits, into: &findings)
+            if !settings.numlookupApiKey.isEmpty {
+                progressText = "NumlookupAPI…"
+                await numlookup(e164, key: settings.numlookupApiKey, into: &findings)
+            } else {
+                findings.append(OsintFinding(
+                    source: "numlookup",
+                    kind: "note",
+                    value: "NumlookupAPI skipped — add a key in Settings for carrier / line-type (numlookupapi.com).",
+                    relevance: "static",
+                    url: "https://numlookupapi.com/"
+                ))
+            }
+            phoneFootprint(digits: digits, e164: e164, into: &findings)
         } else if InputRouter.isUsername(q) {
             let handle = q.trimmingCharacters(in: CharacterSet(charactersIn: "@")).lowercased()
             brief.append("Username seed — presence checks on public profile endpoints. Exact-seed: no invented handles.")
@@ -270,6 +306,290 @@ final class OsintEngine {
         for row in arr.prefix(20) {
             let name = row["Name"] as? String ?? row["Title"] as? String ?? "breach"
             findings.append(OsintFinding(source: "hibp", kind: "breach", value: name, relevance: "signal"))
+        }
+    }
+
+    /// EmailOSINT.org — linked accounts, breaches, stealer logs, AI risk summary.
+    private func emailOsint(_ email: String, key: String, into findings: inout [OsintFinding]) async {
+        guard let url = URL(string: "https://api.emailosint.org/v1/lookup/email") else { return }
+        let bearer = key.hasPrefix("Bearer ") ? key : "Bearer \(key)"
+        let (code, data) = await OsintHTTP.postJSON(
+            url: url,
+            body: ["email": email, "module_timeout_ms": 15000],
+            headers: [
+                "Authorization": bearer,
+                "Accept": "application/json"
+            ],
+            long: true
+        )
+        guard code == 200, let obj = OsintHTTP.jsonObject(data) as? [String: Any] else {
+            var msg = "EmailOSINT HTTP \(code)"
+            if let err = OsintHTTP.jsonObject(data) as? [String: Any] {
+                if let m = err["message"] as? String { msg = m }
+                else if let e = err["error"] as? String { msg = e }
+            }
+            findings.append(OsintFinding(
+                source: "emailosint",
+                kind: "note",
+                value: msg,
+                relevance: "static",
+                url: "https://emailosint.org/docs"
+            ))
+            return
+        }
+
+        if let ai = obj["ai_summary"] as? [String: Any] {
+            let headline = ai["headline"] as? String ?? "AI summary"
+            let risk = ai["risk"] as? String
+            let reason = ai["risk_reason"] as? String ?? ""
+            var note = reason
+            if let risk, !risk.isEmpty {
+                note = note.isEmpty ? "risk \(risk)" : "risk \(risk) — \(note)"
+            }
+            findings.append(OsintFinding(
+                source: "emailosint",
+                kind: "note",
+                value: headline,
+                relevance: "signal",
+                note: note
+            ))
+            if let bullets = ai["bullets"] as? [String] {
+                for b in bullets.prefix(6) where !b.isEmpty {
+                    findings.append(OsintFinding(source: "emailosint", kind: "note", value: b, relevance: "static"))
+                }
+            }
+        }
+
+        let accounts = obj["accounts"] as? [[String: Any]] ?? []
+        for row in accounts.prefix(40) {
+            let module = row["module"] as? [String: Any] ?? [:]
+            let platform = module["name_formatted"] as? String
+                ?? module["name"] as? String
+                ?? "account"
+            let domain = module["domain"] as? String
+            var detail = platform
+            if let dataObj = row["data"] as? [String: Any],
+               let fields = dataObj["fields"] as? [[String: Any]] {
+                let bits = fields.compactMap { f -> String? in
+                    guard let label = f["label"] as? String ?? f["key"] as? String,
+                          let value = f["value"] else { return nil }
+                    let v: String
+                    if let s = value as? String { v = s }
+                    else if let n = value as? NSNumber { v = n.stringValue }
+                    else { return nil }
+                    guard !v.isEmpty else { return nil }
+                    return "\(label): \(v)"
+                }
+                if !bits.isEmpty { detail = "\(platform) — \(bits.prefix(4).joined(separator: ", "))" }
+            }
+            let href: String? = domain.map { "https://\($0)" }
+            findings.append(OsintFinding(
+                source: "emailosint",
+                kind: "account",
+                value: detail,
+                relevance: "signal",
+                url: href
+            ))
+        }
+
+        if let validator = obj["validator"] as? [String: Any],
+           let registered = validator["registered"] as? [[String: Any]] {
+            for row in registered.prefix(24) {
+                let name = row["name_formatted"] as? String ?? row["name"] as? String ?? "registered"
+                let domain = row["domain"] as? String
+                // Skip if already covered via accounts
+                if accounts.contains(where: {
+                    (($0["module"] as? [String: Any])?["name"] as? String) == (row["name"] as? String)
+                }) { continue }
+                findings.append(OsintFinding(
+                    source: "emailosint",
+                    kind: "account",
+                    value: "registered on \(name)",
+                    relevance: "signal",
+                    url: domain.map { "https://\($0)" }
+                ))
+            }
+        }
+
+        if let breaches = obj["data_breaches"] as? [String: Any] {
+            let amount = breaches["amount"] as? Int ?? (breaches["results"] as? [Any])?.count ?? 0
+            let sources = breaches["sources"] as? Int
+            var note = "\(amount) breach hit(s)"
+            if let sources { note += " across \(sources) source(s)" }
+            findings.append(OsintFinding(source: "emailosint", kind: "breach", value: note, relevance: amount > 0 ? "signal" : "static"))
+            if let results = breaches["results"] as? [[String: Any]] {
+                for row in results.prefix(15) {
+                    let name = row["name"] as? String
+                        ?? row["Name"] as? String
+                        ?? row["title"] as? String
+                        ?? row["source"] as? String
+                        ?? "breach"
+                    let date = row["date"] as? String ?? row["breach_date"] as? String ?? ""
+                    findings.append(OsintFinding(
+                        source: "emailosint",
+                        kind: "breach",
+                        value: name,
+                        relevance: "signal",
+                        note: date
+                    ))
+                }
+            }
+        }
+
+        if let stealer = obj["stealer_logs"] as? [String: Any] {
+            let results = stealer["results"] as? [[String: Any]] ?? []
+            let amount = stealer["amount"] as? Int ?? results.count
+            if amount > 0 {
+                findings.append(OsintFinding(
+                    source: "emailosint",
+                    kind: "breach",
+                    value: "\(amount) infostealer hit(s)",
+                    relevance: "signal"
+                ))
+                for row in results.prefix(8) {
+                    let domain = row["domain"] as? String ?? row["url"] as? String ?? "stealer log"
+                    let date = row["date"] as? String ?? row["steal_date"] as? String ?? ""
+                    findings.append(OsintFinding(
+                        source: "emailosint",
+                        kind: "breach",
+                        value: domain,
+                        relevance: "signal",
+                        note: date.isEmpty ? "infostealer" : "infostealer · \(date)"
+                    ))
+                }
+            }
+        }
+
+        if let meta = obj["meta"] as? [String: Any],
+           let first = meta["first_seen"] as? String, !first.isEmpty {
+            findings.append(OsintFinding(source: "emailosint", kind: "note", value: "first seen \(first)", relevance: "static"))
+        }
+    }
+
+    // MARK: - Phone OSINT
+
+    private func phoneE164(_ digits: String) -> String {
+        var d = digits
+        if d.count == 10 { d = "1" + d }
+        if d.hasPrefix("+") { return d }
+        return "+\(d)"
+    }
+
+    /// Free prefix/geo intelligence (htmlweb.ru) — no API key.
+    private func phoneGeo(_ digits: String, into findings: inout [OsintFinding]) async {
+        guard let url = URL(string: "https://htmlweb.ru/geo/api.php?json&telcod=\(digits)") else { return }
+        let (code, data) = await OsintHTTP.get(url: url)
+        guard code == 200, let obj = OsintHTTP.jsonObject(data) as? [String: Any] else {
+            findings.append(OsintFinding(source: "phone.geo", kind: "note", value: "Geo lookup HTTP \(code)", relevance: "static"))
+            return
+        }
+        if let country = obj["country"] as? [String: Any] {
+            let name = country["english"] as? String ?? country["name"] as? String
+            let iso = country["id"] as? String
+            if let name {
+                findings.append(OsintFinding(
+                    source: "phone.geo",
+                    kind: "geo",
+                    value: iso.map { "\(name) (\($0))" } ?? name,
+                    relevance: "signal"
+                ))
+            }
+        } else if let english = obj["english"] as? String {
+            findings.append(OsintFinding(source: "phone.geo", kind: "geo", value: english, relevance: "signal"))
+        }
+        // Region / city blocks are numerically keyed ("0", "1", …)
+        var regions: [String] = []
+        for (key, value) in obj {
+            guard key.allSatisfy(\.isNumber), let block = value as? [String: Any] else { continue }
+            let name = block["english"] as? String ?? block["name"] as? String
+            let telcod = block["telcod"] as? String ?? (block["telcod"] as? Int).map(String.init)
+            if let name {
+                regions.append(telcod.map { "\(name) (\($0))" } ?? name)
+            }
+        }
+        for r in regions.prefix(4) {
+            findings.append(OsintFinding(source: "phone.geo", kind: "geo", value: r, relevance: "static"))
+        }
+        if let tz = obj["tz"] as? String {
+            findings.append(OsintFinding(source: "phone.geo", kind: "note", value: "tz \(tz)", relevance: "static"))
+        }
+    }
+
+    /// NumlookupAPI — emailosint-style phone enrichment (carrier, line type, location).
+    private func numlookup(_ e164: String, key: String, into findings: inout [OsintFinding]) async {
+        let encoded = e164.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? e164
+        guard let url = URL(string: "https://api.numlookupapi.com/v1/validate/\(encoded)") else { return }
+        let (code, data) = await OsintHTTP.get(url: url, headers: ["apikey": key])
+        guard code == 200, let obj = OsintHTTP.jsonObject(data) as? [String: Any] else {
+            var msg = "NumlookupAPI HTTP \(code)"
+            if let err = OsintHTTP.jsonObject(data) as? [String: Any],
+               let m = (err["message"] as? String) ?? ((err["error"] as? [String: Any])?["message"] as? String) {
+                msg = m
+            }
+            findings.append(OsintFinding(source: "numlookup", kind: "note", value: msg, relevance: "static"))
+            return
+        }
+        let valid = obj["valid"] as? Bool ?? false
+        findings.append(OsintFinding(
+            source: "numlookup",
+            kind: "phone",
+            value: valid ? "valid number" : "invalid / unrecognised",
+            relevance: valid ? "signal" : "static",
+            note: obj["international_format"] as? String ?? e164
+        ))
+        if let carrier = obj["carrier"] as? String, !carrier.isEmpty {
+            findings.append(OsintFinding(source: "numlookup", kind: "infra", value: carrier, relevance: "signal", note: "carrier"))
+        }
+        if let line = obj["line_type"] as? String, !line.isEmpty, line.uppercased() != "N/A" {
+            findings.append(OsintFinding(source: "numlookup", kind: "phone", value: "line \(line)", relevance: "signal"))
+        }
+        if let loc = obj["location"] as? String, !loc.isEmpty {
+            findings.append(OsintFinding(source: "numlookup", kind: "geo", value: loc, relevance: "signal"))
+        }
+        if let country = obj["country_name"] as? String, !country.isEmpty {
+            let cc = obj["country_code"] as? String
+            findings.append(OsintFinding(
+                source: "numlookup",
+                kind: "geo",
+                value: cc.map { "\(country) (\($0))" } ?? country,
+                relevance: "static"
+            ))
+        }
+    }
+
+    /// PhoneInfoga / PhoneOsint-style public footprint URLs (no key).
+    private func phoneFootprint(digits: String, e164: String, into findings: inout [OsintFinding]) {
+        var national = digits
+        if national.count == 11 && national.hasPrefix("1") {
+            national = String(national.dropFirst())
+        }
+        let qEnc = digits.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? digits
+        let natEnc = national.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? national
+        let e164Enc = e164.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? e164
+        let bare = e164.replacingOccurrences(of: "+", with: "")
+
+        let links: [(String, String, String)] = [
+            ("800notes", "Complaint / spam reports", "https://800notes.com/Phone.aspx/\(national)"),
+            ("whocallsme", "Who Called Me reports", "https://whocallsme.com/Phone-Number.aspx/\(national)"),
+            ("truecaller", "Truecaller reverse search", "https://www.truecaller.com/search/us/\(national)"),
+            ("whitepages", "Whitepages reverse phone", "https://www.whitepages.com/phone/\(national)"),
+            ("spokeo", "Spokeo reverse phone", "https://www.spokeo.com/\(national)"),
+            ("sync.me", "Sync.me reverse lookup", "https://sync.me/search/?number=\(e164Enc)"),
+            ("numlookup", "NumLookup web reverse", "https://www.numlookup.com/\(bare)"),
+            ("whatsapp", "WhatsApp deep link", "https://wa.me/\(bare)"),
+            ("telegram", "Telegram deep link", "https://t.me/+\(bare)"),
+            ("dork", "Public web mentions", "https://duckduckgo.com/?q=%22\(qEnc)%22+OR+%22\(natEnc)%22"),
+            ("dork", "Paste / breach mentions", "https://duckduckgo.com/?q=%22\(qEnc)%22+(pastebin+OR+breach+OR+leak)"),
+            ("dork", "Social footprint dork", "https://duckduckgo.com/?q=%22\(natEnc)%22+(facebook+OR+linkedin+OR+instagram+OR+twitter+OR+x.com)")
+        ]
+        for (source, title, url) in links {
+            findings.append(OsintFinding(
+                source: source,
+                kind: "url",
+                value: title,
+                relevance: source == "dork" ? "static" : "signal",
+                url: url
+            ))
         }
     }
 
@@ -377,58 +697,57 @@ final class OsintEngine {
     private func property(_ q: String) async -> ([OsintFinding], [OsintAction], [String]) {
         var findings: [OsintFinding] = []
         var actions: [OsintAction] = []
-        var brief: [String] = ["Street address — geocode + Census. County assessor still needs a tap-through."]
+        var brief: [String] = ["Street address — geocode, Census county, public assessor / GIS."]
+
+        if let loc = await appleGeocode(q) {
+            findings.append(contentsOf: loc)
+        }
+
+        progressText = "County assessor…"
+        let county = await CountyAssessorService.investigate(q)
+        findings.append(contentsOf: county.findings)
+        actions.append(contentsOf: county.actions)
+
+        if county.findings.filter({ $0.kind == "name" }).isEmpty
+            && county.findings.filter({ $0.source == "gis" || $0.source == "assessor" }).isEmpty {
+            brief.append("No county parcel hit — portal link or geocode may need a fuller street + ZIP seed.")
+        } else {
+            brief.append("County public data from bundled assessor portal catalog (same as desktop Finch).")
+        }
+
+        return (findings, actions, brief)
+    }
+
+    private func appleGeocode(_ q: String) async -> [OsintFinding]? {
         let geo = CLGeocoder()
         do {
             let marks = try await geo.geocodeAddressString(q)
-            if let mark = marks.first {
-                let loc = mark.location
-                let lat = loc?.coordinate.latitude ?? 0
-                let lon = loc?.coordinate.longitude ?? 0
-                if abs(lat) < 0.0001 && abs(lon) < 0.0001 {
-                    findings.append(OsintFinding(source: "geocode", kind: "note", value: "Location unavailable (null-island)", relevance: "static"))
-                } else {
-                    findings.append(OsintFinding(
-                        source: "geocode",
-                        kind: "geo",
-                        value: String(format: "%.5f, %.5f", lat, lon),
-                        relevance: "signal",
-                        note: [mark.locality, mark.administrativeArea, mark.postalCode].compactMap { $0 }.joined(separator: ", ")
-                    ))
-                }
-                if let city = mark.locality, let state = mark.administrativeArea {
-                    findings.append(OsintFinding(source: "geocode", kind: "property", value: "\(city), \(state)", relevance: "signal"))
-                }
+            guard let mark = marks.first else { return nil }
+            var out: [OsintFinding] = []
+            let loc = mark.location
+            let lat = loc?.coordinate.latitude ?? 0
+            let lon = loc?.coordinate.longitude ?? 0
+            if abs(lat) < 0.0001 && abs(lon) < 0.0001 {
+                out.append(OsintFinding(source: "geocode", kind: "note", value: "Location unavailable (null-island)", relevance: "static"))
+            } else {
+                out.append(OsintFinding(
+                    source: "geocode",
+                    kind: "geo",
+                    value: String(format: "%.5f, %.5f", lat, lon),
+                    relevance: "signal",
+                    note: [mark.locality, mark.administrativeArea, mark.postalCode].compactMap { $0 }.joined(separator: ", ")
+                ))
             }
+            if let city = mark.locality, let state = mark.administrativeArea {
+                out.append(OsintFinding(source: "geocode", kind: "property", value: "\(city), \(state)", relevance: "signal"))
+            }
+            if let county = mark.subAdministrativeArea, !county.isEmpty {
+                out.append(OsintFinding(source: "geocode", kind: "property", value: county, relevance: "signal", note: "Apple Maps county"))
+            }
+            return out
         } catch {
-            findings.append(OsintFinding(source: "geocode", kind: "note", value: error.localizedDescription, relevance: "static"))
+            return [OsintFinding(source: "geocode", kind: "note", value: error.localizedDescription, relevance: "static")]
         }
-
-        let encoded = q.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? q
-        if let url = URL(string: "https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=\(encoded)&benchmark=Public_AR_Current&format=json") {
-            let (code, data) = await OsintHTTP.get(url: url)
-            if code == 200, let obj = OsintHTTP.jsonObject(data) as? [String: Any],
-               let result = obj["result"] as? [String: Any],
-               let matches = result["addressMatches"] as? [[String: Any]],
-               let first = matches.first {
-                let matched = first["matchedAddress"] as? String ?? q
-                findings.append(OsintFinding(source: "census", kind: "property", value: matched, relevance: "signal"))
-                if let coords = first["coordinates"] as? [String: Any] {
-                    let x = coords["x"] as? Double ?? 0
-                    let y = coords["y"] as? Double ?? 0
-                    findings.append(OsintFinding(source: "census", kind: "geo", value: String(format: "%.5f, %.5f", y, x), relevance: "static"))
-                }
-            }
-        }
-        if let url = URL(string: "https://nominatim.openstreetmap.org/search?q=\(encoded)&format=json&limit=1") {
-            let (code, data) = await OsintHTTP.get(url: url)
-            if code == 200, let arr = OsintHTTP.jsonObject(data) as? [[String: Any]], let first = arr.first {
-                let display = first["display_name"] as? String ?? "Nominatim"
-                findings.append(OsintFinding(source: "nominatim", kind: "property", value: display, relevance: "static"))
-            }
-        }
-        actions.append(OsintAction(title: "Open assessor search", seed: q, pipeline: .property))
-        return (findings, actions, brief)
     }
 
     // MARK: - Plate

@@ -32,9 +32,9 @@ struct SettingsView: View {
                 }
 
                 Section("About") {
-                    Text("Finch Mobile 3.1")
+                    Text("Finch Mobile 3.2")
                         .font(FinchTheme.mono)
-                    Text("With a Finch backend URL set, OSINT searches use the same desktop Python engine as the web app. Without it: on-device public rails only (identity, address, plate, cyber, web3). Also: BLE scan, GATT read, LAN Glass, MQTT listen.")
+                    Text("With a Finch backend URL set, OSINT searches use the same desktop Python engine as the web app. Without it: on-device public rails (EmailOSINT / NumlookupAPI when keyed, county assessor GIS, identity, address, plate, cyber, web3). Also: BLE scan, GATT read, LAN Glass, MQTT listen.")
                         .font(FinchTheme.monoSmall)
                         .foregroundStyle(.secondary)
                     Text("Schema: finch.osint.v1 + finch.ble.survey.v2 + finch.sentinel.glass.v1")
@@ -70,11 +70,19 @@ struct SettingsView: View {
                 Section("OSINT API keys (optional)") {
                     SecureField("Have I Been Pwned", text: Bindable(app.settings).hibpApiKey)
                         .font(FinchTheme.mono)
+                    SecureField("EmailOSINT (eo_…)", text: Bindable(app.settings).emailOsintApiKey)
+                        .font(FinchTheme.mono)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    SecureField("NumlookupAPI (phone)", text: Bindable(app.settings).numlookupApiKey)
+                        .font(FinchTheme.mono)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
                     SecureField("Etherscan", text: Bindable(app.settings).etherscanApiKey)
                         .font(FinchTheme.mono)
                     SecureField("Shodan", text: Bindable(app.settings).shodanApiKey)
                         .font(FinchTheme.mono)
-                    Text("Public rails run without keys. These only unlock HIBP, Etherscan txs, and Shodan host.")
+                    Text("Public rails run without keys. EmailOSINT unlocks email accounts/breaches/AI; NumlookupAPI unlocks phone carrier/line-type. Also: HIBP, Etherscan txs, Shodan host.")
                         .font(FinchTheme.monoSmall)
                         .foregroundStyle(.secondary)
                 }

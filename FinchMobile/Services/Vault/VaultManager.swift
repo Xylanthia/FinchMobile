@@ -259,6 +259,24 @@ final class SettingsStore {
         set { KeychainStore.save(account: "osint.hibp", data: Data(newValue.utf8)) }
     }
 
+    /// EmailOSINT.org bearer key (`eo_…`) — linked accounts, breaches, AI summary.
+    var emailOsintApiKey: String {
+        get {
+            if let d = KeychainStore.load(account: "osint.emailosint"), let s = String(data: d, encoding: .utf8) { return s }
+            return ""
+        }
+        set { KeychainStore.save(account: "osint.emailosint", data: Data(newValue.utf8)) }
+    }
+
+    /// NumlookupAPI key — phone carrier / line-type / location (emailosint-style for numbers).
+    var numlookupApiKey: String {
+        get {
+            if let d = KeychainStore.load(account: "osint.numlookup"), let s = String(data: d, encoding: .utf8) { return s }
+            return ""
+        }
+        set { KeychainStore.save(account: "osint.numlookup", data: Data(newValue.utf8)) }
+    }
+
     var etherscanApiKey: String {
         get {
             if let d = KeychainStore.load(account: "osint.etherscan"), let s = String(data: d, encoding: .utf8) { return s }

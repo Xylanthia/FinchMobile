@@ -14,6 +14,8 @@
 		BB01B2C3D4E5F60718293A01 /* OsintModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01B2C3D4E5F60718293A01 /* OsintModels.swift */; };
 		BB01B2C3D4E5F60718293A02 /* OsintEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01B2C3D4E5F60718293A02 /* OsintEngine.swift */; };
 		BB01B2C3D4E5F60718293A05 /* FinchBackendClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01B2C3D4E5F60718293A05 /* FinchBackendClient.swift */; };
+		BB01B2C3D4E5F60718293A06 /* CountyAssessorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01B2C3D4E5F60718293A06 /* CountyAssessorService.swift */; };
+		C9COUNTYPORTALS01B2C3D4E5F6 /* county_portals.json in Resources */ = {isa = PBXBuildFile; fileRef = E9COUNTYPORTALS01B2C3D4E5F6 /* county_portals.json */; };
 		BB01B2C3D4E5F60718293A03 /* OsintLatticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01B2C3D4E5F60718293A03 /* OsintLatticeView.swift */; };
 		7A0645BF56164BE0B036D6D1 /* BLEScannerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331E71C9BE074DF99A1F8A8D /* BLEScannerService.swift */; };
 		E8BLECATCL01B2C3D4E5F60718 /* BLECategoryClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8BLECATCL01B2C3D4E5F60718 /* BLECategoryClassifier.swift */; };
@@ -74,6 +76,8 @@
 		AA01B2C3D4E5F60718293A01 /* OsintModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OsintModels.swift; sourceTree = "<group>"; };
 		AA01B2C3D4E5F60718293A02 /* OsintEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OsintEngine.swift; sourceTree = "<group>"; };
 		AA01B2C3D4E5F60718293A05 /* FinchBackendClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinchBackendClient.swift; sourceTree = "<group>"; };
+		AA01B2C3D4E5F60718293A06 /* CountyAssessorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountyAssessorService.swift; sourceTree = "<group>"; };
+		E9COUNTYPORTALS01B2C3D4E5F6 /* county_portals.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = county_portals.json; sourceTree = "<group>"; };
 		AA01B2C3D4E5F60718293A03 /* OsintLatticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OsintLatticeView.swift; sourceTree = "<group>"; };
 		331E71C9BE074DF99A1F8A8D /* BLEScannerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEScannerService.swift; sourceTree = "<group>"; };
 		F8BLECATCL01B2C3D4E5F60718 /* BLECategoryClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLECategoryClassifier.swift; sourceTree = "<group>"; };
@@ -189,6 +193,7 @@
 				B8E2GATTUUIDS01B2C3D4E5F6 /* gatt_uuids.json */,
 				D9BLECATRULES01B2C3D4E5F6 /* ble_category_rules.json */,
 				44F1709795774D0E8DB4B874 /* default_playbooks.json */,
+				E9COUNTYPORTALS01B2C3D4E5F6 /* county_portals.json */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -271,6 +276,7 @@
 			children = (
 				AA01B2C3D4E5F60718293A02 /* OsintEngine.swift */,
 				AA01B2C3D4E5F60718293A05 /* FinchBackendClient.swift */,
+				AA01B2C3D4E5F60718293A06 /* CountyAssessorService.swift */,
 			);
 			path = Osint;
 			sourceTree = "<group>";
@@ -496,6 +502,7 @@
 				C9BLECATRULES01B2C3D4E5F6 /* ble_category_rules.json in Resources */,
 				D3C5BF204C684522A4E85E82 /* Assets.xcassets in Resources */,
 				DAB73C7E094E497EAB5B761E /* default_playbooks.json in Resources */,
+				C9COUNTYPORTALS01B2C3D4E5F6 /* county_portals.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -514,6 +521,7 @@
 				BB01B2C3D4E5F60718293A01 /* OsintModels.swift in Sources */,
 				BB01B2C3D4E5F60718293A02 /* OsintEngine.swift in Sources */,
 				BB01B2C3D4E5F60718293A05 /* FinchBackendClient.swift in Sources */,
+				BB01B2C3D4E5F60718293A06 /* CountyAssessorService.swift in Sources */,
 				BB01B2C3D4E5F60718293A03 /* OsintLatticeView.swift in Sources */,
 				7A0645BF56164BE0B036D6D1 /* BLEScannerService.swift in Sources */,
 				E8BLECATCL01B2C3D4E5F60718 /* BLECategoryClassifier.swift in Sources */,
@@ -612,7 +620,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 32;
+				CURRENT_PROJECT_VERSION = 34;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				ENABLE_TESTABILITY = YES;
@@ -623,7 +631,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.1;
+				MARKETING_VERSION = 3.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rockstars4nny.finchmobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -643,7 +651,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 32;
+				CURRENT_PROJECT_VERSION = 34;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -653,7 +661,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.1;
+				MARKETING_VERSION = 3.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rockstars4nny.finchmobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
