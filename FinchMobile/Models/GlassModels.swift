@@ -173,39 +173,140 @@ struct IoTHost: Identifiable, Codable, Hashable {
 
     /// Full plain-text dump for clipboard / notes.
     var copyText: String {
-        var lines = [
-            "Host: \(displayLabel)",
-            "IP: \(ip)",
-            "MAC: \(mac ?? "—")",
-            "Vendor: \(vendor ?? "—")",
-            "Hostname: \(hostname ?? "—")",
-            "TCP ports: \(openPorts.map(String.init).joined(separator: ", "))",
-            "UDP ports: \(openUDPPorts.map(String.init).joined(separator: ", "))"
-        ]
-        if let fp = fingerprint {
-            lines.append("Fingerprint: \(fp.vendor) \(fp.model) (\(fp.deviceType)) \(Int(fp.confidence * 100))%")
+        var lines: [String] = []
+        let corpus = evidenceCorpus.lowercased()
+        let isVivint = corpus.contains("vivint") || corpus.contains("network module")
+            || (vendor?.localizedCaseInsensitiveContains("vivint") == true)
+
+        lines.append("══ ASSESSMENT ══")
+        if isVivint {
+            lines.append("Vivint SkyPanel @ \(ip) — security hub; cameras stream through panel RTSP, not as separate LAN devices.")
+        } else if let fp = fingerprint {
+            lines.append("\(fp.vendor) \(fp.model) (\(fp.deviceType)) — \(Int(fp.confidence * 100))% confidence")
             if !fp.tags.isEmpty { lines.append("Tags: \(fp.tags.joined(separator: ", "))") }
+        } else {
+            lines.append("IoT host \(ip) — fingerprint pending or generic")
         }
-        for s in services {
-            lines.append("Service: \(s.name) · \(s.type) · \(s.host):\(s.port)")
+
+        lines.append("")
+        lines.append("── Identity ──")
+        lines.append("Host: \(displayLabel)")
+        lines.append("IP: \(ip)")
+        lines.append("MAC: \(mac ?? "—")")
+        lines.append("Vendor: \(vendor ?? "—")")
+        lines.append("Hostname: \(hostname ?? "—")")
+
+        lines.append("")
+        lines.append("── Surface ──")
+        lines.append("TCP: \(openPorts.map(String.init).joined(separator: ", "))")
+        if !openUDPPorts.isEmpty {
+            lines.append("UDP: \(openUDPPorts.map(String.init).joined(separator: ", "))")
         }
-        for hit in offenseHits {
-            lines.append("Vuln [\(hit.severity)] \(hit.summary) · \(hit.proto)/\(hit.port)")
-            lines.append("  \(hit.detail)")
-            for cve in hit.cves {
-                lines.append("  \(cve.cve) — \(cve.title)")
-                lines.append("    \(cve.why)")
-                lines.append("    \(cve.nvdURL)")
+        lines.append(surfaceRoleLines.joined(separator: "\n"))
+
+        let rtspHits = offenseHits.filter { $0.source.contains("rtsp") }
+        if !rtspHits.isEmpty {
+            lines.append("")
+            lines.append("── Video / RTSP ──")
+            for hit in rtspHits {
+                lines.append("[\(hit.severity)] \(hit.summary)")
+                if !hit.detail.isEmpty { lines.append("  \(hit.detail)") }
             }
         }
-        for b in banners {
-            lines.append("Banner :\(b.port) \(b.protocolGuess)")
-            if !b.rawASCII.isEmpty { lines.append("  \(b.rawASCII)") }
+
+        let mqttHits = offenseHits.filter { $0.source.contains("mqtt") }
+        if !mqttHits.isEmpty {
+            lines.append("")
+            lines.append("── MQTT ──")
+            for hit in mqttHits {
+                lines.append("[\(hit.severity)] \(hit.summary)")
+                if !hit.detail.isEmpty { lines.append("  \(hit.detail)") }
+            }
         }
+
+        let findings = copyTextFindings
+        if !findings.isEmpty {
+            lines.append("")
+            lines.append("── Findings ──")
+            for hit in findings {
+                lines.append("Vuln [\(hit.severity)] \(hit.summary) · \(hit.proto)/\(hit.port)")
+                if !hit.detail.isEmpty { lines.append("  \(hit.detail)") }
+                for cve in hit.cves {
+                    lines.append("  \(cve.cve) — \(cve.title) (\(cve.confidence))")
+                    lines.append("    \(cve.why)")
+                    lines.append("    \(cve.nvdURL)")
+                }
+            }
+        }
+
+        if !banners.isEmpty {
+            lines.append("")
+            lines.append("── Banners ──")
+            for b in banners {
+                lines.append(":\(b.port) \(b.protocolGuess)")
+                if !b.rawASCII.isEmpty { lines.append("  \(b.rawASCII.prefix(400))") }
+            }
+        }
+
         for m in mqttMessages {
             lines.append("MQTT \(m.topic): \(m.payloadASCII)")
         }
+
+        if isVivint {
+            lines.append("")
+            lines.append("── Next steps ──")
+            lines.append("• pip install vivintpy → get_rtsp_url() for authenticated stream URLs")
+            lines.append("• ffprobe -rtsp_transport tcp 'rtsp://USER:PASS@\(ip):8554/Video-<id>'")
+            lines.append("• ./dd grab 'rtsp://…' (not https://) for 30s clip")
+            lines.append("• :8883 is MQTTS panel channel — do not treat as open Mosquitto broker")
+        }
+
         return lines.joined(separator: "\n")
+    }
+
+    private var evidenceCorpus: String {
+        let fp = fingerprint.map { "\($0.vendor) \($0.model) \($0.tags.joined(separator: " "))" } ?? ""
+        let bannerText = banners.map(\.rawASCII).joined(separator: "\n")
+        let hitText = offenseHits.map { "\($0.summary) \($0.detail)" }.joined(separator: "\n")
+        return [fp, vendor ?? "", bannerText, hitText].joined(separator: "\n")
+    }
+
+    private var surfaceRoleLines: [String] {
+        openPorts.map { port in
+            let fam = IoTPorts.family(for: port)
+            switch port {
+            case 80, 443: return "  \(port)/\(fam) — web UI"
+            case 8443: return "  \(port)/\(fam) — HTTPS alt (often aiohttp/API on Vivint)"
+            case 8554: return "  \(port)/rtsp — camera proxy (Digest auth)"
+            case 8883: return "  \(port)/mqtts — TLS MQTT (panel cloud, not open broker)"
+            case 53: return "  \(port)/dns — local resolver"
+            case 1883: return "  \(port)/mqtt — plain MQTT (verify auth)"
+            default: return "  \(port)/\(fam)"
+            }
+        }
+    }
+
+    /// Drop redundant open-port noise when a deeper probe exists for the same port.
+    private var copyTextFindings: [OffenseHit] {
+        let deepSources = Set(["offense.http", "offense.rtsp", "offense.mqtt", "offense.onvif", "offense.telnet", "offense.ftp", "offense.redis", "assessment.device", "cve.fingerprint"])
+        let deepPorts = Set(offenseHits.filter { deepSources.contains($0.source) }.map(\.port))
+        let sevRank: [String: Int] = ["CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "INFO": 3, "LOW": 4]
+
+        return offenseHits
+            .filter { hit in
+                if hit.source == "offense.ports", deepPorts.contains(hit.port) { return false }
+                if hit.source == "offense.rtsp", hit.summary.contains("video surface"),
+                   offenseHits.contains(where: { $0.source == "offense.rtsp" && $0.summary.contains("Digest") }) {
+                    return false
+                }
+                return true
+            }
+            .sorted {
+                let a = sevRank[$0.severity] ?? 9
+                let b = sevRank[$1.severity] ?? 9
+                if a != b { return a < b }
+                return $0.port < $1.port
+            }
     }
 
     var hasMQTT: Bool {

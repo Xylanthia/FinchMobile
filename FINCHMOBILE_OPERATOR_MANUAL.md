@@ -1,10 +1,12 @@
-# Finch Mobile 2.0 — Operator Manual
+# Finch Mobile — Operator Manual
 
-**App:** Finch (display name) · **Bundle version:** 2.0 (build 20)  
+**App:** Finch (display name) · **Bundle version:** 3.2 (build 35)  
 **Platform:** iOS 17+ · physical iPhone only  
 **Scope:** Authorized assessments on networks/devices you own or have written permission to test
 
-This is the day-one manual for the new RF Engagement / Glass Fabric 2.0 build. Desktop Finch (OSINT console) is a separate product — this guide is phone-only.
+This is the day-one manual for Finch Mobile (OSINT + Glass Fabric + BLE). Desktop Finch (OSINT console) is a separate product — this guide is phone-only.
+
+**Honesty (2.7+):** Research Mode Active injects / BLE write / drone Tx stubs were stripped. Stock iPhone paths are **passive / read-only** (scan, GATT read, LAN Glass). Sections below that still mention injects are lab-history notes only — do not expect those menus to Tx.
 
 ---
 

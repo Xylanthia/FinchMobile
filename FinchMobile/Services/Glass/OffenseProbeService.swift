@@ -65,18 +65,7 @@ final class OffenseProbeService {
                 hits.append(onvif)
             }
         case "rtsp", "dahua", "hikvision-dvr":
-            if let b = banner, !b.rawASCII.isEmpty {
-                hits.append(
-                    OffenseHit(
-                        source: "offense.rtsp",
-                        severity: "HIGH",
-                        port: port,
-                        proto: "tcp",
-                        summary: "RTSP/video surface · \(ip):\(port)",
-                        detail: String(b.rawASCII.prefix(300))
-                    )
-                )
-            }
+            hits.append(contentsOf: await probeRTSP(ip: ip, port: port, banner: banner))
         case "telnet":
             hits.append(
                 OffenseHit(
@@ -117,20 +106,114 @@ final class OffenseProbeService {
                 )
             )
         case "mqtt":
+            let isTLS = port == 8883 || port == 8884
             hits.append(
                 OffenseHit(
                     source: "offense.mqtt",
-                    severity: "HIGH",
+                    severity: isTLS ? "MEDIUM" : "HIGH",
                     port: port,
                     proto: "tcp",
-                    summary: "MQTT broker · \(ip):\(port)",
-                    detail: banner?.rawHex.prefix(80).description ?? "MQTT CONNECT probe surface"
+                    summary: isTLS ? "MQTTS/TLS port · \(ip):\(port)" : "MQTT broker surface · \(ip):\(port)",
+                    detail: isTLS
+                        ? "TLS MQTT channel — broker/auth not verified without TLS (Vivint/IoT hubs use :8883 for cloud comms, not open Mosquitto)"
+                        : (banner?.rawHex.prefix(80).description ?? "MQTT CONNECT probe surface")
                 )
             )
         default:
             break
         }
         return hits
+    }
+
+    /// OPTIONS + DESCRIBE — never PLAY. Matches Python fabric_camera RTSP auth posture.
+    private func probeRTSP(ip: String, port: Int, banner: Banner?) async -> [OffenseHit] {
+        let paths = ["/", "/Video-1_SD", "/Video-31_SD"]
+        for path in paths {
+            let optionsReq = "OPTIONS rtsp://\(ip):\(port)\(path) RTSP/1.0\r\nCSeq: 1\r\n\r\n"
+            guard let optData = await TCPProbe.connectAndIO(
+                host: ip,
+                port: UInt16(port),
+                timeout: 2.5,
+                send: Data(optionsReq.utf8),
+                readLimit: 2048
+            ), !optData.isEmpty else { continue }
+
+            let optAscii = String(decoding: optData, as: UTF8.self)
+            guard optAscii.localizedCaseInsensitiveContains("RTSP/1.0") else { continue }
+
+            let optStatus = optAscii.split(whereSeparator: \.isNewline).first.map(String.init) ?? ""
+            let optionsOk = optStatus.contains("200")
+            let optionsAuth = optStatus.contains("401")
+
+            var describeAuth = false
+            var describeOk = false
+            var describeText = ""
+
+            if optionsOk && !optionsAuth {
+                let describeReq = """
+                DESCRIBE rtsp://\(ip):\(port)\(path) RTSP/1.0\r
+                CSeq: 2\r
+                Accept: application/sdp\r
+                \r
+                """
+                if let descData = await TCPProbe.connectAndIO(
+                    host: ip,
+                    port: UInt16(port),
+                    timeout: 2.5,
+                    send: Data(describeReq.utf8),
+                    readLimit: 2048
+                ), !descData.isEmpty {
+                    describeText = String(decoding: descData, as: UTF8.self)
+                    let descStatus = describeText.split(whereSeparator: \.isNewline).first.map(String.init) ?? ""
+                    describeAuth = descStatus.contains("401")
+                    describeOk = descStatus.contains("200")
+                }
+            }
+
+            let authRequired = optionsAuth || describeAuth
+            let openFeed = describeOk && !authRequired
+            let severity = openFeed ? "CRITICAL" : "HIGH"
+            let summary: String
+            if openFeed {
+                summary = "RTSP open feed (no auth) · \(ip):\(port)\(path)"
+            } else if authRequired {
+                summary = "RTSP Digest auth required · \(ip):\(port) — not an open camera feed"
+            } else {
+                summary = "RTSP/video surface · \(ip):\(port)"
+            }
+
+            var detailParts: [String] = []
+            if authRequired { detailParts.append("DESCRIBE/OPTIONS requires Digest (LIVE555/Vivint-class)") }
+            if describeOk { detailParts.append("DESCRIBE 200 — SDP returned") }
+            if path != "/" { detailParts.append("path \(path)") }
+            let preview = describeText.isEmpty ? optAscii : describeText
+            detailParts.append(String(preview.prefix(220)))
+
+            return [
+                OffenseHit(
+                    source: "offense.rtsp",
+                    severity: severity,
+                    port: port,
+                    proto: "tcp",
+                    summary: summary,
+                    detail: detailParts.joined(separator: " · ")
+                )
+            ]
+        }
+
+        if let b = banner, !b.rawASCII.isEmpty {
+            return [
+                OffenseHit(
+                    source: "offense.rtsp",
+                    severity: "HIGH",
+                    port: port,
+                    proto: "tcp",
+                    summary: "RTSP/video surface · \(ip):\(port)",
+                    detail: String(b.rawASCII.prefix(300))
+                )
+            ]
+        }
+        return []
     }
 
     private func severityFor(family: String, port: Int) -> String {

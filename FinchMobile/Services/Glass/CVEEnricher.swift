@@ -53,7 +53,13 @@ enum CVEEnricher {
         case "offense.mongodb":
             add(mongoExposed)
         case "offense.mqtt":
-            add(mqttOpen)
+            // Do not attach generic Mosquitto CVEs to MQTTS/panel ports without proof.
+            if hit.port == 8883 || hit.port == 8884 {
+                break
+            }
+            if blob.contains("mosquitto") || (sum.contains("connack") && sum.contains("rc=0")) {
+                add(mqttOpen)
+            }
         case "offense.snmp":
             add(snmpPublic)
         case "offense.coap":
@@ -154,9 +160,32 @@ enum CVEEnricher {
         vendor: String?,
         banners: [Banner]
     ) -> [OffenseHit] {
-        let v = ((fingerprint?.vendor ?? "") + " " + (vendor ?? "") + " " + (fingerprint?.model ?? "")).lowercased()
-        let port = banners.first?.port ?? 80
+        let blob = banners.map { $0.rawASCII + " " + $0.headers.map { "\($0.key):\($0.value)" }.joined(separator: " ") }
+            .joined(separator: "\n").lowercased()
+        let v = ((fingerprint?.vendor ?? "") + " " + (vendor ?? "") + " " + (fingerprint?.model ?? "") + " " + blob).lowercased()
+        let port = banners.first(where: { IoTPorts.family(for: $0.port) == "rtsp" })?.port
+            ?? banners.first?.port ?? 80
         var hits: [OffenseHit] = []
+
+        if v.contains("vivint") || v.contains("network module") || v.contains("2gig") || v.contains("skypanel") {
+            hits.append(
+                OffenseHit(
+                    source: "assessment.device",
+                    severity: "INFO",
+                    port: port,
+                    proto: "tcp",
+                    summary: "Vivint SkyPanel / security hub",
+                    detail: """
+                    Hub proxies all doorbell/camera streams — not standalone Wi‑Fi cams. \
+                    RTSP :8554 (LIVE555, Digest auth — not open without Vivint RTSP creds). \
+                    MQTTS :8883 is panel cloud traffic — not a generic Mosquitto broker. \
+                    Stream path: rtsp://USER:PASS@<panel-ip>:8554/Video-<camera-id>_SD|HD — \
+                    creds from Vivint Sky API (vivintpy get_rtsp_url), not your app password.
+                    """,
+                    cves: []
+                )
+            )
+        }
 
         if v.contains("hikvision") {
             hits.append(

@@ -32,9 +32,12 @@ struct SettingsView: View {
                 }
 
                 Section("About") {
-                    Text("Finch Mobile 3.2")
+                    Text("Finch Mobile 3.2 (build 35)")
                         .font(FinchTheme.mono)
                     Text("With a Finch backend URL set, OSINT searches use the same desktop Python engine as the web app. Without it: on-device public rails (EmailOSINT / NumlookupAPI when keyed, county assessor GIS, identity, address, plate, cyber, web3). Also: BLE scan, GATT read, LAN Glass, MQTT listen.")
+                        .font(FinchTheme.monoSmall)
+                        .foregroundStyle(.secondary)
+                    Text("Ceiling: passive / read-only on stock iPhone — no BLE write, inject, jam, or Active Tx.")
                         .font(FinchTheme.monoSmall)
                         .foregroundStyle(.secondary)
                     Text("Schema: finch.osint.v1 + finch.ble.survey.v2 + finch.sentinel.glass.v1")

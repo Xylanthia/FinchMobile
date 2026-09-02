@@ -2,7 +2,7 @@
 
 Standalone iOS 17+ app for **authorized** on-device OSINT (identity, address, plate, cyber, web3), BLE radar, LAN IoT assessment, multi-sensor track fusion, and drone-class detection. No laptop backend. Apple frameworks only + public APIs.
 
-**Version 3.0 — THE MACHINE on phone:** Engage seed router like desktop Finch · OSINT lattice · Glass Fabric · Nearby BLE.
+**Version 3.2 (build 35):** Engage seed router like desktop Finch · OSINT lattice · Glass Fabric · Nearby BLE. Passive / read-only on stock iPhone.
 
 ## Tabs
 

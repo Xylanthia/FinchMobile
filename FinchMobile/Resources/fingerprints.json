@@ -3126,5 +3126,46 @@
       "wireless",
       "ssid"
     ]
+  },
+  {
+    "id": "fp-vivint-1",
+    "deviceType": "hub",
+    "vendor": "Vivint",
+    "model": "SkyPanel / Network Module",
+    "confidence": 0.96,
+    "tags": [
+      "vivint",
+      "camera",
+      "hub",
+      "rtsp",
+      "security"
+    ],
+    "patterns": [
+      "vivint",
+      "network module",
+      "2gig",
+      "skypanel",
+      "vivint\\.panel"
+    ]
+  },
+  {
+    "id": "fp-vivint-2",
+    "deviceType": "hub",
+    "vendor": "Vivint",
+    "model": "Panel RTSP proxy (LIVE555)",
+    "confidence": 0.94,
+    "tags": [
+      "vivint",
+      "camera",
+      "rtsp",
+      "live555"
+    ],
+    "patterns": [
+      "live555",
+      "rtsp/1.0",
+      "401 unauthorized",
+      "digest",
+      "video-\\d+"
+    ]
   }
 ]
