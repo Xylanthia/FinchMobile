@@ -1,0 +1,22 @@
+# GitLab CI — builds an UNSIGNED .ipa on a GitLab hosted macOS runner.
+# NOTE: GitLab SaaS macOS runners require a paid/verified plan. If you're on the free tier
+# this job will stay "pending" with no runner — use codemagic.yaml instead.
+build-unsigned-ipa:
+  stage: build
+  tags:
+    - saas-macos-medium-m1
+  image: macos-14-xcode-15
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "web"   # allow manual "Run pipeline"
+  script:
+    - bash BUILD_UNSIGNED_IPA.sh
+    - cp FinchMobile.ipa FinchMobile-3.2.ipa
+  artifacts:
+    name: FinchMobile-unsigned-ipa
+    paths:
+      - FinchMobile.ipa
+      - FinchMobile-3.2.ipa
+      - build.log
+    when: always
+    expire_in: 30 days

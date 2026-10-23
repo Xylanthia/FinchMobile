@@ -3,6 +3,22 @@ import Foundation
 /// Maps IoT Vulns probe evidence to **real** CVE-IDs for physical red-team speed.
 /// Only emits known published CVEs — never invents IDs from prose.
 enum CVEEnricher {
+    /// Reuse path for ARIA RF fingerprints (spec §1.4.5). Routes a vendor/model/device-class
+    /// through the SAME vendor-keyed CVE packs Glass Fabric already uses, so a device gets the
+    /// same CVE flag whether Finch found it over the phone's BLE radio or ARIA found it over RF.
+    static func cves(vendor: String?, model: String?, deviceClass: String?) -> [CVERef] {
+        let fp = FingerprintMatch(
+            deviceType: deviceClass ?? "",
+            vendor: vendor ?? "",
+            model: model ?? "",
+            confidence: 0,
+            tags: [],
+            ruleId: "aria-rf"
+        )
+        let hits = fingerprintAdvisories(fingerprint: fp, vendor: vendor, banners: [])
+        return dedupe(hits.flatMap { $0.cves })
+    }
+
     static func enrich(
         hits: [OffenseHit],
         banners: [Banner],

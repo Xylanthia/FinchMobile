@@ -18,6 +18,9 @@ struct RootTabView: View {
             DronePanelView()
                 .tabItem { Label("Drone", systemImage: "airplane") }
 
+            ARIADashboardView()
+                .tabItem { Label("ARIA", systemImage: "cpu") }
+
             CommandHubView()
                 .tabItem { Label("Command", systemImage: "square.grid.2x2") }
         }

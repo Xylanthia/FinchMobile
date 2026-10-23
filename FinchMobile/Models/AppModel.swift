@@ -19,6 +19,8 @@ final class AppModel {
     var caseSeeds: [CaseSeed] = []
     var lastKind: PipelineKind = .auto
 
+    @ObservationIgnored let aria = ARIACoordinator()
+
     let fusion = TrackFusionEngine()
     let consent = ConsentGate()
     let forensic = ForensicLogger()
@@ -34,7 +36,7 @@ final class AppModel {
         playbooks.bind(forensic: forensic)
         sensors.bind(fusion: fusion, forensic: forensic)
         playbooks.loadBundled()
-        forensic.record(category: "system", summary: "Finch Mobile 3.2 (build 35) boot")
+        forensic.record(category: "system", summary: "Finch Mobile 3.2 (build 36 — ARIA module) boot")
     }
 
     func refreshFusion() {
