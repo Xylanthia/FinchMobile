@@ -6,6 +6,16 @@ struct CommandHubView: View {
     var body: some View {
         NavigationStack {
             List {
+                Section("Scan & Network") {
+                    NavigationLink { EngageView() } label: { Label("Scan", systemImage: "magnifyingglass") }
+                    NavigationLink { FinchNetworkView() } label: { Label("Network", systemImage: "network") }
+                }
+                Section("ARIA") {
+                    NavigationLink("Session / Export") { ARIASessionExportView() }
+                    ForEach(app.aria.modes) { mode in
+                        NavigationLink(mode.name) { ARIAModeActionsView(mode: mode) }
+                    }
+                }
                 Section("Working") {
                     NavigationLink("Live Map") { LiveProximityMapView() }
                     NavigationLink("Vault") { VaultView() }
@@ -31,7 +41,7 @@ struct CommandHubView: View {
             }
             .scrollContentBackground(.hidden)
             .background(FinchTheme.background)
-            .navigationTitle("COMMAND")
+            .navigationTitle("More")
             .navigationBarTitleDisplayMode(.inline)
         }
     }

@@ -1,51 +1,32 @@
-name: Build unsigned IPA
+name: Build ARIA GPS candidate IPA
 
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [codex/finch-aria-gps-20261027]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
     runs-on: macos-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
-      - name: Build unsigned IPA
+      - name: Build unsigned IPA with the 3.2 process
         run: bash BUILD_UNSIGNED_IPA.sh
-      - name: Name IPA for 3uTools
-        run: |
-          cp FinchMobile.ipa FinchMobile-3.2.ipa
-          cp FinchMobile.ipa FinchMobile-3.1.ipa
-          cp FinchMobile.ipa FinchMobile-3.0.ipa
-          cp FinchMobile.ipa FinchMobile-2.7.ipa
-          ls -lh FinchMobile*.ipa
-      - name: Upload IPA artifact
+      - name: Name separate candidate
+        run: cp FinchMobile.ipa FinchMobile-3.2-ARIA-GPS.ipa
+      - name: Upload candidate IPA
         uses: actions/upload-artifact@v4
         with:
-          name: FinchMobile-3.2
-          path: |
-            FinchMobile.ipa
-            FinchMobile-3.2.ipa
-            FinchMobile-3.1.ipa
-            FinchMobile-3.0.ipa
-            FinchMobile-2.7.ipa
+          name: FinchMobile-3.2-ARIA-GPS
+          path: FinchMobile-3.2-ARIA-GPS.ipa
           if-no-files-found: error
-      - name: Publish download on GitHub Releases
-        uses: softprops/action-gh-release@v2
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: latest-unsigned
-          name: Finch Mobile — unsigned IPA (3uTools)
-          body: |
-            Unsigned IPA. On Windows: 3uTools → Toolbox → IPA Signature → sign with your Apple ID → install on iPhone.
-            Then Settings → General → VPN & Device Management → trust the cert.
-          files: |
-            FinchMobile.ipa
-            FinchMobile-3.2.ipa
-            FinchMobile-3.1.ipa
-            FinchMobile-3.0.ipa
-            FinchMobile-2.7.ipa
-          make_latest: true
-          fail_on_unmatched_files: true
+          name: aria-gps-build-log
+          path: build.log

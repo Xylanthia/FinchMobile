@@ -19,7 +19,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>3.2</string>
 	<key>CFBundleVersion</key>
-	<string>35</string>
+	<string>37</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>
@@ -36,13 +36,13 @@
 		<string>bluetooth-central</string>
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Finch uses your location to center the live proximity map and show approximate distances to nearby Bluetooth devices from this phone.</string>
+	<string>Finch uses your iPhone location to geotag collected observations and exports with GPS accuracy and timestamps, and to center the live proximity map.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Finch uses the camera for AR overlays that place RF track labels in the real world during authorized assessments.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Finch may use the microphone only when you enable Acoustic fingerprinting in Research Mode for authorized lab scenarios.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Finch scans your local network and may form an encrypted operator mesh to share detection summaries.</string>
+	<string>Finch connects to your ARIA device on ARIA-Setup Wi-Fi and discovers devices on your local network. Allow access to view live ARIA data.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_http._tcp</string>

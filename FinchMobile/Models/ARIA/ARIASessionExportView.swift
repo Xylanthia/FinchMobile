@@ -30,11 +30,15 @@ struct ARIASessionExportView: View {
             }
             .listRowBackground(FinchTheme.surface)
 
+            Section("Collector GPS") {
+                Text("Each observation includes the iPhone fix at first receipt of that record version, with accuracy and UTC timestamps. This is the collector position, not the target position or firmware capture time. Missing or stale GPS is marked unavailable.")
+                    .font(.caption).foregroundStyle(FinchTheme.textSecondary)
+            }
             Section("Export") {
-                Button("Share current session JSON") { exportShare(session.raw) }
-                    .disabled(session.raw.isEmpty)
-                Button("Save to Vault") { saveToVault(session.raw) }
-                    .disabled(session.raw.isEmpty || !app.vaultManager.isUnlocked)
+                Button("Share current session JSON") { exportShare(app.aria.exportData) }
+                    .disabled(app.aria.exportData.isEmpty)
+                Button("Save to Vault") { saveToVault(app.aria.exportData) }
+                    .disabled(app.aria.exportData.isEmpty || !app.vaultManager.isUnlocked)
                 if !app.vaultManager.isUnlocked {
                     Text("Unlock the Vault in Settings to persist sessions (AES-256-GCM, opt-in).")
                         .font(.caption2).foregroundStyle(FinchTheme.textSecondary)

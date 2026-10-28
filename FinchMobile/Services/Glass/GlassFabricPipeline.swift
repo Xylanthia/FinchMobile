@@ -34,6 +34,10 @@ final class GlassFabricPipeline {
         runTask = Task { await run(query: query) }
     }
 
+    func waitForCompletion() async {
+        await runTask?.value
+    }
+
     func run(query: String) async {
         await MainActor.run {
             isRunning = true

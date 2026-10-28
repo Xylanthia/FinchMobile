@@ -1,152 +1,213 @@
 import SwiftUI
-import Observation
+import UIKit
 
-@MainActor
-@Observable
-final class ARIADashboardViewModel {
-    let coordinator: ARIACoordinator
-    init(_ coordinator: ARIACoordinator) { self.coordinator = coordinator }
+struct ARIAHeader: View {
+    @Environment(AppModel.self) private var app
+    @State private var showJoin = false
 
-    var state: ARIAConnectionState { coordinator.connection.state }
-    var summary: ARIASessionSummary? { coordinator.summary }
-    var modes: [ARIAMode] { coordinator.modes }
-    var lastPoll: Date? { coordinator.connection.lastSuccessfulPoll }
-    var malformedSkipped: Int { coordinator.session.malformedSkipped }
+    var body: some View {
+        HStack(spacing: 12) {
+            Text("ARIA").font(.title2.bold()).tracking(3)
+            Spacer(minLength: 0)
+            Button { showJoin = true } label: {
+                VStack(spacing: 4) {
+                    HStack(spacing: 6) {
+                        Circle().fill(app.aria.connection.state.isConnected ? FinchTheme.cyan : FinchTheme.danger)
+                            .frame(width: 7, height: 7)
+                        Text(app.aria.connection.state.isConnected ? "CONNECTED" : "NOT CONNECTED")
+                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    }
+                    if !app.aria.connection.state.isConnected {
+                        Text("Join ARIA-Setup Wi-Fi").font(.system(size: 10))
+                    }
+                }
+                .padding(8).background(Capsule().stroke(FinchTheme.cyanDim))
+            }
+            .foregroundStyle(.white)
+            Spacer(minLength: 0)
+            NavigationLink { SettingsView() } label: { Image(systemName: "gearshape") }
+                .accessibilityLabel("Settings")
+        }
+        .padding(.horizontal).padding(.vertical, 8)
+        .sheet(isPresented: $showJoin) {
+            NavigationStack {
+                VStack(spacing: 22) {
+                    Image(systemName: "wifi").font(.largeTitle).foregroundStyle(FinchTheme.cyan)
+                    Text("Join ARIA-Setup Wi-Fi").font(.title2.bold())
+                    Text("In Settings → Wi-Fi, join ARIA-Setup. Allow Finch access under Privacy & Security → Local Network. Return here to reconnect automatically.")
+                        .multilineTextAlignment(.center)
+                    Button("Open Finch Settings") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+                    }.buttonStyle(FinchOutlineButtonStyle())
+                    Button("Check Connection") { Task { await app.aria.refresh() } }
+                    if app.aria.connection.state.isConnected { Text("CONNECTED").foregroundStyle(FinchTheme.cyan) }
+                }
+                .padding().frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(FinchTheme.background)
+                .toolbar { Button("Done") { showJoin = false } }
+            }
+            .presentationDetents([.medium, .large])
+            .onAppear { app.aria.connection.start() }
+        }
+        .task {
+            if !app.aria.connection.localNetworkReady { showJoin = true }
+            app.aria.start()
+        }
+    }
 }
 
 struct ARIADashboardView: View {
     @Environment(AppModel.self) private var app
+    private let bands = ["Overview", "Wi-Fi", "Sub-GHz", "BLE", "UAS", "RFID"]
 
     var body: some View {
-        let vm = ARIADashboardViewModel(app.aria)
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 14) {
-                    ARIAConnectionBanner(state: vm.state, lastPoll: vm.lastPoll)
-
-                    sessionSummary(vm)
-                    healthStrip(vm)
-
-                    // Band detail screens
-                    VStack(spacing: 8) {
-                        bandLink("Wi-Fi", "wifi", vm.summary?.wifiCount) { ARIAWiFiView() }
-                        bandLink("Sub-GHz", "dot.radiowaves.right", vm.summary?.subghzCount) { ARIASubGHzView() }
-                        bandLink("BLE", "antenna.radiowaves.left.and.right", vm.summary?.bleCount) { ARIABLEView() }
-                        bandLink("UAS / Remote ID", "airplane", vm.summary?.uasCount) { ARIAUASView() }
-                        bandLink("RFID", "wave.3.right", nil) { ARIARFIDView() }
-                        bandLink("Session / Export", "square.and.arrow.up", nil) { ARIASessionExportView() }
-                    }
-                    .padding(.horizontal)
-
-                    controlSurface(vm)
-                }
-                .padding(.vertical)
-            }
-            .scrollContentBackground(.hidden)
-            .background(FinchTheme.background.ignoresSafeArea())
-            .navigationTitle("ARIA")
-            .refreshable { await app.aria.refresh() }
-        }
-        .onAppear { app.aria.start() }
-    }
-
-    // MARK: Session summary (§3.1)
-
-    @ViewBuilder
-    private func sessionSummary(_ vm: ARIADashboardViewModel) -> some View {
-        if let s = vm.summary {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("SESSION").font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.cyan)
-                row("uptime", s.uptimeSeconds.map { "\($0)s" } ?? "—")
-                row("Wi-Fi / BLE / Sub-GHz",
-                    "\(s.wifiCount ?? 0) / \(s.bleCount ?? 0) / \(s.subghzCount ?? 0)")
-                // UAS: "NO VALID UAS DETECTED" is a normal success state (§3.5).
-                row("UAS", (s.uasCount ?? 0) == 0 ? "NO VALID UAS DETECTED" : "\(s.uasCount!) detected")
-                row("RFID", s.rfidState ?? "idle")
-            }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(FinchCardBackground())
-            .padding(.horizontal)
-        }
-    }
-
-    @ViewBuilder
-    private func healthStrip(_ vm: ARIADashboardViewModel) -> some View {
-        if let s = vm.summary, s.heapFree != nil || s.queueDrops != nil {
-            HStack {
-                if let heap = s.heapFree { row("heap free", "\(heap)") }
-                Spacer()
-                if let drops = s.queueDrops {
-                    row("queue drops", "\(drops)")
-                }
-            }
-            .padding(10)
-            .background(FinchCardBackground())
-            .padding(.horizontal)
-        }
-    }
-
-    // MARK: Registry-driven control surface (§1.5 / §1.6)
-
-    @ViewBuilder
-    private func controlSurface(_ vm: ARIADashboardViewModel) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("CONTROL").font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.cyan)
-                .padding(.horizontal)
-            if vm.modes.isEmpty {
-                Text(vm.state.isConnected
-                     ? "Discovering device actions…"
-                     : "Connect to ARIA-Setup to load controls.")
-                    .font(FinchTheme.monoSmall)
-                    .foregroundStyle(FinchTheme.textSecondary)
-                    .padding(.horizontal)
-            } else {
-                // Top-level mode list → each opens its real action set (two levels deep).
-                ForEach(vm.modes) { mode in
-                    NavigationLink {
-                        ARIAModeActionsView(mode: mode)
-                    } label: {
-                        HStack {
-                            Text(mode.name).font(FinchTheme.mono).foregroundStyle(FinchTheme.textPrimary)
-                            Spacer()
-                            Text("\(mode.actions.count)")
-                                .font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary)
-                            Image(systemName: "chevron.right").foregroundStyle(FinchTheme.cyanDim)
+            VStack(spacing: 12) {
+                ARIAHeader()
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(bands, id: \.self) { band in
+                            if band == "Overview" {
+                                Text(band).padding(.horizontal, 14).padding(.vertical, 8)
+                                    .background(Capsule().stroke(FinchTheme.cyan, lineWidth: 1.5))
+                                    .shadow(color: FinchTheme.cyan.opacity(0.5), radius: 5)
+                            } else {
+                                NavigationLink { destination(band) } label: {
+                                    Text(band).padding(.horizontal, 14).padding(.vertical, 8)
+                                }
+                            }
                         }
-                        .padding()
-                        .background(FinchCardBackground())
-                    }
-                    .disabled(!vm.state.isConnected)   // visibly present but dimmed when not connected
-                    .opacity(vm.state.isConnected ? 1 : 0.4)
-                    .padding(.horizontal)
+                    }.font(.subheadline).padding(.horizontal)
+                }
+                ScrollView {
+                    VStack(spacing: 16) {
+                        ARIARadarPanel()
+                        if !app.aria.connection.state.isConnected {
+                            Text("Join ARIA-Setup Wi-Fi to view live devices.")
+                                .font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary)
+                        } else if let error = app.aria.lastError {
+                            Text("Last snapshot · \(error)").font(FinchTheme.monoSmall)
+                        }
+                    }.padding()
+                }
+                .refreshable { await app.aria.refresh() }
+            }
+            .background(FinchTheme.background.ignoresSafeArea())
+            .toolbar(.hidden, for: .navigationBar)
+        }
+    }
+
+    @ViewBuilder private func destination(_ band: String) -> some View {
+        switch band {
+        case "Wi-Fi": ARIAWiFiView()
+        case "Sub-GHz": ARIASubGHzView()
+        case "BLE": ARIABLEView()
+        case "UAS": ARIAUASView()
+        default: ARIARFIDView()
+        }
+    }
+}
+
+private struct RadarObservation: Identifiable {
+    let id: String
+    let icon: String
+    let rssi: Int?
+    var fraction: Double {
+        guard let rssi else { return 0.9 }
+        return min(0.9, max(0.08, pow(10, Double(-45 - rssi) / 25) / 100))
+    }
+    // Stable illustrative bearings: RSSI cannot determine direction.
+    var bearing: Double { Double(id.utf8.reduce(0) { ($0 * 31 + Int($1)) % 360 }) * .pi / 180 }
+}
+
+struct ARIARadarPanel: View {
+    @Environment(AppModel.self) private var app
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
+
+    private var observations: [RadarObservation] {
+        guard app.aria.connection.state.isConnected else { return [] }
+        let s = app.aria.session
+        return s.wifi.map { RadarObservation(id: "wifi:" + $0.id, icon: wifiIcon($0), rssi: $0.rssi) }
+            + s.ble.map { RadarObservation(id: "ble:" + $0.id, icon: "bolt.fill", rssi: $0.rssi) }
+            + s.subghz.map { RadarObservation(id: "rf:" + $0.id, icon: "chart.bar.fill", rssi: $0.rssi) }
+            + s.uas.map { RadarObservation(id: "uas:" + $0.id, icon: "airplane", rssi: nil) }
+    }
+
+    private func wifiIcon(_ device: ARIAWiFiDevice) -> String {
+        let kind = device.decode?.bestFingerprint?.deviceClass?.lowercased() ?? ""
+        if kind.contains("phone") { return "iphone" }
+        if kind.contains("computer") || kind.contains("laptop") { return "laptopcomputer" }
+        return "wifi"
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            TimelineView(.animation(minimumInterval: 1 / 20, paused: reduceMotion || scenePhase != .active)) { timeline in
+                GeometryReader { proxy in
+                    let side = min(proxy.size.width, proxy.size.height)
+                    let center = CGPoint(x: proxy.size.width / 2, y: proxy.size.height / 2)
+                    ZStack {
+                        ForEach(1..<5) { ring in
+                            Circle().stroke(FinchTheme.cyan.opacity(0.22), lineWidth: 1)
+                                .frame(width: side * CGFloat(ring) / 4, height: side * CGFloat(ring) / 4)
+                                .position(center)
+                        }
+                        Path { p in
+                            p.move(to: CGPoint(x: center.x, y: 0)); p.addLine(to: CGPoint(x: center.x, y: side))
+                            p.move(to: CGPoint(x: center.x - side / 2, y: center.y)); p.addLine(to: CGPoint(x: center.x + side / 2, y: center.y))
+                        }.stroke(FinchTheme.cyan.opacity(0.2))
+                        if !reduceMotion {
+                            Rectangle().fill(LinearGradient(colors: [.clear, FinchTheme.cyan], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: side / 2, height: 2).offset(x: side / 4)
+                                .rotationEffect(.degrees(timeline.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 6) * 60))
+                                .position(center).shadow(color: FinchTheme.cyan, radius: 7)
+                        }
+                        Text("N").position(x: center.x, y: 9)
+                        Text("S").position(x: center.x, y: side - 9)
+                        Text("W").position(x: center.x - side / 2 + 9, y: center.y)
+                        Text("E").position(x: center.x + side / 2 - 9, y: center.y)
+                        ForEach(Array(observations.prefix(100))) { item in
+                            Image(systemName: item.icon)
+                                .foregroundStyle(item.icon == "bolt.fill" ? FinchTheme.secondaryAccent : FinchTheme.cyan)
+                                .position(x: center.x + cos(item.bearing) * item.fraction * side / 2,
+                                          y: center.y + sin(item.bearing) * item.fraction * side / 2)
+                        }
+                    }.font(FinchTheme.monoSmall)
                 }
             }
-        }
-    }
-
-    private func bandLink<Destination: View>(
-        _ title: String, _ icon: String, _ count: Int?,
-        @ViewBuilder destination: () -> Destination
-    ) -> some View {
-        NavigationLink(destination: destination()) {
+            .aspectRatio(1, contentMode: .fit)
             HStack {
-                Image(systemName: icon).foregroundStyle(FinchTheme.cyan).frame(width: 24)
-                Text(title).font(FinchTheme.mono).foregroundStyle(FinchTheme.textPrimary)
+                Text("RSSI estimate · illustrative bearings")
                 Spacer()
-                if let count { Text("\(count)").font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary) }
-                Image(systemName: "chevron.right").foregroundStyle(FinchTheme.cyanDim)
+                Text("~100 m")
+            }.font(.system(size: 9, design: .monospaced)).foregroundStyle(FinchTheme.textSecondary)
+            VStack(alignment: .leading, spacing: 10) {
+                Text(app.aria.lastError == nil ? "LIVE DEVICES" : "LAST SNAPSHOT").font(FinchTheme.monoTitle)
+                count("Computers", "laptopcomputer", classified("computer", "laptop"))
+                count("Phones", "iphone", classified("phone"))
+                count("Wi-Fi", "wifi", app.aria.session.wifi.count)
+                count("BLE devices", "bolt.fill", app.aria.session.ble.count)
+                count("Sub-GHz", "chart.bar.fill", app.aria.session.subghz.count)
+                count("UAS / Remote ID", "airplane", app.aria.session.uas.count)
+                count("RFID tags", "wave.3.right", app.aria.session.rfid.count)
             }
-            .padding()
-            .background(FinchCardBackground())
-        }
+        }.padding(16).background(FinchCardBackground()).glowBorder(active: true, cornerRadius: 12)
     }
 
-    private func row(_ label: String, _ value: String) -> some View {
+    private func classified(_ kinds: String...) -> Int? {
+        let classes = app.aria.session.wifi.compactMap { $0.decode?.bestFingerprint?.deviceClass?.lowercased() }
+        guard !classes.isEmpty else { return nil }
+        return classes.filter { value in kinds.contains { value.contains($0) } }.count
+    }
+
+    private func count(_ label: String, _ icon: String, _ value: Int?) -> some View {
         HStack {
-            Text(label).font(.caption).foregroundStyle(FinchTheme.textSecondary)
+            Image(systemName: icon).foregroundStyle(FinchTheme.cyan).frame(width: 22)
+            Text(app.aria.connection.state.isConnected ? value.map(String.init) ?? "—" : "—")
+                .font(FinchTheme.monoTitle).frame(minWidth: 32, alignment: .trailing)
+            Text(label).font(.subheadline)
             Spacer()
-            Text(value).font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textPrimary)
         }
     }
 }

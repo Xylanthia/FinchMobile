@@ -84,6 +84,7 @@ struct IoTHost: Identifiable, Codable, Hashable {
     var mqttMessages: [MQTTMessage]
     var offenseHits: [OffenseHit]
     var lastSeen: Date
+    var collectorLocation: ObservationLocation?
 
     init(
         ip: String,
@@ -113,11 +114,12 @@ struct IoTHost: Identifiable, Codable, Hashable {
         self.mqttMessages = mqttMessages
         self.offenseHits = offenseHits
         self.lastSeen = lastSeen
+        self.collectorLocation = ObservationLocation.capture(at: lastSeen)
     }
 
     enum CodingKeys: String, CodingKey {
         case ip, mac, hostname, openProbePorts, services, openPorts, openUDPPorts
-        case banners, mqttMessages, offenseHits, lastSeen
+        case banners, mqttMessages, offenseHits, lastSeen, collectorLocation
         case inferred
         case vendor, fingerprint
     }
@@ -137,6 +139,7 @@ struct IoTHost: Identifiable, Codable, Hashable {
         mqttMessages = try c.decodeIfPresent([MQTTMessage].self, forKey: .mqttMessages) ?? []
         offenseHits = try c.decodeIfPresent([OffenseHit].self, forKey: .offenseHits) ?? []
         lastSeen = try c.decodeIfPresent(Date.self, forKey: .lastSeen) ?? Date()
+        collectorLocation = try c.decodeIfPresent(ObservationLocation.self, forKey: .collectorLocation)
         if vendor == nil || fingerprint == nil,
            let inferred = try c.decodeIfPresent(IoTHostInferred.self, forKey: .inferred) {
             if vendor == nil { vendor = inferred.ouiVendor }
@@ -157,6 +160,7 @@ struct IoTHost: Identifiable, Codable, Hashable {
         try c.encode(mqttMessages, forKey: .mqttMessages)
         try c.encode(offenseHits, forKey: .offenseHits)
         try c.encode(lastSeen, forKey: .lastSeen)
+        try c.encodeIfPresent(collectorLocation, forKey: .collectorLocation)
         let inferred = IoTHostInferred(
             ouiVendor: vendor,
             ouiVendorRule: vendor != nil ? "oui_lookup" : nil,
@@ -344,6 +348,7 @@ struct IoTHost: Identifiable, Codable, Hashable {
             offenseHits.append(hit)
             hitKeys.insert(hit.id)
         }
+        if other.lastSeen >= lastSeen { collectorLocation = other.collectorLocation }
         lastSeen = max(lastSeen, other.lastSeen)
     }
 }

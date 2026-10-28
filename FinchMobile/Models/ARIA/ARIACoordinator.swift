@@ -21,6 +21,9 @@ final class ARIACoordinator {
     /// Conservative client-side poll cadence until a firmware delta endpoint exists (§1).
     var pollInterval: TimeInterval = 7
 
+    private var geotagger = ARIAObservationGeotagger()
+    private(set) var exportData = Data()
+
     private var pollTask: Task<Void, Never>?
 
     init(client: ARIAClient = ARIAClient(),
@@ -31,7 +34,8 @@ final class ARIACoordinator {
 
     func start() {
         connection.start()
-        pollTask?.cancel()
+        BLESurveyFix.startIfNeeded()
+        guard pollTask == nil else { return }
         pollTask = Task { [weak self] in await self?.pollLoop() }
     }
 
@@ -52,6 +56,8 @@ final class ARIACoordinator {
     /// Never shows stale data as live — on a non-connected state we keep the banner honest
     /// and leave the last snapshot tagged with its real timestamp.
     func refresh() async {
+        guard !isPolling else { return }
+        connection.start()
         isPolling = true
         defer { isPolling = false }
 
@@ -65,7 +71,10 @@ final class ARIACoordinator {
         }
 
         do {
-            session = try await client.fetchSessionExport()
+            let snapshot = try await client.fetchSessionExport()
+            let fix = ObservationLocation.capture()
+            exportData = try geotagger.annotate(snapshot.raw, fix: fix)
+            session = snapshot
             lastError = nil
         } catch {
             lastError = "session: \(error)"

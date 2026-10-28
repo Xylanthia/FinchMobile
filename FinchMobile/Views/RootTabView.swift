@@ -6,7 +6,7 @@ struct RootTabView: View {
 
     var body: some View {
         TabView {
-            EngageView()
+            ARIADashboardView()
                 .tabItem { Label("Engage", systemImage: "dot.radiowaves.left.and.right") }
 
             BLERadarView()
@@ -18,11 +18,8 @@ struct RootTabView: View {
             DronePanelView()
                 .tabItem { Label("Drone", systemImage: "airplane") }
 
-            ARIADashboardView()
-                .tabItem { Label("ARIA", systemImage: "cpu") }
-
             CommandHubView()
-                .tabItem { Label("Command", systemImage: "square.grid.2x2") }
+                .tabItem { Label("More", systemImage: "ellipsis") }
         }
         .background(FinchTheme.background.ignoresSafeArea())
         .onChange(of: scenePhase) { _, phase in
@@ -31,6 +28,8 @@ struct RootTabView: View {
             }
             if phase == .active {
                 app.refreshFusion()
+                app.aria.connection.retryPreflight()
+                Task { await app.aria.refresh() }
             }
         }
         .onAppear {

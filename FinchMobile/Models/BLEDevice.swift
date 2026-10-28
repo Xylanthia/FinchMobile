@@ -121,6 +121,7 @@ struct BLEDevice: Identifiable, Codable, Hashable {
     var rssiPeak: Int?
     /// Weakest RSSI kept.
     var rssiMin: Int?
+    var collectorLocation: ObservationLocation?
     var latitude: Double?
     var longitude: Double?
     var gpsAccuracyMeters: Double?
@@ -172,6 +173,7 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         self.gattDeviceNameStatus = gattDeviceNameStatus
         self.rssi = rssi
         self.lastSeen = lastSeen
+        self.collectorLocation = ObservationLocation.capture(at: lastSeen)
         self.advertisementHex = advertisementHex
         self.manufacturerCompanyId = manufacturerCompanyId
         self.manufacturerDataHex = manufacturerDataHex
@@ -522,9 +524,9 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         let (locName, locNameStatus) = BLEEvidenceSanitizer.sanitizeName(localName, sourceNilMeans: .notAvailable)
         let txSan = BLEEvidenceSanitizer.sanitizeTxPower(tx)
         let (lat, lon, acc) = BLEEvidenceSanitizer.sanitizeCoordinate(
-            lat: BLESurveyFix.latitude,
-            lon: BLESurveyFix.longitude,
-            accuracy: BLESurveyFix.accuracyMeters
+            lat: ObservationLocation.capture().latitude,
+            lon: ObservationLocation.capture().longitude,
+            accuracy: ObservationLocation.capture().horizontalAccuracyMeters
         )
 
         var device = BLEDevice(
@@ -611,7 +613,7 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         case connectionState, gattError, gattServices
         case categories, manualCategoryOverride
         case firstSeen, hitCount, rssiPeak, rssiMin
-        case latitude, longitude, gpsAccuracyMeters
+        case latitude, longitude, gpsAccuracyMeters, collectorLocation
         case inferred
     }
 
@@ -651,6 +653,7 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         hitCount = try c.decodeIfPresent(Int.self, forKey: .hitCount)
         rssiPeak = try c.decodeIfPresent(Int.self, forKey: .rssiPeak)
         rssiMin = try c.decodeIfPresent(Int.self, forKey: .rssiMin)
+        collectorLocation = try c.decodeIfPresent(ObservationLocation.self, forKey: .collectorLocation)
         latitude = try c.decodeIfPresent(Double.self, forKey: .latitude)
         longitude = try c.decodeIfPresent(Double.self, forKey: .longitude)
         gpsAccuracyMeters = try c.decodeIfPresent(Double.self, forKey: .gpsAccuracyMeters)
@@ -673,6 +676,7 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         try c.encode(device.gattDeviceNameStatus, forKey: .gattDeviceNameStatus)
         try encodeNullOrValue(device.rssi, forKey: .rssi, into: &c)
         try c.encode(device.lastSeen, forKey: .lastSeen)
+        try c.encodeIfPresent(device.collectorLocation, forKey: .collectorLocation)
         try c.encode(device.advertisementHex, forKey: .advertisementHex)
         try c.encodeIfPresent(device.manufacturerCompanyId, forKey: .manufacturerCompanyId)
         try c.encodeIfPresent(device.manufacturerDataHex, forKey: .manufacturerDataHex)
@@ -756,14 +760,10 @@ struct BLEDevice: Identifiable, Codable, Hashable {
         rssiPeak = extrema.peak
         rssiMin = extrema.min
         lastSeen = newer.lastSeen
-        if let lat = newer.latitude, let lon = newer.longitude, let acc = newer.gpsAccuracyMeters {
-            let oldAcc = gpsAccuracyMeters
-            if latitude == nil || oldAcc == nil || acc <= (oldAcc ?? acc) {
-                latitude = lat
-                longitude = lon
-                gpsAccuracyMeters = acc
-            }
-        }
+        collectorLocation = newer.collectorLocation
+        latitude = newer.collectorLocation?.latitude
+        longitude = newer.collectorLocation?.longitude
+        gpsAccuracyMeters = newer.collectorLocation?.horizontalAccuracyMeters
         if let n = newer.name, !n.isEmpty {
             name = n
             nameStatus = .present

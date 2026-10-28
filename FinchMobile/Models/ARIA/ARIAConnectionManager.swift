@@ -23,32 +23,78 @@ final class ARIAConnectionManager {
     /// The SSID prefix the ARIA handheld advertises.
     static let ssidPrefix = "ARIA-Setup"
 
-    private let monitor = NWPathMonitor()
+    private var monitor: NWPathMonitor?
+    private var browser: NWBrowser?
+    private(set) var localNetworkReady = false
     private let queue = DispatchQueue(label: "aria.connection.monitor")
     private var started = false
 
     func start() {
         guard !started else { return }
         started = true
+        let monitor = NWPathMonitor(requiredInterfaceType: .wifi)
+        self.monitor = monitor
         monitor.pathUpdateHandler = { [weak self] path in
-            guard let self else { return }
-            let onWiFi = path.usesInterfaceType(.wifi) && path.status == .satisfied
-            let ssid = Self.copyCurrentSSID()
             Task { @MainActor in
-                self.currentSSID = ssid
-                if !onWiFi || !(ssid?.hasPrefix(Self.ssidPrefix) ?? false) {
-                    // Not on ARIA Wi-Fi: hard-reset to not-on-network (don't keep "connected").
-                    if self.state != .connected || !(ssid?.hasPrefix(Self.ssidPrefix) ?? false) {
-                        self.state = .notOnARIANetwork
-                    }
+                guard let self else { return }
+                self.currentSSID = Self.copyCurrentSSID()
+                // SSID is optional on iOS. A missing entitlement must not erase a
+                // successful HTTP probe, and an offline AP need not have Internet.
+                if path.status != .satisfied {
+                    self.state = .notOnARIANetwork
                 }
             }
         }
         monitor.start(queue: queue)
+        preflight()
+    }
+
+    /// Bonjour browsing triggers local-network privacy before any ARIA HTTP call.
+    /// No matching service is required; ARIA still uses its fixed HTTP endpoint.
+    func preflight() {
+        guard browser == nil else { return }
+        let browser = NWBrowser(for: .bonjour(type: "_http._tcp", domain: "local."), using: .tcp)
+        self.browser = browser
+        browser.stateUpdateHandler = { [weak self] status in
+            Task { @MainActor in
+                guard let self else { return }
+                switch status {
+                case .ready: self.localNetworkReady = true
+                case .waiting, .failed:
+                    self.localNetworkReady = false
+                    self.state = .notOnARIANetwork
+                default: break
+                }
+            }
+        }
+        browser.start(queue: queue)
+    }
+
+    @MainActor
+    func awaitPreflight() async -> Bool {
+        start()
+        // Bounded wait: denial never leaves pull-to-refresh spinning indefinitely.
+        for _ in 0..<100 {
+            if localNetworkReady { return true }
+            if Task.isCancelled { return false }
+            try? await Task.sleep(nanoseconds: 100_000_000)
+        }
+        return false
+    }
+
+    func retryPreflight() {
+        guard !localNetworkReady else { return }
+        browser?.cancel()
+        browser = nil
+        preflight()
     }
 
     func stop() {
-        monitor.cancel()
+        monitor?.cancel()
+        monitor = nil
+        browser?.cancel()
+        browser = nil
+        localNetworkReady = false
         started = false
     }
 
@@ -57,7 +103,8 @@ final class ARIAConnectionManager {
     func evaluate(using client: ARIAClient) async {
         let ssid = Self.copyCurrentSSID()
         currentSSID = ssid
-        guard ssid?.hasPrefix(Self.ssidPrefix) ?? false else {
+        guard await awaitPreflight() else { return }
+        if let ssid, !ssid.hasPrefix(Self.ssidPrefix) {
             state = .notOnARIANetwork
             return
         }

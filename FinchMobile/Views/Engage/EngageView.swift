@@ -4,6 +4,7 @@ import UIKit
 struct EngageView: View {
     @Environment(AppModel.self) private var app
     @FocusState private var engageFocused: Bool
+    @State private var lastScan: (query: String, kind: PipelineKind)?
     @State private var mqttDuration: Double = 20
     @State private var showMQTTSheet = false
     @State private var mqttTargetIP: String = ""
@@ -14,7 +15,7 @@ struct EngageView: View {
     @Environment(\.modelContext) private var modelContext
 
     var detected: PipelineKind {
-        InputRouter.classify(app.engageQuery)
+        InputRouter.resolve(query: app.engageQuery.isEmpty ? "scan my network" : app.engageQuery, override: app.selectedPipeline)
     }
 
     var body: some View {
@@ -22,9 +23,9 @@ struct EngageView: View {
             ZStack {
                 FinchTheme.background.ignoresSafeArea()
                 VStack(spacing: 12) {
+                    ARIAHeader()
                     engageBar
                     pipelinePicker
-                    actionRow
                     if !app.statusMessage.isEmpty || app.glassPipeline.isRunning || app.osintEngine.isRunning {
                         Text(statusLine)
                             .font(FinchTheme.monoSmall)
@@ -35,6 +36,7 @@ struct EngageView: View {
                     if shouldShowOsint {
                         if let report = app.osintEngine.report {
                             OsintLatticeView(report: report, onAction: followOsintAction)
+                                .refreshable { await repeatScan() }
                         } else if app.osintEngine.isRunning {
                             ProgressView(app.osintEngine.progressText)
                                 .tint(FinchTheme.cyan)
@@ -43,6 +45,7 @@ struct EngageView: View {
                     } else {
                     LatticeView(
                         report: app.glassPipeline.report,
+                        showNetworkHeader: false,
                         onDeepScan: {
                             app.glassPipeline.deepScan(ip: $0)
                             app.statusMessage = "Deep Scan → \($0)"
@@ -65,11 +68,12 @@ struct EngageView: View {
                         },
                         onExport: exportSentinel
                     )
+                    .refreshable { await repeatScan() }
                     }
                 }
                 .padding(.top, 8)
             }
-            .navigationTitle("THE MACHINE")
+            .navigationTitle("Scan")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -108,7 +112,7 @@ struct EngageView: View {
 
     private var engageBar: some View {
         HStack(spacing: 8) {
-            TextField("name · email · address · plate · domain · 0x · CIDR", text: Bindable(app).engageQuery)
+            TextField("SCAN MY NETWORK", text: Bindable(app).engageQuery)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .font(FinchTheme.mono)
@@ -125,7 +129,7 @@ struct EngageView: View {
                     .background(FinchTheme.cyan)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
             }
-            .disabled(app.engageQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && app.selectedPipeline != .glassFabric)
+            .disabled(app.glassPipeline.isRunning || app.osintEngine.isRunning)
         }
         .padding(.horizontal)
     }
@@ -134,7 +138,7 @@ struct EngageView: View {
         VStack(alignment: .leading, spacing: 6) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
-                    ForEach(PipelineKind.allCases) { kind in
+                    ForEach(PipelineKind.allCases.filter { $0 != .ble }) { kind in
                         Button {
                             app.selectedPipeline = kind
                         } label: {
@@ -144,13 +148,13 @@ struct EngageView: View {
                                 .padding(.vertical, 6)
                                 .background(
                                     RoundedRectangle(cornerRadius: 8)
-                                        .fill(app.selectedPipeline == kind ? FinchTheme.cyan.opacity(0.22) : FinchTheme.surface)
+                                        .fill(app.selectedPipeline == kind ? FinchTheme.cyan : FinchTheme.surface)
                                 )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 8)
                                         .stroke(app.selectedPipeline == kind ? FinchTheme.cyan : FinchTheme.cyan.opacity(0.25), lineWidth: 1)
                                 )
-                                .foregroundStyle(app.selectedPipeline == kind ? FinchTheme.cyan : FinchTheme.textSecondary)
+                                .foregroundStyle(app.selectedPipeline == kind ? Color.black : FinchTheme.textSecondary)
                         }
                         .buttonStyle(.plain)
                     }
@@ -234,8 +238,39 @@ struct EngageView: View {
         }
     }
 
+    private func repeatScan() async {
+        guard !app.glassPipeline.isRunning && !app.osintEngine.isRunning else { return }
+        if let lastScan {
+            app.engageQuery = lastScan.query
+            app.selectedPipeline = lastScan.kind
+        }
+        await runScan()
+        await app.glassPipeline.waitForCompletion()
+        await Task.yield()
+        while app.glassPipeline.isRunning || app.osintEngine.isRunning {
+            if Task.isCancelled { return }
+            try? await Task.sleep(nanoseconds: 200_000_000)
+        }
+    }
+
     private func engage() {
+        Task { await runScan() }
+    }
+
+    private func runScan() async {
+        guard await app.aria.connection.awaitPreflight() else {
+            app.statusMessage = "Allow Local Network access in Settings, then retry."
+            return
+        }
+        performEngage()
+    }
+
+    private func performEngage() {
+        if app.engageQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            app.engageQuery = "scan my network"
+        }
         let kind = InputRouter.resolve(query: app.engageQuery, override: app.selectedPipeline)
+        lastScan = (app.engageQuery, app.selectedPipeline)
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         app.lastKind = kind
         rememberSeed(kind, app.engageQuery)
@@ -415,5 +450,89 @@ struct FinchOutlineButtonStyle: ButtonStyle {
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(FinchTheme.cyan.opacity(configuration.isPressed ? 0.4 : 0.8), lineWidth: 1)
             )
+    }
+}
+
+/// Uses the same Glass Fabric coordinator as Scan; all actions retain 3.2 behavior.
+struct FinchNetworkView: View {
+    @Environment(AppModel.self) private var app
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var local: LocalInterfaceInfo?
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 12) {
+                ARIAHeader()
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        HStack(alignment: .firstTextBaseline) {
+                            Text(local?.cidr ?? "No local network")
+                                .font(.system(.title2, design: .monospaced).bold())
+                                .foregroundStyle(FinchTheme.cyan)
+                            Spacer()
+                            Text("\(currentReport?.hosts.count ?? 0) hosts").font(FinchTheme.monoSmall)
+                        }
+                        Text("local \(local?.ip ?? "—") · mask \(local?.netmask ?? "—")")
+                        Text("mDNS \(currentReport?.mdnsServiceCount ?? 0) · SSDP \(currentReport?.ssdpDeviceCount ?? 0)")
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 10) {
+                                Button("Deep Scan All") { app.glassPipeline.deepScanAll() }
+                                    .buttonStyle(.borderedProminent).tint(FinchTheme.cyan)
+                                    .disabled(currentReport == nil || app.glassPipeline.isRunning)
+                                Button("IoT Vulns") { app.glassPipeline.iotVulnsAll() }
+                                    .buttonStyle(FinchOutlineButtonStyle())
+                                    .disabled(currentReport == nil || app.glassPipeline.isRunning)
+                                Button("SENTINEL", action: export).buttonStyle(.plain)
+                                    .foregroundStyle(FinchTheme.cyan).disabled(currentReport == nil)
+                                Button("SWEEP") { Task { await refresh() } }
+                                    .buttonStyle(.borderedProminent).tint(FinchTheme.secondaryAccent)
+                                    .disabled(local == nil || app.glassPipeline.isRunning)
+                            }
+                        }
+                        if app.glassPipeline.isRunning {
+                            ProgressView(app.glassPipeline.progressText).tint(FinchTheme.cyan)
+                        }
+                        ForEach(currentReport?.warnings ?? [], id: \.self) { warning in
+                            Text(warning).foregroundStyle(FinchTheme.textSecondary)
+                        }
+                        if let report = currentReport {
+                            ForEach(report.hosts) { host in
+                                HostRow(host: host).padding().frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(FinchCardBackground())
+                            }
+                        }
+                    }.font(FinchTheme.monoSmall).padding()
+                }
+                .refreshable { await refresh() }
+            }
+            .background(FinchTheme.background.ignoresSafeArea())
+            .navigationTitle("Network").navigationBarTitleDisplayMode(.inline)
+            .task { await refresh() }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active { Task { await refresh() } }
+            }
+        }
+    }
+
+    private var currentReport: GlassFabricReport? {
+        guard let report = app.glassPipeline.report, report.localIP == local?.ip else { return nil }
+        return report
+    }
+
+    private func refresh() async {
+        local = NetworkInterfaceHelper.primaryIPv4(preferring: ["en0", "en1"])
+        guard let local, local.interfaceName == "en0" || local.interfaceName == "en1",
+              !app.glassPipeline.isRunning else { return }
+        guard await app.aria.connection.awaitPreflight() else { return }
+        app.glassPipeline.engage(query: local.cidr)
+        await app.glassPipeline.waitForCompletion()
+    }
+
+    private func export() {
+        guard let report = currentReport else { return }
+        do {
+            let data = try SentinelExporter.json(from: report, ble: app.bleScanner.sortedDevices)
+            SentinelExporter.share(data: data, filename: "sentinel-\(Int(Date().timeIntervalSince1970)).json")
+        } catch { app.statusMessage = "Export failed: \(error.localizedDescription)" }
     }
 }

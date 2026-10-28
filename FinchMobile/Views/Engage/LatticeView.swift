@@ -3,6 +3,7 @@ import UIKit
 
 struct LatticeView: View {
     var report: GlassFabricReport?
+    var showNetworkHeader: Bool = true
     var onDeepScan: (String) -> Void
     var onDeepScanAll: () -> Void
     var onIoTVulns: (String) -> Void
@@ -14,7 +15,7 @@ struct LatticeView: View {
         Group {
             if let report {
                 VStack(spacing: 0) {
-                    header(report)
+                    if showNetworkHeader { header(report) }
                     List {
                         ForEach(report.hosts) { host in
                             NavigationLink {
@@ -59,7 +60,7 @@ struct LatticeView: View {
                     .scrollContentBackground(.hidden)
                 }
             } else {
-                emptyState
+                ScrollView { emptyState }
             }
         }
     }

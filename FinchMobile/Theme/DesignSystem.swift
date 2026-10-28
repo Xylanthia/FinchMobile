@@ -2,10 +2,11 @@ import SwiftUI
 import UIKit
 
 enum FinchTheme {
-    static let background = Color(red: 13 / 255, green: 13 / 255, blue: 13 / 255)
-    static let surface = Color(red: 22 / 255, green: 24 / 255, blue: 26 / 255)
-    static let cyan = Color(red: 0, green: 1, blue: 209 / 255)
-    static let cyanDim = Color(red: 0, green: 1, blue: 209 / 255).opacity(0.35)
+    static let background = Color.black
+    static let surface = Color(white: 10 / 255)
+    static let cyan = Color(red: 191 / 255, green: 0, blue: 1)
+    static let cyanDim = Color(red: 191 / 255, green: 0, blue: 1).opacity(0.35)
+    static let secondaryAccent = Color(red: 224 / 255, green: 64 / 255, blue: 251 / 255)
     static let textPrimary = Color.white
     static let textSecondary = Color.white.opacity(0.65)
     static let danger = Color(red: 1, green: 0.35, blue: 0.35)

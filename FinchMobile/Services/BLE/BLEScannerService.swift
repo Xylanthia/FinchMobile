@@ -133,6 +133,7 @@ final class BLEScannerService: NSObject {
             var hitCount: Int?
             var firstSeen: Date?
             var lastSeen: Date
+            var collectorLocation: ObservationLocation?
             var latitude: Double?
             var longitude: Double?
             var gpsAccuracyMeters: Double?
@@ -198,6 +199,7 @@ final class BLEScannerService: NSObject {
                 hitCount: sanitized.hitCount,
                 firstSeen: sanitized.firstSeen,
                 lastSeen: sanitized.lastSeen,
+                collectorLocation: sanitized.collectorLocation,
                 latitude: sanitized.latitude,
                 longitude: sanitized.longitude,
                 gpsAccuracyMeters: sanitized.gpsAccuracyMeters,
