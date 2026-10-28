@@ -1,6 +1,7 @@
 import Foundation
 import CoreLocation
 import Observation
+import UIKit
 
 /// Phone GPS for the live proximity map. BLE has no bearing — we only get approximate range from RSSI.
 @Observable
@@ -11,6 +12,8 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
     private(set) var latestFix: CLLocation?
     var coordinate: CLLocationCoordinate2D?
     var headingDegrees: CLLocationDirection?
+    var headingAccuracyDegrees: Double?
+    var headingReference = "unavailable"
     var accuracyMeters: CLLocationAccuracy?
     var errorMessage: String?
 
@@ -27,11 +30,14 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.distanceFilter = 2
-        manager.headingFilter = 5
+        manager.headingFilter = 1
+        NotificationCenter.default.addObserver(self, selector: #selector(updateHeadingOrientation),
+                                              name: UIDevice.orientationDidChangeNotification, object: nil)
     }
 
     func requestAndStart() {
         errorMessage = nil
+        updateHeadingOrientation()
         switch manager.authorizationStatus {
         case .notDetermined:
             manager.requestWhenInUseAuthorization()
@@ -50,12 +56,16 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
     func stop() {
         manager.stopUpdatingLocation()
         manager.stopUpdatingHeading()
+        headingDegrees = nil
+        headingAccuracyDegrees = nil
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         authorizationStatus = manager.authorizationStatus
         if !isAuthorized {
             latestFix = nil
+            headingDegrees = nil
+            headingAccuracyDegrees = nil
             coordinate = nil
             accuracyMeters = nil
         }
@@ -83,15 +93,37 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
         BLESurveyFix.ingest(loc)
     }
 
-    func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
-        if newHeading.trueHeading >= 0 {
-            headingDegrees = newHeading.trueHeading
-        } else if newHeading.magneticHeading >= 0 {
-            headingDegrees = newHeading.magneticHeading
-        } else {
-            headingDegrees = nil
+    @objc private func updateHeadingOrientation() {
+        switch UIDevice.current.orientation {
+        case .portrait: manager.headingOrientation = .portrait
+        case .portraitUpsideDown: manager.headingOrientation = .portraitUpsideDown
+        case .landscapeLeft: manager.headingOrientation = .landscapeLeft
+        case .landscapeRight: manager.headingOrientation = .landscapeRight
+        default: break // Flat/unknown: retain the last valid screen orientation.
         }
     }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
+        guard newHeading.headingAccuracy >= 0 else {
+            headingDegrees = nil
+            headingAccuracyDegrees = nil
+            headingReference = "unavailable"
+            return
+        }
+        headingAccuracyDegrees = newHeading.headingAccuracy
+        if newHeading.trueHeading >= 0 {
+            headingDegrees = newHeading.trueHeading
+            headingReference = "true north"
+        } else if newHeading.magneticHeading >= 0 {
+            headingDegrees = newHeading.magneticHeading
+            headingReference = "magnetic north"
+        } else {
+            headingDegrees = nil
+            headingReference = "unavailable"
+        }
+    }
+
+    deinit { NotificationCenter.default.removeObserver(self) }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         errorMessage = error.localizedDescription
@@ -199,7 +231,7 @@ struct ARIAObservationGeotagger {
     private var previous: [Data: ObservationLocation] = [:]
 
     mutating func annotate(_ data: Data, fix: ObservationLocation) throws -> Data {
-        guard var root = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { return data }
+        var root = try ARIAJSONResponse.object(data, endpoint: "GPS export")
         var retained: [Data: ObservationLocation] = [:]
         for band in ["wifi", "ble", "subghz", "captures", "uas", "rfid"] {
             guard let records = root[band] as? [Any] else { continue }

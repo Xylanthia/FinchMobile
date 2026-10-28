@@ -70,3 +70,30 @@ struct FinchCardBackground: View {
             )
     }
 }
+
+
+/// The phone's real compass heading; this never supplies a target bearing.
+struct PhoneHeadingReadout: View {
+    let location: LocationProvider
+
+    var body: some View {
+        HStack(spacing: 8) {
+            if let heading = location.headingDegrees {
+                Image(systemName: "arrow.up")
+                    .rotationEffect(.degrees(heading))
+                    .foregroundStyle(FinchTheme.cyan)
+                    .frame(width: 24, height: 24)
+                    .accessibilityHidden(true)
+                Text(String(format: "PHONE %03.0f° · %@", heading, location.headingReference))
+                if let accuracy = location.headingAccuracyDegrees {
+                    Text(String(format: "±%.0f°", accuracy)).foregroundStyle(FinchTheme.textSecondary)
+                }
+            } else {
+                Image(systemName: "location.slash")
+                Text("Compass unavailable")
+            }
+        }
+        .font(FinchTheme.monoSmall)
+        .accessibilityElement(children: .combine)
+    }
+}

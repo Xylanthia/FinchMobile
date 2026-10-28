@@ -121,6 +121,7 @@ private struct RadarObservation: Identifiable {
 }
 
 struct ARIARadarPanel: View {
+    private var location: LocationProvider { BLESurveyFix.location }
     @Environment(AppModel.self) private var app
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
@@ -167,6 +168,14 @@ struct ARIARadarPanel: View {
                         Text("S").position(x: center.x, y: side - 9)
                         Text("W").position(x: center.x - side / 2 + 9, y: center.y)
                         Text("E").position(x: center.x + side / 2 - 9, y: center.y)
+                        if let heading = location.headingDegrees {
+                            Image(systemName: "location.north.fill")
+                                .font(.title2).foregroundStyle(FinchTheme.secondaryAccent)
+                                .rotationEffect(.degrees(heading)).position(center)
+                                .accessibilityLabel("Phone pointing \(Int(heading)) degrees")
+                        } else {
+                            Image(systemName: "iphone").position(center)
+                        }
                         ForEach(Array(observations.prefix(100))) { item in
                             Image(systemName: item.icon)
                                 .foregroundStyle(item.icon == "bolt.fill" ? FinchTheme.secondaryAccent : FinchTheme.cyan)
@@ -177,6 +186,7 @@ struct ARIARadarPanel: View {
                 }
             }
             .aspectRatio(1, contentMode: .fit)
+            PhoneHeadingReadout(location: location)
             HStack {
                 Text("RSSI estimate · illustrative bearings")
                 Spacer()

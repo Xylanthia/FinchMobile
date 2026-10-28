@@ -5,6 +5,7 @@ import RealityKit
 /// AR overlay: places floating labels for fused tracks using distance estimates (bearing when available).
 struct AROverlayView: View {
     @Environment(AppModel.self) private var app
+    @State private var location = LocationProvider()
     @State private var supported = ARWorldTrackingConfiguration.isSupported
 
     var body: some View {
@@ -15,6 +16,8 @@ struct AROverlayView: View {
                     ARTrackRepresentable(tracks: app.fusion.sortedTracks)
                         .ignoresSafeArea()
                     VStack {
+                        PhoneHeadingReadout(location: location)
+                            .padding(8).background(.black.opacity(0.7))
                         Spacer()
                         Text("\(app.fusion.sortedTracks.count) tracks · AR reticles by range")
                             .font(FinchTheme.monoSmall)
@@ -32,6 +35,8 @@ struct AROverlayView: View {
                     )
                 }
             }
+            .onAppear { location.requestAndStart() }
+            .onDisappear { location.stop() }
             .navigationTitle("AR · RF OVERLAY")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear { app.refreshFusion() }

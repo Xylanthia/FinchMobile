@@ -4,9 +4,10 @@ import Foundation
 /// to the device over the ARIA-Setup Wi-Fi AP (default 192.168.4.1), same trust boundary as
 /// standing in front of it (spec §1, §1.6).
 final class ARIAClient {
-    struct Failure: Error {
+    struct Failure: LocalizedError {
         var message: String
         var statusCode: Int?
+        var errorDescription: String? { message }
     }
 
     /// Default AP gateway. Overridable if the device enumerates a different IP.
@@ -80,49 +81,31 @@ final class ARIAClient {
     // MARK: - Session export (full dump, §1 — parsed resiliently in §4)
 
     func fetchSessionExport() async throws -> ARIASessionExport {
-        let data = try await getData("/tool_outputs/results")
-        return ARIASessionParser.parse(data)
+        // Export data_ref/output_ref strings are JSON pointers, not HTTP routes.
+        // /api/export enters download mode and pauses scanning, so never poll it.
+        let data = try await getData("/api/devices")
+        let devices = try ARIAJSONResponse.object(data, endpoint: "/api/devices")
+        guard devices["devices"] is [Any] else {
+            throw ARIAJSONResponse.Failure(message: "/api/devices: missing devices array")
+        }
+        var root: [String: Any] = ["session": devices, "schema": "finch.aria.live.v1"]
+        var warnings: [String] = []
+        for (key, endpoint) in [("subghz_live", "/api/subghz/raw?n=50"), ("rfid", "/api/rfid")] {
+            do {
+                root[key] = try ARIAJSONResponse.object(try await getData(endpoint), endpoint: endpoint)
+            } catch {
+                warnings.append(error.localizedDescription)
+            }
+        }
+        root["poll_warnings"] = warnings
+        let snapshot = try ARIAJSONResponse.session(root)
+        return snapshot
     }
 
     func fetchSummary() async throws -> ARIASessionSummary {
-        try await get("/info/gui", as: ARIASessionSummary.self)
-    }
-
-    // MARK: - Action registry discovery (§1.5)
-    // Walk into each mode/page, not just the 7-item top-level menu. The device exposes the
-    // full action set the same way ACTION_FUNCTIONALITY_MATRIX.md is built on the firmware side.
-
-    private struct RegistryModeDTO: Decodable {
-        var name: String
-        var command: String?
-        var actions: [ARIAAction]?
-    }
-
-    private struct RegistryDTO: Decodable {
-        var modes: [RegistryModeDTO]?
-        var actions: [ARIAAction]?   // some firmwares emit a flat action list with group/page
-    }
-
-    /// Fetch the device's full action/mode registry. Prefers a dedicated registry endpoint;
-    /// falls back to grouping a flat action list by its GROUP column.
-    func fetchActionRegistry() async throws -> [ARIAMode] {
-        let dto: RegistryDTO = try await get("/info/gui", as: RegistryDTO.self)
-
-        if let modes = dto.modes, !modes.isEmpty {
-            return modes.map {
-                ARIAMode(name: $0.name, command: $0.command, actions: $0.actions ?? [])
-            }
-        }
-
-        // Fall back: flat action list → group two levels deep by GROUP/PAGE.
-        if let actions = dto.actions, !actions.isEmpty {
-            let grouped = Dictionary(grouping: actions) { $0.group ?? $0.name }
-            return grouped
-                .map { key, value in ARIAMode(name: key, command: nil, actions: value) }
-                .sorted { $0.name < $1.name }
-        }
-
-        throw Failure(message: "device returned no action registry", statusCode: nil)
+        let root = try ARIAJSONResponse.object(try await getData("/api/ping"), endpoint: "/api/ping")
+        return ARIASessionSummary(uptimeSeconds: (root["uptime_ms"] as? Int).map { $0 / 1000 },
+                                  heapFree: root["heap_free"] as? Int)
     }
 
     // MARK: - Fire a control (§1.5 / §1.6)

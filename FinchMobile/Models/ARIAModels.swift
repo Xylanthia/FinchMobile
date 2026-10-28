@@ -240,6 +240,8 @@ struct ARIASessionExport {
     /// Count of records skipped during parsing (corruption / NUL-interleave). Surfaced in UI.
     var malformedSkipped: Int
     var raw: Data
+    var warnings: [String] = []
+    var modes: [ARIAMode] = []
 
     static let empty = ARIASessionExport(
         summary: nil, wifi: [], ble: [], subghz: [], uas: [], rfid: [],
@@ -325,5 +327,108 @@ enum ARIASessionParser {
             malformedSkipped: skipped,
             raw: data
         )
+    }
+}
+
+/// Validates the wire format before any GPS annotation or typed record decoding.
+/// Enabling fragments would accept null/strings but would not make HTML a session.
+enum ARIAJSONResponse {
+    struct Failure: LocalizedError {
+        let message: String
+        var errorDescription: String? { message }
+    }
+
+    static func object(_ data: Data, endpoint: String) throws -> [String: Any] {
+        guard !data.isEmpty else { throw Failure(message: "\(endpoint): empty response; retry refresh") }
+        let value: Any
+        do {
+            value = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
+        } catch {
+            let prefix = String(decoding: data.prefix(120), as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
+            let kind = prefix.hasPrefix("<") ? "HTML instead of JSON" : "invalid or incomplete JSON"
+            throw Failure(message: "\(endpoint): \(kind); previous snapshot retained")
+        }
+        guard let root = value as? [String: Any] else {
+            throw Failure(message: "\(endpoint): expected a JSON object, not a scalar or array")
+        }
+        if root["ok"] as? Bool == false || root["error"] != nil {
+            let detail = root["error"] as? String ?? root["output"] as? String ?? "device reported an error"
+            throw Failure(message: "\(endpoint): \(String(detail.prefix(180)))")
+        }
+        return root
+    }
+
+    /// Normalizes the documented live /api/devices schema and nested export schema.
+    /// Retains the full source separately so normalization cannot erase evidence.
+    static func session(_ source: [String: Any]) throws -> ARIASessionExport {
+        let live = source["session"] as? [String: Any] ?? source
+        guard live["devices"] is [Any] || source["wifi"] is [Any] else {
+            throw Failure(message: "Session response has no recognized device arrays")
+        }
+        var root: [String: Any] = ["firmware_response": source]
+        let devices = live["devices"] as? [[String: Any]] ?? []
+        var wifi: [[String: Any]] = []
+        var ble: [[String: Any]] = []
+        for device in devices {
+            let band = (device["band"] as? String ?? device["kind"] as? String ?? "").lowercased()
+            var row = device
+            if band == "ble" {
+                row["address"] = device["mac"]
+                row["name"] = device["name"] ?? device["ssid"]
+                ble.append(row)
+            } else if band == "wifi" {
+                row["encryption"] = device["encrypt"]
+                if let packets = device["pkts"] as? [String: Any] {
+                    for key in ["probe", "beacon", "data", "deauth", "mgmt"] { row[key + "_count"] = packets[key] }
+                }
+                wifi.append(row)
+            }
+        }
+        root["wifi"] = source["wifi"] as? [Any] ?? wifi
+        root["ble"] = source["ble"] as? [Any] ?? ble
+        let captures = source["captures"] as? [String: Any] ?? [:]
+        let radio = source["subghz_live"] as? [String: Any] ?? [:]
+        let raw = radio["packets"] as? [[String: Any]] ?? captures["subghz"] as? [[String: Any]] ?? source["subghz"] as? [[String: Any]] ?? []
+        root["subghz"] = raw.map { packet -> [String: Any] in
+            var row = packet
+            row["boot"] = packet["boot_id"] ?? packet["boot"]
+            row["frequency_mhz"] = packet["frequency_mhz"] ?? packet["mhz"]
+            row["duration_us"] = packet["capture_duration_us"] ?? packet["duration_us"]
+            if let rssi = packet["rssi"] as? NSNumber { row["rssi"] = rssi.intValue }
+            if let observation = packet["observation"] as? [String: Any] {
+                var decode: [String: Any] = [:]
+                decode["decoded_status"] = observation["status"]
+                decode["decoded_hex"] = observation["decoded_hex"]
+                decode["verification_status"] = observation["status"]
+                decode["raw_availability"] = packet["raw_availability"]
+                if let fields = observation["fields"] as? [String: Any] {
+                    decode["decoded_fields"] = fields.mapValues { String(describing: $0) }
+                }
+                row["decode"] = decode
+            }
+            return row
+        }
+        // Generic RF observations are deliberately not promoted to drone records.
+        root["uas"] = source["uas"] as? [Any] ?? []
+        let rfid = source["rfid"] as? [String: Any] ?? [:]
+        root["rfid"] = source["rfid"] as? [Any] ?? rfid["observations"] as? [Any] ?? []
+        var summary = source["summary"] as? [String: Any] ?? [:]
+        if let uptime = live["uptime_ms"] as? Int { summary["uptime_s"] = uptime / 1000 }
+        summary["wifi_count"] = (root["wifi"] as? [Any])?.count
+        summary["ble_count"] = (root["ble"] as? [Any])?.count
+        summary["subghz_count"] = (root["subghz"] as? [Any])?.count
+        summary["rfid_state"] = rfid["state"]
+        root["summary"] = summary
+        var parsed = ARIASessionParser.parse(try JSONSerialization.data(withJSONObject: root, options: [.sortedKeys]))
+        parsed.warnings = source["poll_warnings"] as? [String] ?? []
+        let tools = source["tools"] as? [String: Any] ?? [:]
+        if let groups = tools["groups"] as? [[String: Any]] {
+            parsed.modes = groups.compactMap { group in
+                guard let name = group["name"] as? String else { return nil }
+                let (actions, _) = ARIASessionParser.decodeArray(group["actions"] as? [Any], as: ARIAAction.self)
+                return ARIAMode(name: name, command: nil, actions: actions)
+            }
+        }
+        return parsed
     }
 }

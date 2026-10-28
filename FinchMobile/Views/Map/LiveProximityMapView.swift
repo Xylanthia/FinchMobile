@@ -7,7 +7,7 @@ import CoreLocation
 struct LiveProximityMapView: View {
     @Environment(AppModel.self) private var app
     @State private var location = LocationProvider()
-    @State private var camera: MapCameraPosition = .userLocation(fallback: .automatic)
+    @State private var camera: MapCameraPosition = .userLocation(followsHeading: true, fallback: .automatic)
     @State private var selectedID: UUID?
     @State private var showRadar = true
     @State private var maxRingMeters: Double = 40
@@ -47,15 +47,7 @@ struct LiveProximityMapView: View {
                     Button {
                         if !app.bleScanner.isScanning { app.bleScanner.start() }
                         location.requestAndStart()
-                        if let c = location.coordinate {
-                            camera = .region(MKCoordinateRegion(
-                                center: c,
-                                latitudinalMeters: max(maxRingMeters * 2.5, 60),
-                                longitudinalMeters: max(maxRingMeters * 2.5, 60)
-                            ))
-                        } else {
-                            camera = .userLocation(fallback: .automatic)
-                        }
+                        camera = .userLocation(followsHeading: true, fallback: .automatic)
                     } label: {
                         Image(systemName: "location.circle.fill")
                     }
@@ -110,6 +102,7 @@ struct LiveProximityMapView: View {
                         .foregroundStyle(FinchTheme.warn)
                 }
             }
+            PhoneHeadingReadout(location: location)
             Text("Distances ≈ RSSI (walls skew). Map angles are visual only — BLE has no direction.")
                 .font(FinchTheme.monoSmall)
                 .foregroundStyle(FinchTheme.textSecondary)
@@ -312,6 +305,21 @@ private struct ProximityRadarCanvas: View {
                 sweepPath.closeSubpath()
                 context.fill(sweepPath, with: .color(FinchTheme.cyan.opacity(0.08)))
 
+                // Phone-up compass: cardinal markers move opposite the real heading.
+                if let heading = phoneHeading {
+                    for (label, degrees) in [("N", 0.0), ("E", 90.0), ("S", 180.0), ("W", 270.0)] {
+                        let angle = (degrees - heading - 90) * .pi / 180
+                        context.draw(Text(label).font(FinchTheme.monoSmall).foregroundColor(FinchTheme.cyan),
+                                     at: CGPoint(x: center.x + cos(angle) * (radius - 10),
+                                                 y: center.y + sin(angle) * (radius - 10)))
+                    }
+                    var pointer = Path()
+                    pointer.move(to: CGPoint(x: center.x, y: center.y - 22))
+                    pointer.addLine(to: CGPoint(x: center.x - 7, y: center.y - 7))
+                    pointer.addLine(to: CGPoint(x: center.x + 7, y: center.y - 7))
+                    pointer.closeSubpath()
+                    context.fill(pointer, with: .color(FinchTheme.secondaryAccent))
+                }
                 // Phone
                 let phone = Path(ellipseIn: CGRect(x: center.x - 5, y: center.y - 5, width: 10, height: 10))
                 context.fill(phone, with: .color(FinchTheme.cyan))

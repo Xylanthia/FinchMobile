@@ -14,15 +14,19 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+      - name: Test actual JSON response decoder
+        run: |
+          swiftc FinchMobile/Models/ARIAModels.swift tests/json-response/main.swift -o /tmp/finch-json-regression
+          /tmp/finch-json-regression
       - name: Build unsigned IPA with the 3.2 process
         run: bash BUILD_UNSIGNED_IPA.sh
       - name: Name separate candidate
-        run: cp FinchMobile.ipa FinchMobile-3.2-ARIA-GPS.ipa
+        run: cp FinchMobile.ipa FinchMobile-3.2-build38-JSON-Compass.ipa
       - name: Upload candidate IPA
         uses: actions/upload-artifact@v4
         with:
-          name: FinchMobile-3.2-ARIA-GPS
-          path: FinchMobile-3.2-ARIA-GPS.ipa
+          name: FinchMobile-3.2-build38-JSON-Compass
+          path: FinchMobile-3.2-build38-JSON-Compass.ipa
           if-no-files-found: error
       - name: Upload build log
         if: always()

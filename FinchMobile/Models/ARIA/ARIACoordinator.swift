@@ -64,23 +64,18 @@ final class ARIACoordinator {
         await connection.evaluate(using: client)
         guard connection.state.isConnected else { return }
 
-        // Discover the full action set once we're connected (§1.5).
-        if modes.isEmpty {
-            do { modes = try await client.fetchActionRegistry() }
-            catch { lastError = "registry: \(error)" }
-        }
-
         do {
             let snapshot = try await client.fetchSessionExport()
             let fix = ObservationLocation.capture()
             exportData = try geotagger.annotate(snapshot.raw, fix: fix)
             session = snapshot
-            lastError = nil
+            modes = snapshot.modes
+            summary = snapshot.summary
+            lastError = snapshot.warnings.isEmpty ? nil : snapshot.warnings.joined(separator: " · ")
         } catch {
-            lastError = "session: \(error)"
+            lastError = error.localizedDescription
         }
 
-        summary = try? await client.fetchSummary()
     }
 
     // MARK: - Control firing (§1.5 / §1.6)
