@@ -848,9 +848,48 @@ struct BLEDevice: Identifiable, Codable, Hashable {
 
 // MARK: - Manufacturer company IDs (Bluetooth SIG assigned numbers, common subset)
 
+/// Full Bluetooth SIG Assigned Numbers tables — the same source as the ARIA handheld's
+/// ble_companies.inc — so the phone names every advertiser the handheld can:
+/// 3,893 company identifiers and 688 member service UUIDs (FCxx–FExx).
+enum BLESIGTables {
+    static let companies: [UInt16: String] = {
+        var out: [UInt16: String] = [:]
+        for (key, value) in strings("ble_companies") {
+            if let id = UInt16(key, radix: 16) { out[id] = value }
+        }
+        return out
+    }()
+
+    static let memberServices: [String: String] = strings("ble_member_uuids")
+
+    private static func strings(_ resource: String) -> [String: String] {
+        guard let url = Bundle.main.url(forResource: resource, withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let map = try? JSONDecoder().decode([String: String].self, from: data) else { return [:] }
+        return map
+    }
+
+    /// Company that registered a 16-bit member service UUID (e.g. FEED → Tile, Inc.).
+    static func memberCompany(_ shortUUID: String) -> String? {
+        memberServices[shortUUID.uppercased()]
+    }
+
+    /// "Samsung Electronics Co., Ltd." → "Samsung Electronics" for display.
+    static func shortName(_ registered: String) -> String {
+        var name = registered
+        for suffix in [", Inc.", " Inc.", ", Inc", " Inc", " LLC", ", LLC", " Co., Ltd.", " Co.,Ltd.", " Co., Ltd", " Co.,Ltd",
+                       " Ltd.", " Ltd", " GmbH", " AG", " AB", " A/S", " ASA", " B.V.", " BV", " S.A.", " SA", " SAS",
+                       " S.r.l.", " Corporation", " Corp.", " Corp", " Limited", " Oy", " Pty", " plc", " PLC", " KG", " Co."] {
+            if name.hasSuffix(suffix) { name = String(name.dropLast(suffix.count)) }
+        }
+        return name.trimmingCharacters(in: CharacterSet(charactersIn: " ,."))
+    }
+}
+
 enum BLEManufacturerLookup {
+    /// Curated short names first, then the full Bluetooth SIG company table.
     static func name(for companyId: UInt16) -> String? {
-        known[companyId]
+        known[companyId] ?? BLESIGTables.companies[companyId].map(BLESIGTables.shortName)
     }
 
     /// Large practical subset — enough to label everyday phones, wearables, IoT, cars, trackers.
@@ -1070,8 +1109,11 @@ struct BLEFriendlyIdentity: Hashable {
         if serviceKeys.contains("FEAA") {
             return make(device.broadcastName ?? "Eddystone beacon", "Beacon", "Google Eddystone service FEAA.", "Beacon / Wayfinding", "dot.radiowaves.left.and.right", "high", serviceLabels, evidence: ["service FEAA Eddystone"])
         }
+        if serviceKeys.contains("FEED") || serviceKeys.contains("FEEC") {
+            return make(device.broadcastName ?? "Tile tracker", "Tracker", "Tile item finder advertising nearby (service FEED/FEEC, registered to Tile, Inc.).", "Tracker", "location.magnifyingglass", "high", serviceLabels, evidence: ["Tile member service UUID"])
+        }
         if serviceKeys.contains("FE2C") {
-            return make("Tile tracker", "Tracker", "Tile item finder advertising nearby.", "Tracker", "location.magnifyingglass", "high", serviceLabels)
+            return make(device.broadcastName ?? "Google Fast Pair device", "Headphones / accessory", "Google Fast Pair advertisement (service FE2C, registered to Google) — typically earbuds, headphones or a speaker offering one-tap Android pairing.", "Headphones", "earbuds", "medium", serviceLabels, evidence: ["service FE2C Google Fast Pair"])
         }
         if serviceKeys.contains("FD6F") {
             return make(device.broadcastName ?? "Phone (Exposure Notification)", "Phone / tablet", "FD6F Exposure Notification — almost always a phone.", "Phone / tablet", "iphone", "medium", serviceLabels, evidence: ["service FD6F"])
@@ -1239,6 +1281,22 @@ struct BLEFriendlyIdentity: Hashable {
             return make(device.broadcastName ?? "Proximity / alert tag", "Tracker", "Immediate alert / link-loss style tag.", "Tracker", "bell.fill", "medium", serviceLabels)
         }
 
+        // --- Bluetooth SIG member service UUID → the company that registered it ---
+        if let member = serviceKeys.sorted().first(where: { BLESIGTables.memberCompany($0) != nil }),
+           let owner = BLESIGTables.memberCompany(member) {
+            let brand = BLESIGTables.shortName(owner)
+            return make(
+                device.broadcastName ?? "\(brand) device",
+                "\(brand) device",
+                "Advertises Bluetooth SIG member service \(member), which is registered to \(owner).",
+                "Nearby Bluetooth",
+                "wave.3.right",
+                "medium",
+                serviceLabels,
+                evidence: ["member service UUID \(member) → \(owner)"]
+            )
+        }
+
         // --- Named but unclassified ---
         if let broadcast = device.broadcastName {
             return make(broadcast, "Named Bluetooth", "Named device nearby — type not matched; open it to read Device Info.", "Nearby Bluetooth", "wave.3.right", "low", serviceLabels)
@@ -1246,10 +1304,13 @@ struct BLEFriendlyIdentity: Hashable {
 
         // --- Last resort: never pretend we know nothing if connectable ---
         if device.connectable {
+            let advertised = serviceLabels.first
             return make(
-                "Unnamed connectable device",
+                advertised.map { "Connectable · \($0)" } ?? "Connectable BLE · no ID advertised",
                 "Unknown (open to ID)",
-                "No name/brand in the advertisement (common for privacy BLE). Tap Open — Finch will read Device Name / Model if exposed.",
+                "The advertisement carries no name, no company ID and no registered service UUID"
+                    + (advertised.map { " beyond \($0)" } ?? "")
+                    + ". iOS also hides the Bluetooth address, so the OUI lookup the ARIA handheld uses is unavailable on the phone. Tap Open — Finch reads GAP Device Name and Device Information (manufacturer / model) if the device exposes them.",
                 "Unknown",
                 "questionmark.circle",
                 "low",
@@ -1485,15 +1546,16 @@ enum BLEServiceNames {
 
     static func label(for normalizedShortOrFull: String) -> String? {
         let key = shortKey(normalizedShortOrFull)
-        guard let name = table[key] else { return nil }
-        return name
+        if let name = table[key] { return name }
+        // Bluetooth SIG member service UUIDs are registered to a company.
+        return BLESIGTables.memberCompany(key).map { "\(BLESIGTables.shortName($0)) service" }
     }
 
     /// Always returns a human label; unknown customs show as "Custom UUID …".
     static func label(forUUID uuid: String) -> String {
         let compact = uuid.replacingOccurrences(of: "-", with: "").uppercased()
         let short = shortKey(compact)
-        if let name = table[short] {
+        if let name = label(for: short) {
             return "\(name) (\(short))"
         }
         if compact.count == 32 {
@@ -1530,7 +1592,9 @@ enum BLEServiceNames {
         "3300": "Raven network status",
         "3400": "Raven upload stats",
         "3500": "Raven error / fault",
-        "FE2C": "Tile tracker",
+        "FE2C": "Google Fast Pair",
+        "FEED": "Tile tracker",
+        "FEEC": "Tile tracker",
         "FD6F": "Exposure Notification / proximity",
         "FEAA": "Eddystone beacon",
         "FEF5": "Apple Continuity"
@@ -1561,7 +1625,9 @@ enum BLEServiceNames {
         "110B": "Audio Sink",
         "111E": "Handsfree",
         "1200": "PnP Information",
-        "FE2C": "Tile tracker",
+        "FE2C": "Google Fast Pair",
+        "FEED": "Tile tracker",
+        "FEEC": "Tile tracker",
         "FD6F": "Exposure Notification / proximity",
         "FD69": "Amazon",
         "FEAA": "Eddystone beacon",
@@ -1700,6 +1766,9 @@ enum BLEValueExplainer {
             return "\(name): privacy / exposure-style proximity beacon (\(bytes.count) bytes). Usually a phone — identity is randomized."
         }
         if short == "FE2C" {
+            return "\(name): Google Fast Pair advertisement (\(bytes.count) bytes) — model ID / account key filter for one-tap pairing."
+        }
+        if short == "FEED" || short == "FEEC" {
             return "\(name): Tile finder advertisement (\(bytes.count) bytes)."
         }
         return "\(name) service data — \(bytes.count) bytes of beacon/status payload."
@@ -1839,6 +1908,13 @@ enum BLEValueExplainer {
         case 0x12, 0x16: kind = "Find My / AirTag-class"
         default: kind = type.map { String(format: "Continuity type 0x%02X", $0) } ?? "Continuity"
         }
+        if type == 0x02, bytes.count >= 23, bytes[1] == 0x15 {
+            let u = bytes[2..<18].map { String(format: "%02X", $0) }.joined()
+            let uuid = [u.prefix(8), u.dropFirst(8).prefix(4), u.dropFirst(12).prefix(4), u.dropFirst(16).prefix(4), u.dropFirst(20)].joined(separator: "-")
+            let major = Int(bytes[18]) << 8 | Int(bytes[19])
+            let minor = Int(bytes[20]) << 8 | Int(bytes[21])
+            return "\(header): iBeacon · UUID \(uuid) · major \(major) · minor \(minor) · calibrated TX \(Int8(bitPattern: bytes[22])) dBm."
+        }
         return "\(header): \(kind) — \(bytes.count) bytes. Apple devices hide the friendly name on purpose."
     }
 
@@ -1846,11 +1922,30 @@ enum BLEValueExplainer {
         guard let frame = bytes.first else {
             return "Eddystone beacon with empty payload."
         }
+        func hex(_ range: Range<Int>) -> String { bytes[range].map { String(format: "%02X", $0) }.joined() }
+        func be16(_ i: Int) -> Int { Int(bytes[i]) << 8 | Int(bytes[i + 1]) }
+        func be32(_ i: Int) -> UInt32 { UInt32(bytes[i]) << 24 | UInt32(bytes[i + 1]) << 16 | UInt32(bytes[i + 2]) << 8 | UInt32(bytes[i + 3]) }
+        // Same field decoding as the ARIA handheld (recon_decode.cpp).
         switch frame {
-        case 0x00: return "Eddystone-UID beacon (unique ID frame)."
-        case 0x10: return "Eddystone-URL beacon (broadcasts a short URL)."
-        case 0x20: return "Eddystone-TLM beacon (telemetry: battery / temp / uptime)."
-        case 0x30: return "Eddystone-EID beacon (ephemeral encrypted ID)."
+        case 0x00 where bytes.count >= 18:
+            return "Eddystone-UID beacon · namespace \(hex(2..<12)) · instance \(hex(12..<18)) · calibrated TX \(Int8(bitPattern: bytes[1])) dBm."
+        case 0x00: return "Eddystone-UID beacon (unique ID frame, \(bytes.count) bytes — too short to decode)."
+        case 0x10 where bytes.count >= 3:
+            let schemes = ["http://www.", "https://www.", "http://", "https://"]
+            let expansions = [".com/", ".org/", ".edu/", ".net/", ".info/", ".biz/", ".gov/", ".com", ".org", ".edu", ".net", ".info", ".biz", ".gov"]
+            var url = Int(bytes[2]) < schemes.count ? schemes[Int(bytes[2])] : ""
+            for b in bytes.dropFirst(3) {
+                if Int(b) < expansions.count { url += expansions[Int(b)] } else if b >= 32 && b < 127 { url.append(Character(UnicodeScalar(b))) }
+            }
+            return "Eddystone-URL beacon · \(url) · calibrated TX \(Int8(bitPattern: bytes[1])) dBm."
+        case 0x20 where bytes.count >= 14 && bytes[1] == 0:
+            let rawTemp = be16(4)
+            let temp = rawTemp == 0x8000 ? "unavailable" : String(format: "%.2f °C", Double(Int16(bitPattern: UInt16(rawTemp))) / 256)
+            return String(format: "Eddystone-TLM beacon · battery %d mV · temperature %@ · %u advertisements · uptime %.1f s.",
+                          be16(2), temp, be32(6), Double(be32(10)) / 10)
+        case 0x20 where bytes.count >= 2:
+            return "Eddystone-TLM beacon (encrypted telemetry, version \(bytes[1]))."
+        case 0x30: return "Eddystone-EID beacon (ephemeral encrypted ID — needs the owner's resolver key)."
         default: return String(format: "Eddystone frame type 0x%02X (%d bytes).", frame, bytes.count)
         }
     }

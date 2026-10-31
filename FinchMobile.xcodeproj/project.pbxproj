@@ -45,6 +45,8 @@
 		1DEC638DD02B40448735E220 /* fingerprints.json in Resources */ = {isa = PBXBuildFile; fileRef = 683CCBB3F95143BA88D79F75 /* fingerprints.json */; };
 		507614052580453EB30419E4 /* oui.json in Resources */ = {isa = PBXBuildFile; fileRef = EEF4A91E4D6B4D2BAD447997 /* oui.json */; };
 		A9F1GATTUUIDS01B2C3D4E5F6 /* gatt_uuids.json in Resources */ = {isa = PBXBuildFile; fileRef = B8E2GATTUUIDS01B2C3D4E5F6 /* gatt_uuids.json */; };
+		EB4F086E3D8FA46C3B209F1A /* ble_member_uuids.json in Resources */ = {isa = PBXBuildFile; fileRef = 4EE4FDC2D76BE17B6781D7EF /* ble_member_uuids.json */; };
+		77C43F023AD2F1E54F04DCC8 /* ble_companies.json in Resources */ = {isa = PBXBuildFile; fileRef = 54C3280EB9CA0ACE3CB783EB /* ble_companies.json */; };
 		C9BLECATRULES01B2C3D4E5F6 /* ble_category_rules.json in Resources */ = {isa = PBXBuildFile; fileRef = D9BLECATRULES01B2C3D4E5F6 /* ble_category_rules.json */; };
 		D3C5BF204C684522A4E85E82 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 857E203DCBEB4ED2AC4B65A3 /* Assets.xcassets */; };
 		FE958E4BD8AD4CECB38A6397 /* RFTrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED121195E3D84EDBBD2DDE22 /* RFTrack.swift */; };
@@ -119,6 +121,8 @@
 		683CCBB3F95143BA88D79F75 /* fingerprints.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = fingerprints.json; sourceTree = "<group>"; };
 		EEF4A91E4D6B4D2BAD447997 /* oui.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = oui.json; sourceTree = "<group>"; };
 		B8E2GATTUUIDS01B2C3D4E5F6 /* gatt_uuids.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gatt_uuids.json; sourceTree = "<group>"; };
+		4EE4FDC2D76BE17B6781D7EF /* ble_member_uuids.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ble_member_uuids.json; sourceTree = "<group>"; };
+		54C3280EB9CA0ACE3CB783EB /* ble_companies.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ble_companies.json; sourceTree = "<group>"; };
 		D9BLECATRULES01B2C3D4E5F6 /* ble_category_rules.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ble_category_rules.json; sourceTree = "<group>"; };
 		857E203DCBEB4ED2AC4B65A3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		06BCAC1988FC41FB8DB641BC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -218,6 +222,8 @@
 				683CCBB3F95143BA88D79F75 /* fingerprints.json */,
 				EEF4A91E4D6B4D2BAD447997 /* oui.json */,
 				B8E2GATTUUIDS01B2C3D4E5F6 /* gatt_uuids.json */,
+				4EE4FDC2D76BE17B6781D7EF /* ble_member_uuids.json */,
+				54C3280EB9CA0ACE3CB783EB /* ble_companies.json */,
 				D9BLECATRULES01B2C3D4E5F6 /* ble_category_rules.json */,
 				44F1709795774D0E8DB4B874 /* default_playbooks.json */,
 				E9COUNTYPORTALS01B2C3D4E5F6 /* county_portals.json */,
@@ -551,6 +557,8 @@
 				1DEC638DD02B40448735E220 /* fingerprints.json in Resources */,
 				507614052580453EB30419E4 /* oui.json in Resources */,
 				A9F1GATTUUIDS01B2C3D4E5F6 /* gatt_uuids.json in Resources */,
+				EB4F086E3D8FA46C3B209F1A /* ble_member_uuids.json in Resources */,
+				77C43F023AD2F1E54F04DCC8 /* ble_companies.json in Resources */,
 				C9BLECATRULES01B2C3D4E5F6 /* ble_category_rules.json in Resources */,
 				D3C5BF204C684522A4E85E82 /* Assets.xcassets in Resources */,
 				DAB73C7E094E497EAB5B761E /* default_playbooks.json in Resources */,

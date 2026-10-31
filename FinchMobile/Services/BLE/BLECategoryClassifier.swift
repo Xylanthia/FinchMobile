@@ -274,7 +274,7 @@ enum BLECategoryClassifier {
     /// Built-in fallback if JSON missing from bundle.
     private static let fallbackRules: [BLECategoryRule] = [
         BLECategoryRule(id: "cameraSecurity", label: "Camera / Security", companyIds: ["0x0DE8"], nameContains: ["Ring", "Doorbell", "Arlo", "Wyze", "Blink"], serviceUUIDs: []),
-        BLECategoryRule(id: "tracker", label: "Tracker", companyIds: ["0x03DA"], nameContains: ["Tile", "SmartTag", "Chipolo", "AirTag"], serviceUUIDs: ["FE2C"]),
+        BLECategoryRule(id: "tracker", label: "Tracker", companyIds: ["0x03DA"], nameContains: ["Tile", "SmartTag", "Chipolo", "AirTag"], serviceUUIDs: ["FEED", "FEEC"]),
         BLECategoryRule(id: "audio", label: "Audio / Headphones", companyIds: ["0x008A"], nameContains: ["JLab", "Bose", "Sony", "JBL", "AirPods", "Headphones", "Buds", "Speaker"], serviceUUIDs: ["110B", "1108", "111E"]),
         BLECategoryRule(id: "wearable", label: "Wearable / Fitness", companyIds: ["0x015A"], nameContains: ["Fitbit", "Watch", "Band", "HRM", "Oura"], serviceUUIDs: ["180D"]),
         BLECategoryRule(id: "medical", label: "Medical / Health", companyIds: [], nameContains: ["Temp", "BP", "Glucose", "Insulin", "Monitor", "Pulse", "O2"], serviceUUIDs: ["1810", "1808", "1809"]),

@@ -21,12 +21,12 @@ jobs:
       - name: Build unsigned IPA with the 3.2 process
         run: bash BUILD_UNSIGNED_IPA.sh
       - name: Name separate candidate
-        run: cp FinchMobile.ipa FinchMobile-3.2-build39-ARIA-History-Finch.ipa
+        run: cp FinchMobile.ipa FinchMobile-3.2-build40-BLE-Decode.ipa
       - name: Upload candidate IPA
         uses: actions/upload-artifact@v4
         with:
-          name: FinchMobile-3.2-build39-ARIA-History-Finch
-          path: FinchMobile-3.2-build39-ARIA-History-Finch.ipa
+          name: FinchMobile-3.2-build40-BLE-Decode
+          path: FinchMobile-3.2-build40-BLE-Decode.ipa
           if-no-files-found: error
       - name: Upload build log
         if: always()

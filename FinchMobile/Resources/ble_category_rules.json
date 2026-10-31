@@ -13,7 +13,7 @@
       "label": "Tracker",
       "companyIds": ["0x03DA", "0x1011"],
       "nameContains": ["Tile", "SmartTag", "Chipolo", "Find My", "Tracker", "AirTag", "Pebblebee"],
-      "serviceUUIDs": ["FE2C", "FD6F"]
+      "serviceUUIDs": ["FEED", "FEEC"]
     },
     {
       "id": "audio",
