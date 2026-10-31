@@ -25,6 +25,7 @@ struct ARIABLEView: View {
                             if let r = d.rssi { Text("\(r) dBm").font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary) }
                         }
                         Text(d.address).font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.cyan)
+                        if let cam = d.bodyCam { ARIABodyCamBadge(match: cam) }
                         ARIARangeTag(source: .ble, id: d.address)
                         HStack(spacing: 8) {
                             if let v = d.vendor { Text(v).font(.caption2.weight(.semibold)).foregroundStyle(FinchTheme.textPrimary) }
@@ -53,6 +54,7 @@ struct ARIABLEDetail: View {
         rows.append(("name", device.name))
         rows.append(("address", device.address))
         rows.append(("vendor", device.vendor))
+        rows.append(("police body cam", device.bodyCam.map { "\($0.maker) (\($0.evidence))" }))
         rows.append(("company ID", device.companyID))
         rows.append(("kind", device.kind))
         rows.append(("band", device.band))
