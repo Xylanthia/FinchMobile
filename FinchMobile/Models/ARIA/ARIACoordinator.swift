@@ -23,6 +23,8 @@ final class ARIACoordinator {
     let history = ARIAHistory()
     /// Decoded per-frame intelligence from the handheld's evidence rings.
     let evidence = ARIAEvidence()
+    /// ARIA decoder/fingerprinter results for the phone's own BLE scan (Nearby).
+    let nearby = ARIANearbyDecoder()
     private var lastEvidenceRefresh = Date.distantPast
     private(set) var streamConnected = false
     private(set) var historyError: String?

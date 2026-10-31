@@ -77,6 +77,7 @@
 		3087E4D9383BBC5424822A91 /* ARIASubGHzView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C2A7CF9A1735378EAE28A0 /* ARIASubGHzView.swift */; };
 		8EA2082E41916512545CD7EB /* ARIAHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE02A41D2C2974D1A10B1B26 /* ARIAHistoryStore.swift */; };
 		B5B091A6B37514562697F500 /* ARIAEvidence.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17AA166F6754236AC561549 /* ARIAEvidence.swift */; };
+		D20195241F76111A60C0C806 /* ARIANearbyDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEEE2367F0F09C40681A96 /* ARIANearbyDecoder.swift */; };
 		3992AFEAC65422A00523B15B /* ARIAUASView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E51361A3AF6E7C5B5DD622A8 /* ARIAUASView.swift */; };
 		413A0EB8E70C1A68C2EC5850 /* ARIASessionExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03EF63932CC81C5C29BFBD37 /* ARIASessionExportView.swift */; };
 /* End PBXBuildFile section */
@@ -155,6 +156,7 @@
 		13C2A7CF9A1735378EAE28A0 /* ARIASubGHzView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIASubGHzView.swift; sourceTree = "<group>"; };
 		AE02A41D2C2974D1A10B1B26 /* ARIAHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIAHistoryStore.swift; sourceTree = "<group>"; };
 		B17AA166F6754236AC561549 /* ARIAEvidence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIAEvidence.swift; sourceTree = "<group>"; };
+		9BCEEE2367F0F09C40681A96 /* ARIANearbyDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIANearbyDecoder.swift; sourceTree = "<group>"; };
 		E51361A3AF6E7C5B5DD622A8 /* ARIAUASView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIAUASView.swift; sourceTree = "<group>"; };
 		03EF63932CC81C5C29BFBD37 /* ARIASessionExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIASessionExportView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -481,6 +483,7 @@
 				CBF525A093E0E314D29B7CAE /* ARIACoordinator.swift */,
 				AE02A41D2C2974D1A10B1B26 /* ARIAHistoryStore.swift */,
 				B17AA166F6754236AC561549 /* ARIAEvidence.swift */,
+				9BCEEE2367F0F09C40681A96 /* ARIANearbyDecoder.swift */,
 			);
 			path = ARIA;
 			sourceTree = "<group>";
@@ -582,6 +585,7 @@
 				4788EF84A6CA8FD8C3458633 /* ARIACoordinator.swift in Sources */,
 				8EA2082E41916512545CD7EB /* ARIAHistoryStore.swift in Sources */,
 				B5B091A6B37514562697F500 /* ARIAEvidence.swift in Sources */,
+				D20195241F76111A60C0C806 /* ARIANearbyDecoder.swift in Sources */,
 				4DF1C2C05764FB097895E255 /* ARIASharedViews.swift in Sources */,
 				AC49C593EF22EA419ACDC647 /* ARIADashboardView.swift in Sources */,
 				533E8673E3385DE638F1BBC7 /* ARIAWiFiView.swift in Sources */,

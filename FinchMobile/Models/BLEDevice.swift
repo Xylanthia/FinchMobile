@@ -1318,9 +1318,9 @@ struct BLEFriendlyIdentity: Hashable {
             )
         }
         return make(
-            "Privacy / nameless BLE ad",
-            "Unknown (privacy ad)",
-            "Broadcast-only with no name or known company ID. Many phones/trackers hide identity on purpose.",
+            serviceLabels.first.map { "BLE · \($0)" } ?? "BLE advertiser · no ID fields in ad",
+            "Unknown (decode via ARIA)",
+            "Broadcast-only: no name, company ID or registered service in what iOS reported. Join ARIA-Setup and the handheld's decoder and fingerprinter identify it from the advertisement bytes and its own capture of the address.",
             "Unknown",
             "questionmark.circle",
             "low",

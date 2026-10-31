@@ -130,6 +130,12 @@ final class ARIAClient {
         try await getData(capture.replayPath)
     }
 
+    // MARK: - Handheld decoder for phone-scanned BLE (/api/decode/ble)
+
+    func decodeBLE(advHex: String) async throws -> [String: Any] {
+        try ARIAJSONResponse.object(try await getData("/api/decode/ble?adv=\(advHex)"), endpoint: "/api/decode/ble")
+    }
+
     // MARK: - Omni command evidence (/api/omni)
 
     /// Runs a read-only omni command whose "output" is itself JSON (evidence pages) and

@@ -71,7 +71,7 @@ struct BLERadarView: View {
                                 }
                                 Button {
                                     flashCopy(
-                                        "\(device.friendly.title)\n\(device.distanceLabel)\n\(device.signalLabel)",
+                                        "\(app.aria.nearbyIdentity(for: device).title)\n\(device.distanceLabel)\n\(device.signalLabel)",
                                         note: "Distance copied"
                                     )
                                 } label: {
@@ -168,6 +168,17 @@ struct BLERadarView: View {
                 if app.settings.continuousBLEDefault {
                     app.bleScanner.continuousMode = true
                     app.bleScanner.start()
+                }
+            }
+            .task {
+                // Every phone-scanned advertisement goes through the ARIA handheld's decoder and
+                // fingerprinter whenever the phone is on ARIA-Setup.
+                app.aria.start()
+                while !Task.isCancelled {
+                    if app.aria.connection.state.isConnected {
+                        app.aria.nearby.submit(app.bleScanner.sortedDevices, client: app.aria.client)
+                    }
+                    try? await Task.sleep(nanoseconds: 3_000_000_000)
                 }
             }
         }
@@ -480,9 +491,10 @@ struct BLEAdvancedFilterSheet: View {
 }
 
 struct BLEDeviceRow: View {
+    @Environment(AppModel.self) private var app
     let device: BLEDevice
 
-    private var identity: BLEFriendlyIdentity { device.friendly }
+    private var identity: BLEFriendlyIdentity { app.aria.nearbyIdentity(for: device) }
     private var flockHit: FlockCameraDetector.Hit? { FlockCameraDetector.matchBLE(device) }
 
     var body: some View {
@@ -600,7 +612,7 @@ struct BLEDeviceDetailSheet: View {
         NavigationStack {
             Group {
                 if let device {
-                    let identity = device.friendly
+                    let identity = app.aria.nearbyIdentity(for: device)
                     List {
                         Section {
                             HStack(spacing: 12) {
@@ -631,6 +643,7 @@ struct BLEDeviceDetailSheet: View {
 
                             copyRow("Device type", identity.deviceType)
                             copyRow("Confidence", identity.confidence)
+                            ARIANearbyDecodeBlock(device: device)
                             copyRow("Taxonomy", device.resolvedCategories.map(\.label).joined(separator: ", "))
                             if device.manualCategoryOverride != nil {
                                 Text("Manual override active")
