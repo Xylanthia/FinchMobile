@@ -113,15 +113,18 @@ final class ARIAClient {
     /// Fire a registry action's command over the AP. Result is the device's response body.
     /// On AP drop mid-flight the caller treats the outcome as UNKNOWN — never assume success.
     @discardableResult
-    func fire(_ action: ARIAAction) async throws -> Data {
+    /// Runs an action through the handheld's command route, /api/omni?cmd= (the firmware has
+    /// no /api/cmd). Returns the handheld's output text; `"ok": false` throws with that text.
+    func fire(_ action: ARIAAction) async throws -> String {
         let command = action.command ?? action.name
         guard !command.isEmpty else {
             throw Failure(message: "action has no command", statusCode: nil)
         }
-        let encoded = command.addingPercentEncoding(
-            withAllowedCharacters: .urlQueryAllowed
-        ) ?? command
-        return try await getData("/api/cmd?run=\(encoded)")
+        var components = URLComponents(url: url("/api/omni"), resolvingAgainstBaseURL: true)
+        components?.queryItems = [URLQueryItem(name: "cmd", value: command)]
+        guard let target = components?.url else { throw Failure(message: "bad command", statusCode: nil) }
+        let root = try ARIAJSONResponse.object(try await getData(target.absoluteString), endpoint: command)
+        return root["output"] as? String ?? ""
     }
 
     /// Replay a captured Sub-GHz sequence via its raw_capture_ref (§3.4).

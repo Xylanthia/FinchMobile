@@ -254,6 +254,16 @@ struct ARIAModeActionsView: View {
 
     var body: some View {
         List {
+            if mode.name.localizedCaseInsensitiveContains("UAS") {
+                NavigationLink { ARIAUASView() } label: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Remote ID list").font(FinchTheme.mono).foregroundStyle(FinchTheme.textPrimary)
+                        Text("Validated Remote ID records, flight and operator fields")
+                            .font(.caption2).foregroundStyle(FinchTheme.textSecondary)
+                    }
+                }
+                .listRowBackground(FinchTheme.surface)
+            }
             if mode.actions.isEmpty {
                 Text("No actions reported for this mode.")
                     .font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary)
@@ -308,7 +318,9 @@ struct ARIAModeActionsView: View {
         Task {
             let result = await app.aria.fire(action)
             switch result {
-            case .success: outcome = "\(action.displayLabel): OK"
+            case .success(let output):
+                let text = output.trimmingCharacters(in: .whitespacesAndNewlines)
+                outcome = text.isEmpty ? "\(action.displayLabel): OK" : "\(action.displayLabel): OK — \(String(text.prefix(300)))"
             case .unknown(let m): outcome = "\(action.displayLabel): UNKNOWN — \(m)"
             case .failed(let m): outcome = "\(action.displayLabel): FAILED — \(m)"
             }

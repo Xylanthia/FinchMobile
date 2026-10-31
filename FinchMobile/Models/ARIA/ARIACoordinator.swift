@@ -241,7 +241,7 @@ final class ARIACoordinator {
     // MARK: - Control firing (§1.5 / §1.6)
 
     enum FireOutcome: Equatable {
-        case success
+        case success(String)     // handheld output text (may be empty)
         case unknown(String)     // AP dropped mid-flight: outcome genuinely unknown
         case failed(String)
     }
@@ -250,11 +250,16 @@ final class ARIACoordinator {
         guard connection.state.isConnected else {
             return .failed("not connected to ARIA-Setup")
         }
+        let command = action.command ?? action.name
+        if command.hasPrefix("ui.") {
+            // Handheld-screen navigation (e.g. ui.uas, ui.group N); not runnable over HTTP.
+            return .failed("opens a page on the ARIA handheld's own screen; use it there")
+        }
         do {
-            _ = try await client.fire(action)
+            let output = try await client.fire(action)
             // Reconcile from the device rather than assuming our command is current truth.
             await refresh()
-            return .success
+            return .success(output)
         } catch let f as ARIAClient.Failure where f.statusCode == nil {
             return .unknown(f.message)   // transport-level: could have fired, result unknown
         } catch {
@@ -268,7 +273,7 @@ final class ARIACoordinator {
         }
         do {
             _ = try await client.replaySubGHz(capture)
-            return .success
+            return .success("")
         } catch let f as ARIAClient.Failure where f.statusCode == nil {
             return .unknown(f.message)
         } catch {

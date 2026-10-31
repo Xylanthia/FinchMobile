@@ -243,6 +243,25 @@ struct ARIAAction: Codable, Hashable, Identifiable {
     }
 
     var displayLabel: String { label ?? name }
+
+    /// The handheld's /api/tools lists the UAS Remote ID group with no `actions` array
+    /// (aria_tool_outputs.cpp). Remote ID is heard by the Wi-Fi and BLE receivers, so these
+    /// are the real ./aria receiver commands that drive it. All exist in the firmware's
+    /// command handler; none transmit.
+    static let uasRemoteIDDefaults: [ARIAAction] = [
+        ARIAAction(name: "Recon mode", description: "Wi-Fi + BLE discovery — the receivers that hear Remote ID",
+                   command: "./aria mode recon", group: "uas"),
+        ARIAAction(name: "Start scanning", description: "Resume reception",
+                   command: "./aria start", group: "uas"),
+        ARIAAction(name: "Stop scanning", description: "Pause reception and save session snapshot",
+                   command: "./aria stop", group: "uas"),
+        ARIAAction(name: "Wi-Fi channel 6", description: "Hold on channel 6, where Wi-Fi NAN Remote ID is sent",
+                   command: "./aria wifi channel 6", group: "uas"),
+        ARIAAction(name: "Hop channels", description: "Visit all Wi-Fi channels for beacon Remote ID",
+                   command: "./aria wifi channel hop", group: "uas"),
+        ARIAAction(name: "Receiver status", description: "Mode, scanning state and radio health",
+                   command: "./aria status", group: "uas"),
+    ]
 }
 
 /// A top-level mode and the real action set discovered by walking into it.
@@ -462,7 +481,10 @@ enum ARIAJSONResponse {
         if let groups = tools["groups"] as? [[String: Any]] {
             parsed.modes = groups.compactMap { group in
                 guard let name = group["name"] as? String else { return nil }
-                let (actions, _) = ARIASessionParser.decodeArray(group["actions"] as? [Any], as: ARIAAction.self)
+                var (actions, _) = ARIASessionParser.decodeArray(group["actions"] as? [Any], as: ARIAAction.self)
+                if actions.isEmpty, (group["id"] as? String) == "uas" {
+                    actions = ARIAAction.uasRemoteIDDefaults
+                }
                 return ARIAMode(name: name, command: nil, actions: actions)
             }
         }
