@@ -43,6 +43,10 @@ struct ARIAUASView: View {
                             field("operator pos", String(format: "%.5f, %.5f", olat, olon))
                         }
                         if let prov = r.decoderProvenance { field("decoder", prov) }
+                        DisclosureGroup("All handheld fields") {
+                            ARIAStoredRecordSection(source: .uas, key: r.uasID)
+                        }
+                        .font(.caption).tint(FinchTheme.cyan)
                     }
                     .padding().frame(maxWidth: .infinity, alignment: .leading).background(FinchCardBackground())
                 }

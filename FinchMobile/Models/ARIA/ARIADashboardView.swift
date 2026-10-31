@@ -58,7 +58,7 @@ struct ARIAHeader: View {
 
 struct ARIADashboardView: View {
     @Environment(AppModel.self) private var app
-    private let bands = ["Overview", "Wi-Fi", "Sub-GHz", "BLE", "UAS"]
+    private let bands = ["Overview", "Wi-Fi", "Sub-GHz", "BLE", "UAS", "Frames"]
 
     var body: some View {
         NavigationStack {
@@ -102,6 +102,7 @@ struct ARIADashboardView: View {
         case "Wi-Fi": ARIAWiFiView()
         case "Sub-GHz": ARIASubGHzView()
         case "BLE": ARIABLEView()
+        case "Frames": ARIAFramesView()
         default: ARIAUASView()
         }
     }

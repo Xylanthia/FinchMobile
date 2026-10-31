@@ -21,6 +21,9 @@ final class ARIACoordinator {
     /// Durable record of everything the handheld reported (backfilled from /api/log, kept
     /// current by /api/stream). Lists, counts and the export read from here, not `session`.
     let history = ARIAHistory()
+    /// Decoded per-frame intelligence from the handheld's evidence rings.
+    let evidence = ARIAEvidence()
+    private var lastEvidenceRefresh = Date.distantPast
     private(set) var streamConnected = false
     private(set) var historyError: String?
 
@@ -89,6 +92,10 @@ final class ARIACoordinator {
             summary = snapshot.summary
             lastError = snapshot.warnings.isEmpty ? nil : snapshot.warnings.joined(separator: " · ")
             await history.ingestLive(snapshot)
+            if Date().timeIntervalSince(lastEvidenceRefresh) > 30 {
+                lastEvidenceRefresh = Date()
+                Task { await self.refreshEvidence() }
+            }
         } catch {
             lastError = error.localizedDescription
         }
@@ -96,6 +103,11 @@ final class ARIACoordinator {
         if ARIALogSource.allCases.contains(where: { history.backfill[$0] != .complete }) {
             requestBackfill()
         }
+    }
+
+    func refreshEvidence() async {
+        guard connection.state.isConnected else { return }
+        await evidence.refresh(using: client)
     }
 
     // MARK: - History backfill (/api/log) and live stream (/api/stream)

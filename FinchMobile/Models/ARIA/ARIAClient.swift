@@ -130,6 +130,24 @@ final class ARIAClient {
         try await getData(capture.replayPath)
     }
 
+    // MARK: - Omni command evidence (/api/omni)
+
+    /// Runs a read-only omni command whose "output" is itself JSON (evidence pages) and
+    /// returns that inner object. The handheld refuses these while in download mode.
+    func omniJSON(_ command: String) async throws -> [String: Any] {
+        var components = URLComponents(url: url("/api/omni"), resolvingAgainstBaseURL: true)
+        components?.queryItems = [URLQueryItem(name: "cmd", value: command)]
+        guard let target = components?.url else { throw Failure(message: "bad omni command", statusCode: nil) }
+        let outer = try ARIAJSONResponse.object(try await getData(target.absoluteString), endpoint: "/api/omni \(command)")
+        guard let text = outer["output"] as? String, let data = text.data(using: .utf8) else {
+            throw Failure(message: "\(command): no output", statusCode: nil)
+        }
+        guard (try? JSONSerialization.jsonObject(with: data)) is [String: Any] else {
+            throw Failure(message: "\(command): \(String(text.prefix(140)))", statusCode: nil)   // e.g. download mode notice
+        }
+        return try ARIAJSONResponse.object(data, endpoint: command)
+    }
+
     // MARK: - Persistent capture log (firmware aria_log.h)
 
     /// History pages and the event stream are long transfers over the AP; they get their own

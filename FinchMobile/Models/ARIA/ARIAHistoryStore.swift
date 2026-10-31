@@ -326,6 +326,15 @@ final class ARIAHistoryDB {
         return counts
     }
 
+    func json(_ source: ARIALogSource, _ key: String) -> String? {
+        var stmt: OpaquePointer?
+        guard sqlite3_prepare_v2(db, "SELECT json FROM records WHERE source = ?1 AND key = ?2", -1, &stmt, nil) == SQLITE_OK else { return nil }
+        defer { sqlite3_finalize(stmt) }
+        bind(stmt, 1, source.rawValue)
+        bind(stmt, 2, key)
+        return sqlite3_step(stmt) == SQLITE_ROW ? text(stmt, 0) : nil
+    }
+
     func clear() {
         exec("DELETE FROM records")
         exec("DELETE FROM cursors")
@@ -534,6 +543,14 @@ final class ARIAHistory {
     }
 
     func setBackfill(_ source: ARIALogSource, _ state: Backfill) { backfill[source] = state }
+
+    /// The full record exactly as the handheld sent it (flash-log record or live row).
+    func storedRecord(_ source: ARIALogSource, _ id: String) async -> [String: Any]? {
+        let keys = [id.uppercased(), id]
+        let json: String? = await db.run { db in keys.lazy.compactMap { db.json(source, $0) }.first }
+        guard let data = json?.data(using: .utf8) else { return nil }
+        return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+    }
     func setHandheldStats(_ stats: [String: Any]) { handheldStats = stats }
 
     // MARK: Export

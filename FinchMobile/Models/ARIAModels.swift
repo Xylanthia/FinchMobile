@@ -70,6 +70,18 @@ struct ARIAWiFiDevice: Codable, Hashable, Identifiable {
     var mgmtCount: Int?
     var hasEAPOL: Bool?
     var decode: ARIADecodeEnvelope?
+    // Every other per-device field the handheld publishes (/api/devices, /api/log).
+    var channel: Int?
+    var kind: String?
+    var band: String?
+    var bssid: String?
+    var randomized: Bool?
+    var avgRSSI: Double?
+    var packetRate: Double?
+    var lastSeenAgoMs: Int?
+    var firstSeenAgoMs: Int?
+    var firstSeenUptimeMs: Int?
+    var lastSeenUptimeMs: Int?
 
     var id: String { mac }
 
@@ -83,6 +95,15 @@ struct ARIAWiFiDevice: Codable, Hashable, Identifiable {
         case mgmtCount = "mgmt_count"
         case hasEAPOL = "eapol"
         case decode
+        case channel = "ch"
+        case kind, band, bssid
+        case randomized = "rand"
+        case avgRSSI = "avg"
+        case packetRate = "pkt_rate"
+        case lastSeenAgoMs = "last_seen_ms"
+        case firstSeenAgoMs = "first_seen_ms"
+        case firstSeenUptimeMs = "first_seen_up_ms"
+        case lastSeenUptimeMs = "last_seen_up_ms"
     }
 }
 
@@ -94,6 +115,19 @@ struct ARIABLEDeviceRecord: Codable, Hashable, Identifiable {
     var seenCount: Int?
     var adStructures: [String: String]?
     var decode: ARIADecodeEnvelope?
+    var vendor: String?          // BT SIG company / OUI as resolved by the handheld
+    // Every other per-device field the handheld publishes (/api/devices, /api/log).
+    var channel: Int?
+    var kind: String?
+    var band: String?
+    var bssid: String?
+    var randomized: Bool?
+    var avgRSSI: Double?
+    var packetRate: Double?
+    var lastSeenAgoMs: Int?
+    var firstSeenAgoMs: Int?
+    var firstSeenUptimeMs: Int?
+    var lastSeenUptimeMs: Int?
 
     var id: String { address }
 
@@ -102,7 +136,16 @@ struct ARIABLEDeviceRecord: Codable, Hashable, Identifiable {
         case companyID = "company_id"
         case seenCount = "seen_count"
         case adStructures = "ad_structures"
-        case decode
+        case decode, vendor
+        case channel = "ch"
+        case kind, band, bssid
+        case randomized = "rand"
+        case avgRSSI = "avg"
+        case packetRate = "pkt_rate"
+        case lastSeenAgoMs = "last_seen_ms"
+        case firstSeenAgoMs = "first_seen_ms"
+        case firstSeenUptimeMs = "first_seen_up_ms"
+        case lastSeenUptimeMs = "last_seen_up_ms"
     }
 }
 

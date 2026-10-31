@@ -72,6 +72,7 @@ struct ARIASubGHzDetail: View {
             VStack(alignment: .leading, spacing: 14) {
                 if let detail = capture.detail { SubGHzStatusBadge(detail: detail) }
                 ARIADecodeDetail(decode: capture.decode)
+                ARIAStoredRecordSection(source: .subghz, key: capture.id)
 
                 Button {
                     Task {
