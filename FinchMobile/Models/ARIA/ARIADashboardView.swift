@@ -62,7 +62,7 @@ struct ARIADashboardView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 12) {
+            VStack(spacing: 8) {
                 ARIAHeader()
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
@@ -79,18 +79,25 @@ struct ARIADashboardView: View {
                         }
                     }.font(.subheadline).padding(.horizontal)
                 }
-                ScrollView {
-                    VStack(spacing: 16) {
-                        ARIARadarPanel()
-                        if !app.aria.connection.state.isConnected {
-                            Text("Join ARIA-Setup Wi-Fi to view live devices.")
-                                .font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary)
-                        } else if let error = app.aria.lastError {
-                            Text("Last snapshot · \(error)").font(FinchTheme.monoSmall)
+                // Overview fits one screen: the page is pinned to the visible height and the
+                // radar shrinks to whatever space the counts leave. The ScrollView stays only
+                // for pull-to-refresh.
+                GeometryReader { proxy in
+                    ScrollView {
+                        VStack(spacing: 6) {
+                            ARIARadarPanel()
+                            if !app.aria.connection.state.isConnected {
+                                Text("Join ARIA-Setup Wi-Fi to view live devices.")
+                                    .font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary)
+                            } else if let error = app.aria.lastError {
+                                Text("Last snapshot · \(error)").font(FinchTheme.monoSmall).lineLimit(2)
+                            }
                         }
-                    }.padding()
+                        .padding(.horizontal).padding(.bottom, 8)
+                        .frame(height: proxy.size.height)
+                    }
+                    .refreshable { await app.aria.refresh() }
                 }
-                .refreshable { await app.aria.refresh() }
             }
             .background(FinchTheme.background.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
@@ -143,7 +150,7 @@ struct ARIARadarPanel: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 8) {
             TimelineView(.animation(minimumInterval: 1 / 20, paused: reduceMotion || scenePhase != .active)) { timeline in
                 GeometryReader { proxy in
                     let side = min(proxy.size.width, proxy.size.height)
@@ -186,13 +193,16 @@ struct ARIARadarPanel: View {
                 }
             }
             .aspectRatio(1, contentMode: .fit)
-            PhoneHeadingReadout(location: location)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .layoutPriority(-1)   // takes only the height left after the counts
             HStack {
-                Text("RSSI estimate · illustrative bearings")
-                Spacer()
-                Text("~100 m")
-            }.font(.system(size: 9, design: .monospaced)).foregroundStyle(FinchTheme.textSecondary)
-            VStack(alignment: .leading, spacing: 10) {
+                PhoneHeadingReadout(location: location).lineLimit(1).minimumScaleFactor(0.7)
+                Spacer(minLength: 4)
+                Text("RSSI est. · ~100 m")
+                    .font(.system(size: 9, design: .monospaced)).foregroundStyle(FinchTheme.textSecondary)
+                    .lineLimit(1).fixedSize()
+            }
+            VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .firstTextBaseline) {
                     Text("ARIA HANDHELD").font(FinchTheme.monoTitle)
                     Spacer()
@@ -213,10 +223,11 @@ struct ARIARadarPanel: View {
                 count(.ble, "BLE devices", "bolt.fill")
                 count(.subghz, "Sub-GHz captures", "chart.bar.fill")
                 count(.uas, "UAS / Remote ID", "airplane")
-                Text("Live now: heard in the last 60 s (Sub-GHz: still in handheld RAM). Total seen: everything in the stored history, including devices no longer in range. Counts the ARIA handheld's radios, not the phone's own BLE scanner.")
+                Text("Live: last 60 s · Total: all stored history · ARIA handheld radios only")
                     .font(.system(size: 9)).foregroundStyle(FinchTheme.textSecondary)
+                    .lineLimit(1).minimumScaleFactor(0.8)
             }
-        }.padding(16).background(FinchCardBackground()).glowBorder(active: true, cornerRadius: 12)
+        }.padding(12).background(FinchCardBackground()).glowBorder(active: true, cornerRadius: 12)
         .onAppear { location.requestAndStart() }
     }
 
@@ -235,7 +246,7 @@ struct ARIARadarPanel: View {
         HStack {
             Image(systemName: icon).foregroundStyle(FinchTheme.cyan).frame(width: 22)
             Text(app.aria.connection.state.isConnected ? live.map(String.init) ?? "—" : "—")
-                .font(FinchTheme.monoTitle).frame(minWidth: 32, alignment: .trailing)
+                .font(.system(.headline, design: .monospaced)).frame(minWidth: 32, alignment: .trailing)
             Text(label).font(.subheadline)
             Spacer()
             Text(total).font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textPrimary)
