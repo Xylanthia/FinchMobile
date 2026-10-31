@@ -268,17 +268,54 @@ final class ARIACoordinator {
         }
     }
 
-    func replaySubGHz(_ capture: ARIASubGHzCapture) async -> FireOutcome {
-        guard connection.state.isConnected else {
-            return .failed("not connected to ARIA-Setup")
-        }
+    /// Step 1: ask the handheld to pin this capture for replay. Nothing is transmitted.
+    func prepareReplay(_ capture: ARIASubGHzCapture) async -> Result<ARIAClient.ReplayPreparation, ReplayError> {
+        guard connection.state.isConnected else { return .failure(ReplayError("not connected to ARIA-Setup")) }
         do {
-            _ = try await client.replaySubGHz(capture)
+            let prep = try await client.prepareSubGHzReplay(sequence: capture.sequence)
+            // Sequence numbers are per boot: make sure the handheld pinned the capture we're showing.
+            let freqMismatch = zip2(prep.frequencyMHz, capture.frequencyMHz).map { abs($0.0 - $0.1) > 0.01 } ?? false
+            let pulseMismatch = zip2(prep.pulseCount, capture.pulseCount).map { $0.0 != $0.1 } ?? false
+            if freqMismatch || pulseMismatch {
+                await client.cancelSubGHzReplay()
+                return .failure(ReplayError("handheld's sequence \(capture.sequence) is a different capture (it has rebooted since). Nothing transmitted."))
+            }
+            return .success(prep)
+        } catch let f as ARIAClient.Failure {
+            return .failure(ReplayError(Self.replayMessage(f.message)))
+        } catch {
+            return .failure(ReplayError("\(error)"))
+        }
+    }
+
+    /// Step 2: transmit the prepared sample once (handheld enforces the 60 s token window).
+    func confirmReplay(_ prep: ARIAClient.ReplayPreparation) async -> FireOutcome {
+        guard connection.state.isConnected else { return .failed("not connected to ARIA-Setup") }
+        do {
+            lastFireOutput = try await client.confirmSubGHzReplay(token: prep.token)
             return .success
         } catch let f as ARIAClient.Failure where f.statusCode == nil {
-            return .unknown(f.message)
+            return .unknown(f.message)   // AP dropped mid-flight: it may have transmitted
+        } catch let f as ARIAClient.Failure {
+            return .failed(Self.replayMessage(f.message))
         } catch {
             return .failed("\(error)")
         }
     }
+
+    func cancelReplay() async { await client.cancelSubGHzReplay() }
+
+    struct ReplayError: Error { let message: String; init(_ m: String) { message = m } }
+
+    private static func replayMessage(_ raw: String) -> String {
+        let text = raw.replacingOccurrences(of: "ERROR: ", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if text.contains("Capture unavailable") { return "capture no longer in handheld memory (evicted, cleared, or rebooted)" }
+        if text.contains("Replay requires") { return "this capture can't be replayed: it's incomplete or lossy (needs complete OOK/2-FSK timing)" }
+        return text
+    }
+}
+
+private func zip2<A, B>(_ a: A?, _ b: B?) -> (A, B)? {
+    guard let a, let b else { return nil }
+    return (a, b)
 }

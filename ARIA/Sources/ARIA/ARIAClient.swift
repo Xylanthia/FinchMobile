@@ -114,7 +114,12 @@ final class ARIAClient {
     /// On AP drop mid-flight the caller treats the outcome as UNKNOWN — never assume success.
     @discardableResult
     func fire(_ action: ARIAAction) async throws -> Data {
-        let command = action.command ?? action.name
+        try await omni(action.command ?? action.name)
+    }
+
+    /// Run one omni command line. Throws (statusCode 409) when the handheld answers ok:false.
+    @discardableResult
+    func omni(_ command: String) async throws -> Data {
         guard !command.isEmpty else {
             throw Failure(message: "action has no command", statusCode: nil)
         }
@@ -138,10 +143,50 @@ final class ARIAClient {
         }
     }
 
-    /// Replay a captured Sub-GHz sequence via its raw_capture_ref (§3.4).
-    @discardableResult
-    func replaySubGHz(_ capture: ARIASubGHzCapture) async throws -> Data {
-        try await getData(capture.replayPath)
+    // MARK: - Sub-GHz replay (rf_subghz.cpp subghzTxCommand)
+    //
+    // /api/subghz/raw only READS a capture; it never transmits. Transmission is the handheld's
+    // two-step gate: `subghz tx prepare-sequence <seq>` pins the sample and returns an 8-hex
+    // token, then `subghz tx confirm <token>` (within 60 s) sends it once at -30 dBm.
+
+    struct ReplayPreparation: Equatable {
+        var token: String
+        var frequencyMHz: Double?
+        var pulseCount: Int?
+        var summary: String          // the handheld's own text, up to the raw HEX dump
+        var preparedAt = Date()
+    }
+
+    static func omniOutput(_ data: Data) -> String {
+        let reply = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+        return reply?["output"] as? String ?? String(decoding: data.prefix(2000), as: UTF8.self)
+    }
+
+    func prepareSubGHzReplay(sequence: Int) async throws -> ReplayPreparation {
+        let text = Self.omniOutput(try await omni("subghz tx prepare-sequence \(sequence)"))
+        func capture(_ pattern: String) -> String? {
+            guard let re = try? NSRegularExpression(pattern: pattern),
+                  let m = re.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+                  let r = Range(m.range(at: 1), in: text) else { return nil }
+            return String(text[r])
+        }
+        guard let token = capture("tx confirm ([0-9A-Fa-f]{8})") else {
+            throw Failure(message: text.isEmpty ? "handheld returned no replay token" : text, statusCode: 409)
+        }
+        let summary = text.components(separatedBy: "RAW TX HEX").first?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? text
+        return ReplayPreparation(token: token,
+                                 frequencyMHz: capture("([0-9]+\\.[0-9]+) MHz").flatMap { Double($0) },
+                                 pulseCount: capture("([0-9]+) pulses").flatMap { Int($0) },
+                                 summary: summary)
+    }
+
+    func confirmSubGHzReplay(token: String) async throws -> String {
+        Self.omniOutput(try await omni("subghz tx confirm \(token)"))
+    }
+
+    func cancelSubGHzReplay() async {
+        _ = try? await omni("subghz tx cancel")
     }
 
     // MARK: - Handheld decoder for phone-scanned BLE (/api/decode/ble)
