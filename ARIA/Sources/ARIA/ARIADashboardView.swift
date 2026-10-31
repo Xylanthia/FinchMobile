@@ -261,7 +261,9 @@ struct ARIAModeActionsView: View {
     let mode: ARIAMode
 
     @State private var pendingConfirm: ARIAAction?
-    @State private var outcome: String?
+    /// Last reply per action, shown in its own row under that action — never floated over the list.
+    @State private var results: [String: String] = [:]
+    @State private var running: Set<String> = []
 
     var body: some View {
         List {
@@ -281,8 +283,8 @@ struct ARIAModeActionsView: View {
             }
             ForEach(mode.actions) { action in
                 Button {
-                    if let reason = action.phoneBlockedReason {
-                        outcome = "\(action.displayLabel): \(reason)"
+                    if action.phoneBlockedReason != nil {
+                        return   // reason is already printed in the row
                     } else if action.requiresConfirmation == true {
                         pendingConfirm = action
                     } else {
@@ -301,10 +303,30 @@ struct ARIAModeActionsView: View {
                         if let reason = action.phoneBlockedReason {
                             Text(reason).font(.caption2).foregroundStyle(FinchTheme.warn)
                         }
+                        if running.contains(action.id) {
+                            HStack(spacing: 6) {
+                                ProgressView().controlSize(.mini)
+                                Text("Running…").font(.caption2).foregroundStyle(FinchTheme.textSecondary)
+                            }
+                        }
                     }
                 }
-                .disabled(!app.aria.connection.state.isConnected)   // connection-gated (§1.6)
+                .disabled(!app.aria.connection.state.isConnected || running.contains(action.id))   // connection-gated (§1.6)
                 .listRowBackground(FinchTheme.surface)
+                if let result = results[action.id] {
+                    HStack(alignment: .top, spacing: 8) {
+                        Text(result)
+                            .font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary)
+                            .lineLimit(10).textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Button { results[action.id] = nil } label: {
+                            Image(systemName: "xmark.circle.fill").foregroundStyle(FinchTheme.textSecondary)
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel("Dismiss result")
+                    }
+                    .listRowBackground(FinchTheme.background)
+                }
             }
         }
         .scrollContentBackground(.hidden)
@@ -321,22 +343,19 @@ struct ARIAModeActionsView: View {
             }
             Button("Cancel", role: .cancel) { pendingConfirm = nil }
         }
-        .overlay(alignment: .bottom) {
-            if let outcome {
-                Text(outcome)
-                    .font(FinchTheme.monoSmall).padding(10)
-                    .background(FinchCardBackground()).padding()
-            }
-        }
     }
 
     private func fire(_ action: ARIAAction) {
+        running.insert(action.id)
         Task {
             let result = await app.aria.fire(action)
+            running.remove(action.id)
             switch result {
-            case .success: outcome = "\(action.displayLabel): OK" + (app.aria.lastFireOutput.map { "\n" + String($0.prefix(600)) } ?? "")
-            case .unknown(let m): outcome = "\(action.displayLabel): UNKNOWN — \(m)"
-            case .failed(let m): outcome = "\(action.displayLabel): FAILED — \(m)"
+            case .success:
+                let output = app.aria.lastFireOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                results[action.id] = output.isEmpty ? "OK" : "OK — " + String(output.prefix(600))
+            case .unknown(let m): results[action.id] = "UNKNOWN — \(m)"
+            case .failed(let m): results[action.id] = "FAILED — \(m)"
             }
         }
     }
