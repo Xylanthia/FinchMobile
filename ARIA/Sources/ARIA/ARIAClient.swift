@@ -134,8 +134,7 @@ final class ARIAClient {
         let root = try ARIAJSONResponse.object(try await getData("/api/tools"), endpoint: "/api/tools")
         return (root["groups"] as? [[String: Any]] ?? []).compactMap { group in
             guard let name = group["name"] as? String else { return nil }
-            let (actions, _) = ARIASessionParser.decodeArray(group["actions"] as? [Any], as: ARIAAction.self)
-            return ARIAMode(name: name, command: group["id"] as? String, actions: actions)
+            return ARIAMode(name: name, command: group["id"] as? String, actions: ARIAAction.forGroup(group))
         }
     }
 
