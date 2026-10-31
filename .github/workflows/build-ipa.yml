@@ -1,0 +1,34 @@
+name: Build ARIA IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Build unsigned IPA
+        run: bash BUILD_UNSIGNED_IPA.sh
+      - name: Name IPA
+        run: cp ARIA.ipa "ARIA-$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' Config/Info.plist)-build$(/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' Config/Info.plist).ipa"
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ARIA-ipa
+          path: ARIA-*-build*.ipa
+          if-no-files-found: error
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
