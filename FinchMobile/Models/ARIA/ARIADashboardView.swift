@@ -58,7 +58,7 @@ struct ARIAHeader: View {
 
 struct ARIADashboardView: View {
     @Environment(AppModel.self) private var app
-    private let bands = ["Overview", "Wi-Fi", "Sub-GHz", "BLE", "UAS", "RFID"]
+    private let bands = ["Overview", "Wi-Fi", "Sub-GHz", "BLE", "UAS"]
 
     var body: some View {
         NavigationStack {
@@ -102,8 +102,7 @@ struct ARIADashboardView: View {
         case "Wi-Fi": ARIAWiFiView()
         case "Sub-GHz": ARIASubGHzView()
         case "BLE": ARIABLEView()
-        case "UAS": ARIAUASView()
-        default: ARIARFIDView()
+        default: ARIAUASView()
         }
     }
 }
@@ -213,7 +212,6 @@ struct ARIARadarPanel: View {
                 count(.ble, "BLE devices", "bolt.fill")
                 count(.subghz, "Sub-GHz captures", "chart.bar.fill")
                 count(.uas, "UAS / Remote ID", "airplane")
-                count(.rfid, "RFID tags", "wave.3.right")
                 Text("Live now: heard in the last 60 s (Sub-GHz: still in handheld RAM). Total seen: everything in the stored history, including devices no longer in range. Counts the ARIA handheld's radios, not the phone's own BLE scanner.")
                     .font(.system(size: 9)).foregroundStyle(FinchTheme.textSecondary)
             }
@@ -229,7 +227,7 @@ struct ARIARadarPanel: View {
 
     private func count(_ source: ARIALogSource, _ label: String, _ icon: String) -> some View {
         let history = app.aria.history
-        return count(label, icon, live: source == .rfid ? nil : history.liveCount(source), total: history.totalText(source))
+        return count(label, icon, live: history.liveCount(source), total: history.totalText(source))
     }
 
     private func count(_ label: String, _ icon: String, live: Int?, total: String) -> some View {

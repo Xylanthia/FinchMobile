@@ -239,7 +239,7 @@ struct ARIAObservationGeotagger {
     mutating func annotate(_ data: Data, fix: ObservationLocation) throws -> Data {
         var root = try ARIAJSONResponse.object(data, endpoint: "GPS export")
         var retained: [Data: ObservationLocation] = [:]
-        for band in ["wifi", "ble", "subghz", "captures", "uas", "rfid"] {
+        for band in ["wifi", "ble", "subghz", "captures", "uas"] {
             guard let records = root[band] as? [Any] else { continue }
             root[band] = try records.map { value -> Any in
                 guard var record = value as? [String: Any] else { return value }

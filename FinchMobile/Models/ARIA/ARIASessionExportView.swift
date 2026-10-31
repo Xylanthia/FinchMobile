@@ -19,7 +19,7 @@ struct ARIASessionExportView: View {
                 ARIAHistoryBanner()
                 ForEach(ARIALogSource.allCases) { source in
                     row("\(source.label) · total seen / live now",
-                        "\(history.totalText(source)) / \(source == .rfid ? "—" : history.liveCount(source).formatted())")
+                        "\(history.totalText(source)) / \(history.liveCount(source).formatted())")
                 }
                 if let error = app.aria.historyError ?? history.storeError {
                     Text(error).font(.caption2).foregroundStyle(FinchTheme.warn)

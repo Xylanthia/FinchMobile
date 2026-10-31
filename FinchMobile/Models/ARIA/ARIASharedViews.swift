@@ -225,16 +225,10 @@ struct ARIASourceCounts: View {
         let connected = app.aria.connection.state.isConnected
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-                if source == .rfid {
-                    Text("reader").font(.caption2).foregroundStyle(FinchTheme.textSecondary)
-                    Text(connected ? app.aria.summary?.rfidState ?? "state unknown" : "—")
-                        .font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textPrimary)
-                } else {
-                    Text(source == .subghz ? "in handheld RAM now" : "live now")
-                        .font(.caption2).foregroundStyle(FinchTheme.textSecondary)
-                    Text(connected ? history.liveCount(source).formatted() : "—")
-                        .font(FinchTheme.monoSmall.weight(.semibold)).foregroundStyle(FinchTheme.cyan)
-                }
+                Text(source == .subghz ? "in handheld RAM now" : "live now")
+                    .font(.caption2).foregroundStyle(FinchTheme.textSecondary)
+                Text(connected ? history.liveCount(source).formatted() : "—")
+                    .font(FinchTheme.monoSmall.weight(.semibold)).foregroundStyle(FinchTheme.cyan)
                 Spacer()
                 Text("total seen").font(.caption2).foregroundStyle(FinchTheme.textSecondary)
                 Text(history.totalText(source))

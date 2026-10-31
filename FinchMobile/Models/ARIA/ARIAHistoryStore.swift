@@ -4,7 +4,7 @@ import SQLite3
 
 /// Sources the handheld logs durably to flash (firmware aria_log.h, GET /api/log).
 enum ARIALogSource: String, CaseIterable, Identifiable {
-    case wifi, ble, subghz, rfid, uas
+    case wifi, ble, subghz, uas
 
     var id: String { rawValue }
 
@@ -13,7 +13,6 @@ enum ARIALogSource: String, CaseIterable, Identifiable {
         case .wifi: return "Wi-Fi"
         case .ble: return "BLE"
         case .subghz: return "Sub-GHz"
-        case .rfid: return "RFID"
         case .uas: return "UAS"
         }
     }
@@ -26,7 +25,6 @@ enum ARIAHistoryValue {
     case wifi(ARIAWiFiDevice)
     case ble(ARIABLEDeviceRecord)
     case subghz(ARIASubGHzCapture)
-    case rfid(ARIARFIDTag)
     case uas(ARIAUASRecord)
 }
 
@@ -66,8 +64,6 @@ enum ARIAHistoryCodec {
             guard let seq = int(row["radio_sequence"] ?? row["sequence"]) else { return nil }
             let boot = int(row["radio_boot_id"] ?? row["boot_id"] ?? row["boot"]) ?? 0
             return "\(seq)-\(boot)"
-        case .rfid:
-            return (row["uid"] as? String).flatMap { $0.isEmpty ? nil : $0.uppercased() }
         case .uas:
             return (row["uas_id"] as? String).flatMap { $0.isEmpty ? nil : $0 }
         }
@@ -90,13 +86,6 @@ enum ARIAHistoryCodec {
             let mapped = row["radio_sequence"] != nil ? subghzFromLog(row) : row
             let fallback = ARIASubGHzCapture(sequence: int(mapped["sequence"]) ?? 0, boot: int(mapped["boot"]))
             return .subghz(decode(mapped, as: ARIASubGHzCapture.self) ?? fallback)
-        case .rfid:
-            var mapped = row
-            mapped["tag_type"] = row["tag_type"] ?? row["type"]
-            let atqa = row["atqa"] ?? row["atqa_hex"]
-            if let n = atqa as? NSNumber { mapped["atqa"] = String(format: "%04X", n.intValue) } else { mapped["atqa"] = atqa }
-            if let sak = row["sak"] as? NSNumber { mapped["sak"] = String(format: "%02X", sak.intValue) }
-            return .rfid(decode(mapped, as: ARIARFIDTag.self) ?? ARIARFIDTag(uid: key))
         case .uas:
             return .uas(decode(row, as: ARIAUASRecord.self) ?? ARIAUASRecord(uasID: key))
         }
@@ -371,7 +360,6 @@ final class ARIAHistory {
     private(set) var wifi: [ARIAWiFiDevice] = []
     private(set) var ble: [ARIABLEDeviceRecord] = []
     private(set) var subghz: [ARIASubGHzCapture] = []
-    private(set) var rfid: [ARIARFIDTag] = []
     private(set) var uas: [ARIAUASRecord] = []
 
     private(set) var backfill: [ARIALogSource: Backfill] = [:]
@@ -473,12 +461,12 @@ final class ARIAHistory {
                 slots[row.source, default: [:]][row.key] = Slot(value: row.value, firstSeen: time, lastSeen: time, order: nextOrder)
                 nextOrder += 1
             }
-            if current && row.source != .rfid { liveSeen["\(row.source.rawValue):\(row.key)"] = time }
+            if current { liveSeen["\(row.source.rawValue):\(row.key)"] = time }
         }
         return touched
     }
 
-    /// The current /api/devices + Sub-GHz + RFID snapshot: everything in it is live now and
+    /// The current /api/devices + Sub-GHz snapshot: everything in it is live now and
     /// is also written to the store (so live is always a subset of total).
     func ingestLive(_ snapshot: ARIASessionExport) async {
         guard let root = (try? JSONSerialization.jsonObject(with: snapshot.raw)) as? [String: Any] else { return }
@@ -577,7 +565,7 @@ final class ARIAHistory {
                     for (s, n) in counts { exported[s.rawValue] = n }
                     return [
                         "exported_counts": exported,
-                        "exported_counts_note": "Equal to the length of each top-level array. wifi/ble/rfid/uas = distinct devices or tags; subghz = distinct captures.",
+                        "exported_counts_note": "Equal to the length of each top-level array. wifi/ble/uas = distinct devices; subghz = distinct captures.",
                         "live_at_export_counts": liveCounts,
                         "live_at_export_note": "Devices heard within the last \(liveWindow) s (Sub-GHz: captures still in the handheld RAM ring). A separate number from exported_counts.",
                         "handheld_log_total_available": handheld,
@@ -623,10 +611,6 @@ final class ARIAHistory {
             }
             case .subghz: subghz = ordered.compactMap { item -> ARIASubGHzCapture? in
                 if case .subghz(let v) = item { return v }
-                return nil
-            }
-            case .rfid: rfid = ordered.compactMap { item -> ARIARFIDTag? in
-                if case .rfid(let v) = item { return v }
                 return nil
             }
             case .uas: uas = ordered.compactMap { item -> ARIAUASRecord? in

@@ -18,8 +18,7 @@ let body = Data(#"{"uptime_ms":12000,"devices":[{"mac":"00:11:22:33:44:55","band
 let source = try ARIAJSONResponse.object(body, endpoint: "/api/devices")
 let envelope: [String: Any] = ["session": source,
     "subghz_live": ["packets": [["sequence": 12, "boot_id": 4000000000, "mhz": 433.92, "rssi": -68.5, "observation": ["status": "UNKNOWN"]]]],
-    "rfid": ["state": "SCANNING", "observations": []],
-    "poll_warnings": ["/api/rfid: device busy"]]
+    "poll_warnings": ["/api/subghz/raw?n=50: device busy"]]
 let session = try ARIAJSONResponse.session(envelope)
 check(session.wifi.count == 1 && session.ble.count == 1, "partition real live-device schema by band")
 check(session.wifi[0].encryption == "WPA2" && session.wifi[0].probeCount == 2, "map firmware field names")

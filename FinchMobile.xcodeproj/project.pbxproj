@@ -75,7 +75,6 @@
 		3087E4D9383BBC5424822A91 /* ARIASubGHzView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C2A7CF9A1735378EAE28A0 /* ARIASubGHzView.swift */; };
 		8EA2082E41916512545CD7EB /* ARIAHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE02A41D2C2974D1A10B1B26 /* ARIAHistoryStore.swift */; };
 		3992AFEAC65422A00523B15B /* ARIAUASView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E51361A3AF6E7C5B5DD622A8 /* ARIAUASView.swift */; };
-		DC5C6755600E7A35FB9D75D1 /* ARIARFIDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 288088F811ABA5AE6FD332C7 /* ARIARFIDView.swift */; };
 		413A0EB8E70C1A68C2EC5850 /* ARIASessionExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03EF63932CC81C5C29BFBD37 /* ARIASessionExportView.swift */; };
 /* End PBXBuildFile section */
 
@@ -151,7 +150,6 @@
 		13C2A7CF9A1735378EAE28A0 /* ARIASubGHzView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIASubGHzView.swift; sourceTree = "<group>"; };
 		AE02A41D2C2974D1A10B1B26 /* ARIAHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIAHistoryStore.swift; sourceTree = "<group>"; };
 		E51361A3AF6E7C5B5DD622A8 /* ARIAUASView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIAUASView.swift; sourceTree = "<group>"; };
-		288088F811ABA5AE6FD332C7 /* ARIARFIDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIARFIDView.swift; sourceTree = "<group>"; };
 		03EF63932CC81C5C29BFBD37 /* ARIASessionExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIASessionExportView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -487,7 +485,6 @@
 				98ED06B467298616530B5153 /* ARIABLEView.swift */,
 				13C2A7CF9A1735378EAE28A0 /* ARIASubGHzView.swift */,
 				E51361A3AF6E7C5B5DD622A8 /* ARIAUASView.swift */,
-				288088F811ABA5AE6FD332C7 /* ARIARFIDView.swift */,
 				03EF63932CC81C5C29BFBD37 /* ARIASessionExportView.swift */,
 			);
 			path = ARIA;
@@ -579,7 +576,6 @@
 				831CCD5A14A5FDC1C221B6ED /* ARIABLEView.swift in Sources */,
 				3087E4D9383BBC5424822A91 /* ARIASubGHzView.swift in Sources */,
 				3992AFEAC65422A00523B15B /* ARIAUASView.swift in Sources */,
-				DC5C6755600E7A35FB9D75D1 /* ARIARFIDView.swift in Sources */,
 				413A0EB8E70C1A68C2EC5850 /* ARIASessionExportView.swift in Sources */,
 				F66DF3D467C543AAABE95D90 /* FinchMobileApp.swift in Sources */,
 				7139D80867C247A4BAFA93AA /* AppModel.swift in Sources */,

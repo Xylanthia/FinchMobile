@@ -159,22 +159,6 @@ struct ARIAUASRecord: Codable, Hashable, Identifiable {
     }
 }
 
-struct ARIARFIDTag: Codable, Hashable, Identifiable {
-    var uid: String
-    var atqa: String?
-    var sak: String?
-    var tagType: String?
-    var readStatus: String?
-
-    var id: String { uid }
-
-    enum CodingKeys: String, CodingKey {
-        case uid, atqa, sak
-        case tagType = "tag_type"
-        case readStatus = "read_status"
-    }
-}
-
 // MARK: - Session summary / health
 
 struct ARIASessionSummary: Codable, Hashable {
@@ -183,8 +167,6 @@ struct ARIASessionSummary: Codable, Hashable {
     var bleCount: Int?
     var subghzCount: Int?
     var uasCount: Int?
-    var rfidState: String?
-    var rfidError: String?
     var heapFree: Int?
     var queueDrops: Int?
 
@@ -194,8 +176,6 @@ struct ARIASessionSummary: Codable, Hashable {
         case bleCount = "ble_count"
         case subghzCount = "subghz_count"
         case uasCount = "uas_count"
-        case rfidState = "rfid_state"
-        case rfidError = "rfid_error"
         case heapFree = "heap_free"
         case queueDrops = "queue_drops"
     }
@@ -207,7 +187,7 @@ struct ARIAAction: Codable, Hashable, Identifiable {
     var name: String                 // raw command name, always renderable even if unmapped
     var label: String?
     var description: String?
-    var command: String?             // endpoint/command to fire, e.g. "ui.rfid"
+    var command: String?             // endpoint/command to fire, e.g. "ui.uas"
     var requiresConfirmation: Bool?
     var group: String?               // GROUP column (top-level mode)
     var page: String?                // PAGE column (sub-level)
@@ -238,7 +218,6 @@ struct ARIASessionExport {
     var ble: [ARIABLEDeviceRecord]
     var subghz: [ARIASubGHzCapture]
     var uas: [ARIAUASRecord]
-    var rfid: [ARIARFIDTag]
     /// Count of records skipped during parsing (corruption / NUL-interleave). Surfaced in UI.
     var malformedSkipped: Int
     var raw: Data
@@ -246,7 +225,7 @@ struct ARIASessionExport {
     var modes: [ARIAMode] = []
 
     static let empty = ARIASessionExport(
-        summary: nil, wifi: [], ble: [], subghz: [], uas: [], rfid: [],
+        summary: nil, wifi: [], ble: [], subghz: [], uas: [],
         malformedSkipped: 0, raw: Data()
     )
 }
@@ -300,7 +279,7 @@ enum ARIASessionParser {
             let root = obj as? [String: Any]
         else {
             return ARIASessionExport(
-                summary: nil, wifi: [], ble: [], subghz: [], uas: [], rfid: [],
+                summary: nil, wifi: [], ble: [], subghz: [], uas: [],
                 malformedSkipped: 1, raw: data
             )
         }
@@ -320,12 +299,11 @@ enum ARIASessionParser {
             as: ARIASubGHzCapture.self
         )
         let (uas, sU) = decodeArray(root["uas"] as? [Any], as: ARIAUASRecord.self)
-        let (rfid, sR) = decodeArray(root["rfid"] as? [Any], as: ARIARFIDTag.self)
-        skipped += sW + sB + sS + sU + sR
+        skipped += sW + sB + sS + sU
 
         return ARIASessionExport(
             summary: summary,
-            wifi: wifi, ble: ble, subghz: subghz, uas: uas, rfid: rfid,
+            wifi: wifi, ble: ble, subghz: subghz, uas: uas,
             malformedSkipped: skipped,
             raw: data
         )
@@ -340,9 +318,7 @@ enum ARIAJSONResponse {
         var errorDescription: String? { message }
     }
 
-    /// `statusReport`: the endpoint describes hardware state (e.g. /api/rfid), where an
-    /// `error` member is the device's reported fault — data to show, not a failed request.
-    static func object(_ data: Data, endpoint: String, statusReport: Bool = false) throws -> [String: Any] {
+    static func object(_ data: Data, endpoint: String) throws -> [String: Any] {
         guard !data.isEmpty else { throw Failure(message: "\(endpoint): empty response; retry refresh") }
         let value: Any
         do {
@@ -357,7 +333,7 @@ enum ARIAJSONResponse {
         }
         // `"error": null` / `""` is the absence of an error, not an error.
         let reportedError = (root["error"] as? String).flatMap { $0.isEmpty ? nil : $0 }
-        if root["ok"] as? Bool == false || (!statusReport && reportedError != nil) {
+        if root["ok"] as? Bool == false || reportedError != nil {
             let detail = root["error"] as? String ?? root["output"] as? String ?? "device reported an error"
             throw Failure(message: "\(endpoint): \(String(detail.prefix(180)))")
         }
@@ -431,15 +407,11 @@ enum ARIAJSONResponse {
         }
         // Generic RF observations are deliberately not promoted to drone records.
         root["uas"] = source["uas"] as? [Any] ?? []
-        let rfid = source["rfid"] as? [String: Any] ?? [:]
-        root["rfid"] = source["rfid"] as? [Any] ?? rfid["observations"] as? [Any] ?? []
         var summary = source["summary"] as? [String: Any] ?? [:]
         if let uptime = live["uptime_ms"] as? Int { summary["uptime_s"] = uptime / 1000 }
         summary["wifi_count"] = (root["wifi"] as? [Any])?.count
         summary["ble_count"] = (root["ble"] as? [Any])?.count
         summary["subghz_count"] = (root["subghz"] as? [Any])?.count
-        summary["rfid_state"] = rfid["state"]
-        summary["rfid_error"] = (rfid["error"] as? String).flatMap { $0.isEmpty ? nil : $0 }
         root["summary"] = summary
         var parsed = ARIASessionParser.parse(try JSONSerialization.data(withJSONObject: root, options: [.sortedKeys]))
         parsed.warnings = source["poll_warnings"] as? [String] ?? []
