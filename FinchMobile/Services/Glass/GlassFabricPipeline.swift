@@ -427,13 +427,15 @@ final class GlassFabricPipeline {
             host.openUDPPorts = Array(Set(host.openUDPPorts + offenseResult.openUDP)).sorted()
             host.banners = deepResult.banners
             host.fingerprint = fp
+            let hostHits = ARIASelfDevice.annotate(enrichedHits, ip: ip)
+            if ARIASelfDevice.isSelf(ip), host.hostname == nil { host.hostname = "ARIA handheld (self)" }
             // Replace same-source hits so re-tapping doesn't duplicate forever
-            let newKeys = Set(enrichedHits.map(\.id))
+            let newKeys = Set(hostHits.map(\.id))
             host.offenseHits.removeAll { newKeys.contains($0.id) }
-            host.offenseHits.append(contentsOf: enrichedHits)
+            host.offenseHits.append(contentsOf: hostHits)
             self.mergeHost(host)
-            let cveCount = enrichedHits.reduce(0) { $0 + $1.cves.count }
-            self.progressText = "IoT Vulns \(ip) — \(enrichedHits.count) hits · \(cveCount) CVEs"
+            let cveCount = hostHits.reduce(0) { $0 + $1.cves.count }
+            self.progressText = "IoT Vulns \(ip) — \(hostHits.count) hits · \(cveCount) CVEs"
         }
 
         if autoMQTT {

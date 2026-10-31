@@ -4,8 +4,12 @@ struct ARIABLEView: View {
     @Environment(AppModel.self) private var app
 
     var body: some View {
-        let devices = app.aria.session.ble
+        let devices = app.aria.history.ble
         List {
+            Section {
+                ARIAHistoryBanner()
+                ARIASourceCounts(source: .ble)
+            }
             if devices.isEmpty {
                 ARIAEmptyRow(connected: app.aria.connection.state.isConnected)
             }
@@ -21,6 +25,7 @@ struct ARIABLEView: View {
                             if let r = d.rssi { Text("\(r) dBm").font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary) }
                         }
                         Text(d.address).font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.cyan)
+                        ARIARangeTag(source: .ble, id: d.address)
                         HStack(spacing: 8) {
                             if let c = d.companyID { Text("mfr \(c)").font(.caption2).foregroundStyle(FinchTheme.textSecondary) }
                             if let seen = d.seenCount { Text("×\(seen)").font(.caption2).foregroundStyle(FinchTheme.textSecondary) }

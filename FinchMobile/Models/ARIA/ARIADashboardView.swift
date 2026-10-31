@@ -193,31 +193,53 @@ struct ARIARadarPanel: View {
                 Text("~100 m")
             }.font(.system(size: 9, design: .monospaced)).foregroundStyle(FinchTheme.textSecondary)
             VStack(alignment: .leading, spacing: 10) {
-                Text(app.aria.lastError == nil ? "LIVE DEVICES" : "LAST SNAPSHOT").font(FinchTheme.monoTitle)
-                count("Computers", "laptopcomputer", classified("computer", "laptop"))
-                count("Phones", "iphone", classified("phone"))
-                count("Wi-Fi", "wifi", app.aria.session.wifi.count)
-                count("BLE devices", "bolt.fill", app.aria.session.ble.count)
-                count("Sub-GHz", "chart.bar.fill", app.aria.session.subghz.count)
-                count("UAS / Remote ID", "airplane", app.aria.session.uas.count)
-                count("RFID tags", "wave.3.right", app.aria.session.rfid.count)
+                HStack(alignment: .firstTextBaseline) {
+                    Text("ARIA HANDHELD").font(FinchTheme.monoTitle)
+                    Spacer()
+                    Text("LIVE NOW · TOTAL SEEN").font(.system(size: 9, design: .monospaced))
+                        .foregroundStyle(FinchTheme.textSecondary)
+                }
+                if let progress = app.aria.history.progressText {
+                    HStack(spacing: 8) {
+                        ProgressView().controlSize(.small)
+                        Text(progress).font(FinchTheme.monoSmall)
+                    }
+                }
+                count("Computers", "laptopcomputer", live: classified(app.aria.session.wifi, "computer", "laptop"),
+                      total: classified(app.aria.history.wifi, "computer", "laptop").map(String.init) ?? "—")
+                count("Phones", "iphone", live: classified(app.aria.session.wifi, "phone"),
+                      total: classified(app.aria.history.wifi, "phone").map(String.init) ?? "—")
+                count(.wifi, "Wi-Fi devices", "wifi")
+                count(.ble, "BLE devices", "bolt.fill")
+                count(.subghz, "Sub-GHz captures", "chart.bar.fill")
+                count(.uas, "UAS / Remote ID", "airplane")
+                count(.rfid, "RFID tags", "wave.3.right")
+                Text("Live now: heard in the last 60 s (Sub-GHz: still in handheld RAM). Total seen: everything in the stored history, including devices no longer in range. Counts the ARIA handheld's radios, not the phone's own BLE scanner.")
+                    .font(.system(size: 9)).foregroundStyle(FinchTheme.textSecondary)
             }
         }.padding(16).background(FinchCardBackground()).glowBorder(active: true, cornerRadius: 12)
+        .onAppear { location.requestAndStart() }
     }
 
-    private func classified(_ kinds: String...) -> Int? {
-        let classes = app.aria.session.wifi.compactMap { $0.decode?.bestFingerprint?.deviceClass?.lowercased() }
+    private func classified(_ devices: [ARIAWiFiDevice], _ kinds: String...) -> Int? {
+        let classes = devices.compactMap { $0.decode?.bestFingerprint?.deviceClass?.lowercased() }
         guard !classes.isEmpty else { return nil }
         return classes.filter { value in kinds.contains { value.contains($0) } }.count
     }
 
-    private func count(_ label: String, _ icon: String, _ value: Int?) -> some View {
+    private func count(_ source: ARIALogSource, _ label: String, _ icon: String) -> some View {
+        let history = app.aria.history
+        return count(label, icon, live: source == .rfid ? nil : history.liveCount(source), total: history.totalText(source))
+    }
+
+    private func count(_ label: String, _ icon: String, live: Int?, total: String) -> some View {
         HStack {
             Image(systemName: icon).foregroundStyle(FinchTheme.cyan).frame(width: 22)
-            Text(app.aria.connection.state.isConnected ? value.map(String.init) ?? "—" : "—")
+            Text(app.aria.connection.state.isConnected ? live.map(String.init) ?? "—" : "—")
                 .font(FinchTheme.monoTitle).frame(minWidth: 32, alignment: .trailing)
             Text(label).font(.subheadline)
             Spacer()
+            Text(total).font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textPrimary)
         }
     }
 }

@@ -5,9 +5,14 @@ struct ARIAUASView: View {
 
     var body: some View {
         // Only VALIDATED RID records render here. GENERIC_RF != UAS, enforced client-side (§3.5).
-        let records = app.aria.session.uas
+        let records = app.aria.history.uas
         ScrollView {
             VStack(spacing: 12) {
+                VStack(spacing: 8) {
+                    ARIAHistoryBanner()
+                    ARIASourceCounts(source: .uas)
+                }
+                .padding().background(FinchCardBackground())
                 if records.isEmpty {
                     // "NO VALID UAS DETECTED" is a normal, successful state — not empty/error.
                     VStack(spacing: 6) {
@@ -23,6 +28,7 @@ struct ARIAUASView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
                             Text(r.uasID).font(FinchTheme.mono).foregroundStyle(FinchTheme.cyan)
+                            ARIARangeTag(source: .uas, id: r.uasID)
                             Spacer()
                             if let t = r.uaType { Text(t).font(.caption2).foregroundStyle(FinchTheme.textSecondary) }
                         }

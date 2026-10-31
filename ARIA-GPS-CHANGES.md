@@ -26,7 +26,7 @@ BLE and network host models also retain `collectorLocation` through JSON/Vault e
 
 ## Validation
 
-In the Linux workspace: plist/asset parsing, unchanged transport diff, original/copy SHA-256 comparison, build-script shell syntax and `git diff --check` passed. No Swift compiler, Xcode, iOS SDK or attached iPhone was available, so the app has not been compiled or device-tested. GPS regression cases were added alongside the existing XCTest sources; this repository does not currently configure an XCTest target, so they require adding to a test target on macOS before running.
+In the Linux workspace: plist/asset parsing, unchanged transport diff, original/copy SHA-256 comparison, build-script shell syntax and `git diff --check` passed. The candidate subsequently compiled successfully on the same GitHub Actions macos-latest route as 3.2: run 40608168210, commit 1d26f565dd4733b7164f746b20cbfc6414209b06. The resulting IPA is version 3.2 build 37, SHA-256 f18c4162888e416aa6457574215bfccb7bc1af19aa7d81a380a2c76584944847. It was copied to Windows Downloads. Physical iPhone behavior has not been tested. GPS regression cases were added alongside the existing XCTest sources; this repository does not currently configure an XCTest target, so they require adding to a test target on macOS before running.
 
 Device acceptance checks:
 

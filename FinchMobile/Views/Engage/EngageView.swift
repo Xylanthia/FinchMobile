@@ -15,7 +15,7 @@ struct EngageView: View {
     @Environment(\.modelContext) private var modelContext
 
     var detected: PipelineKind {
-        InputRouter.resolve(query: app.engageQuery.isEmpty ? "scan my network" : app.engageQuery, override: app.selectedPipeline)
+        InputRouter.classify(app.engageQuery)
     }
 
     var body: some View {
@@ -23,9 +23,9 @@ struct EngageView: View {
             ZStack {
                 FinchTheme.background.ignoresSafeArea()
                 VStack(spacing: 12) {
-                    ARIAHeader()
                     engageBar
                     pipelinePicker
+                    actionRow
                     if !app.statusMessage.isEmpty || app.glassPipeline.isRunning || app.osintEngine.isRunning {
                         Text(statusLine)
                             .font(FinchTheme.monoSmall)
@@ -73,7 +73,7 @@ struct EngageView: View {
                 }
                 .padding(.top, 8)
             }
-            .navigationTitle("Scan")
+            .navigationTitle("THE MACHINE")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -112,7 +112,7 @@ struct EngageView: View {
 
     private var engageBar: some View {
         HStack(spacing: 8) {
-            TextField("SCAN MY NETWORK", text: Bindable(app).engageQuery)
+            TextField("name · email · address · plate · domain · 0x · CIDR", text: Bindable(app).engageQuery)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .font(FinchTheme.mono)
@@ -129,7 +129,8 @@ struct EngageView: View {
                     .background(FinchTheme.cyan)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
             }
-            .disabled(app.glassPipeline.isRunning || app.osintEngine.isRunning)
+            .disabled(app.glassPipeline.isRunning || app.osintEngine.isRunning
+                      || (app.engageQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && app.selectedPipeline != .glassFabric))
         }
         .padding(.horizontal)
     }
@@ -138,7 +139,7 @@ struct EngageView: View {
         VStack(alignment: .leading, spacing: 6) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
-                    ForEach(PipelineKind.allCases.filter { $0 != .ble }) { kind in
+                    ForEach(PipelineKind.allCases) { kind in
                         Button {
                             app.selectedPipeline = kind
                         } label: {
@@ -266,9 +267,6 @@ struct EngageView: View {
     }
 
     private func performEngage() {
-        if app.engageQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            app.engageQuery = "scan my network"
-        }
         let kind = InputRouter.resolve(query: app.engageQuery, override: app.selectedPipeline)
         lastScan = (app.engageQuery, app.selectedPipeline)
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()

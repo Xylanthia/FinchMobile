@@ -324,7 +324,7 @@ struct BLEDevice: Identifiable, Codable, Hashable {
     }
 
     var distanceLabel: String {
-        guard let m = estimatedDistanceMeters else { return "not_available" }
+        guard let m = estimatedDistanceMeters else { return "range unknown (no TX power advertised)" }
         let ft = m * 3.28084
         let band: String
         switch m {
@@ -342,7 +342,7 @@ struct BLEDevice: Identifiable, Codable, Hashable {
     }
 
     var distanceShortLabel: String {
-        guard let m = estimatedDistanceMeters else { return "not_available" }
+        guard let m = estimatedDistanceMeters else { return "range unknown" }
         return m < 10 ? String(format: "~%.1f m", m) : String(format: "~%.0f m", m)
     }
 

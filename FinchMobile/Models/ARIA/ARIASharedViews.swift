@@ -65,7 +65,7 @@ struct ARIAFingerprintView: View {
         // §1.4.4 — firmware not emitting fingerprint data is an explicit state, not empty fields.
         guard let decode, decode.hasFingerprintData, let fp = decode.bestFingerprint else {
             return AnyView(
-                Text(decode == nil ? "fingerprinting not yet available from device" : "unidentified device")
+                Text("no fingerprint match")
                     .font(FinchTheme.monoSmall)
                     .foregroundStyle(FinchTheme.textSecondary)
             )
@@ -73,7 +73,6 @@ struct ARIAFingerprintView: View {
 
         let vendor = fp.vendor
         let cves = CVEEnricher.cves(vendor: vendor, model: fp.modelCandidate, deviceClass: fp.deviceClass)
-        let confidence = fp.confidence ?? 0
 
         return AnyView(
             VStack(alignment: .leading, spacing: 6) {
@@ -85,7 +84,7 @@ struct ARIAFingerprintView: View {
                         Text("· \(model)").font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary)
                     }
                     Spacer()
-                    ConfidenceTag(confidence: confidence, hasModel: fp.modelCandidate?.isEmpty == false)
+                    ConfidenceTag(confidence: fp.confidence, hasModel: fp.modelCandidate?.isEmpty == false)
                 }
                 if let cls = fp.deviceClass, !cls.isEmpty {
                     Text(cls.uppercased())
@@ -109,13 +108,14 @@ struct ARIAFingerprintView: View {
 }
 
 /// Low-confidence vendor-only reads differently from high-confidence model+CVE (§1.4.2).
+/// No confidence = a vendor-only OUI/company lookup, labelled as such (not "LOW 0%").
 private struct ConfidenceTag: View {
-    var confidence: Double
+    var confidence: Double?
     var hasModel: Bool
 
     var body: some View {
-        let strong = confidence >= 0.8 && hasModel
-        Text(strong ? "HIGH \(pct)" : "LOW \(pct)")
+        let strong = (confidence ?? 0) >= 0.8 && hasModel
+        Text(confidence == nil ? "OUI VENDOR" : strong ? "HIGH \(pct)" : "LOW \(pct)")
             .font(.system(.caption2, design: .monospaced))
             .padding(.horizontal, 6).padding(.vertical, 2)
             .background(
@@ -123,7 +123,7 @@ private struct ConfidenceTag: View {
             )
             .foregroundStyle(strong ? FinchTheme.cyan : FinchTheme.warn)
     }
-    private var pct: String { "\(Int(confidence * 100))%" }
+    private var pct: String { "\(Int((confidence ?? 0) * 100))%" }
 }
 
 // MARK: - Frame counter bar (shared by Wi-Fi & BLE, §3.2/§3.3)
@@ -207,6 +207,78 @@ struct ARIADecodeDetail: View {
             } else {
                 Text("(empty)").font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary)
             }
+        }
+    }
+}
+
+// MARK: - Live vs total (one canonical pair per source, labelled identically everywhere)
+
+/// "Live now" = heard by the handheld in the last 60 s (Sub-GHz: still in its RAM ring).
+/// "Total seen" = every distinct device/capture in the persistent history, in range or not.
+/// Total never decrements when something leaves range, and Total ≥ Live always.
+struct ARIASourceCounts: View {
+    @Environment(AppModel.self) private var app
+    let source: ARIALogSource
+
+    var body: some View {
+        let history = app.aria.history
+        let connected = app.aria.connection.state.isConnected
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                if source == .rfid {
+                    Text("reader").font(.caption2).foregroundStyle(FinchTheme.textSecondary)
+                    Text(connected ? app.aria.summary?.rfidState ?? "state unknown" : "—")
+                        .font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textPrimary)
+                } else {
+                    Text(source == .subghz ? "in handheld RAM now" : "live now")
+                        .font(.caption2).foregroundStyle(FinchTheme.textSecondary)
+                    Text(connected ? history.liveCount(source).formatted() : "—")
+                        .font(FinchTheme.monoSmall.weight(.semibold)).foregroundStyle(FinchTheme.cyan)
+                }
+                Spacer()
+                Text("total seen").font(.caption2).foregroundStyle(FinchTheme.textSecondary)
+                Text(history.totalText(source))
+                    .font(FinchTheme.monoSmall.weight(.semibold)).foregroundStyle(FinchTheme.textPrimary)
+            }
+            if let logged = history.handheldTotal(source) {
+                Text("handheld flash log: \(logged.formatted()) records")
+                    .font(.system(.caption2, design: .monospaced)).foregroundStyle(FinchTheme.textSecondary)
+            }
+            if case .unavailable(let why) = history.backfill[source] {
+                Text("history unavailable · \(why)").font(.caption2).foregroundStyle(FinchTheme.warn)
+            }
+        }
+        .listRowBackground(FinchTheme.surface)
+    }
+}
+
+/// Non-blocking backfill progress ("Loading capture history: 1,840 / 3,112").
+struct ARIAHistoryBanner: View {
+    @Environment(AppModel.self) private var app
+
+    var body: some View {
+        if let text = app.aria.history.progressText {
+            HStack(spacing: 8) {
+                ProgressView().controlSize(.small)
+                Text(text).font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textPrimary)
+            }
+            .listRowBackground(FinchTheme.surface)
+        }
+    }
+}
+
+/// Marks a history row that is no longer being heard. The row itself is never removed.
+struct ARIARangeTag: View {
+    @Environment(AppModel.self) private var app
+    let source: ARIALogSource
+    let id: String
+
+    var body: some View {
+        if !app.aria.history.isLive(source, id) {
+            let last = app.aria.history.lastSeen(source, id)
+            Text("NOT IN RANGE" + (last.map { " · last \($0.formatted(date: .omitted, time: .shortened))" } ?? ""))
+                .font(.system(.caption2, design: .monospaced))
+                .foregroundStyle(FinchTheme.textSecondary)
         }
     }
 }

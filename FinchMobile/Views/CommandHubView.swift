@@ -7,8 +7,8 @@ struct CommandHubView: View {
         NavigationStack {
             List {
                 Section("Scan & Network") {
-                    NavigationLink { EngageView() } label: { Label("Scan", systemImage: "magnifyingglass") }
                     NavigationLink { FinchNetworkView() } label: { Label("Network", systemImage: "network") }
+                    NavigationLink { DronePanelView() } label: { Label("Drone", systemImage: "airplane") }
                 }
                 Section("ARIA") {
                     NavigationLink("Session / Export") { ARIASessionExportView() }

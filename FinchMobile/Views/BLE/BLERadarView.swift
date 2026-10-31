@@ -147,7 +147,7 @@ struct BLERadarView: View {
                     }
                     .accessibilityLabel("Export")
 
-                    Text("\(devices.count)/\(app.bleScanner.devices.count)")
+                    Text("\(devices.count) shown / \(app.bleScanner.devices.count) phone BLE")
                         .font(FinchTheme.mono)
                         .foregroundStyle(FinchTheme.cyan)
                 }

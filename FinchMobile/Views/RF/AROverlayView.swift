@@ -5,7 +5,8 @@ import RealityKit
 /// AR overlay: places floating labels for fused tracks using distance estimates (bearing when available).
 struct AROverlayView: View {
     @Environment(AppModel.self) private var app
-    @State private var location = LocationProvider()
+    /// Shared with the ARIA Overview radar so both show the same heading.
+    private var location: LocationProvider { BLESurveyFix.location }
     @State private var supported = ARWorldTrackingConfiguration.isSupported
 
     var body: some View {
@@ -36,7 +37,6 @@ struct AROverlayView: View {
                 }
             }
             .onAppear { location.requestAndStart() }
-            .onDisappear { location.stop() }
             .navigationTitle("AR · RF OVERLAY")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear { app.refreshFusion() }

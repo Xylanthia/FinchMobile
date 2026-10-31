@@ -14,7 +14,8 @@ struct DronePanelView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        // Pushed from More (no longer a tab), so it uses the parent navigation stack.
+        Group {
             ZStack {
                 FinchTheme.background.ignoresSafeArea()
                 List {

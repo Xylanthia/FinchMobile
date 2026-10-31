@@ -58,6 +58,7 @@ final class TrackFusionEngine {
             track.deviceClass = classGuess
             track.rssi = device.rssi
             track.estimatedDistanceM = distance
+            track.distanceUnreliable = distanceUnreliable(rssi: device.rssi, txPower: device.txPower)
             track.lastSeen = now
             track.linkedBLEId = key
             upsertSource(&track, kind: .ble, label: device.shortUUID, confidence: 0.85)
@@ -79,7 +80,7 @@ final class TrackFusionEngine {
             tracks[key] = track
         }
         pruneStale(olderThan: 180)
-        statusText = "\(tracks.count) tracks · \(elevatedCount) elevated"
+        statusText = "\(tracks.count) fused tracks (phone BLE + LAN) · \(elevatedCount) elevated"
     }
 
     func ingestHosts(_ hosts: [IoTHost]) {
@@ -132,7 +133,7 @@ final class TrackFusionEngine {
             track.anomalyScore = anomaly
             tracks[key] = track
         }
-        statusText = "\(tracks.count) tracks · \(elevatedCount) elevated"
+        statusText = "\(tracks.count) fused tracks (phone BLE + LAN) · \(elevatedCount) elevated"
     }
 
     func injectSynthetic(
@@ -196,10 +197,22 @@ final class TrackFusionEngine {
         tracks = tracks.filter { $0.value.isSynthetic || $0.value.lastSeen >= cutoff }
     }
 
+    /// RSSI estimates beyond this are noise, not range: report "unreliable", never a number.
+    static let maxReliableDistanceM = 150.0
+
+    /// `txPower` is the advertised TX Power Level (dBm at the antenna), not the RSSI expected
+    /// at 1 m. Using it directly as the 1 m reference overstated range by ~41 dB — e.g. tx 0,
+    /// rssi -93 → 10^(93/20) = 44,668 m. Reference = tx − 41 dB (2.4 GHz free-space loss at
+    /// 1 m), exponent 2.2 as in BLEDevice. Returns nil above `maxReliableDistanceM`.
     private func estimateDistanceM(rssi: Int?, txPower: Int?) -> Double? {
         guard let rssi, let txPower else { return nil }
-        let ratio = (Double(txPower) - Double(rssi)) / 20.0
-        return max(0.5, pow(10.0, ratio))
+        let referenceAt1m = Double(txPower) - 41.0
+        let meters = max(0.5, pow(10.0, (referenceAt1m - Double(rssi)) / 22.0))
+        return meters <= Self.maxReliableDistanceM ? meters : nil
+    }
+
+    private func distanceUnreliable(rssi: Int?, txPower: Int?) -> Bool {
+        rssi != nil && txPower != nil && estimateDistanceM(rssi: rssi, txPower: txPower) == nil
     }
 
     private func uuidFromString(_ s: String) -> UUID {

@@ -92,7 +92,8 @@ final class ARIAClient {
         var warnings: [String] = []
         for (key, endpoint) in [("subghz_live", "/api/subghz/raw?n=50"), ("rfid", "/api/rfid")] {
             do {
-                root[key] = try ARIAJSONResponse.object(try await getData(endpoint), endpoint: endpoint)
+                root[key] = try ARIAJSONResponse.object(try await getData(endpoint), endpoint: endpoint,
+                                                        statusReport: key == "rfid")
             } catch {
                 warnings.append(error.localizedDescription)
             }
@@ -129,4 +130,128 @@ final class ARIAClient {
     func replaySubGHz(_ capture: ARIASubGHzCapture) async throws -> Data {
         try await getData(capture.replayPath)
     }
+
+    // MARK: - Persistent capture log (firmware aria_log.h)
+
+    /// History pages and the event stream are long transfers over the AP; they get their own
+    /// session so the 8 s / 15 s snapshot timeouts above never cut them off.
+    private let longSession: URLSession = {
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 45            // idle gap; the stream pings every 15 s
+        config.timeoutIntervalForResource = 7 * 24 * 3600
+        config.waitsForConnectivity = false
+        config.httpAdditionalHeaders = ["User-Agent": "FinchMobile/3.2 (ARIA module)"]
+        return URLSession(configuration: config)
+    }()
+
+    private func getLong(_ path: String) async throws -> Data {
+        // The log answers 503 BUSY while its writer holds the flash lock; that is a retry, not a failure.
+        var attempt = 0
+        while true {
+            let (data, resp) = try await longSession.data(from: url(path))
+            let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
+            if (200..<300).contains(code) { return data }
+            attempt += 1
+            if code != 503 || attempt >= 6 {
+                let body = String(decoding: data.prefix(160), as: UTF8.self)
+                throw Failure(message: "HTTP \(code) for \(path) \(body)", statusCode: code)
+            }
+            try await Task.sleep(nanoseconds: UInt64(attempt) * 500_000_000)
+        }
+    }
+
+    /// GET /api/log/stats — the handheld's own per-source totals.
+    func logStats() async throws -> [String: Any] {
+        try ARIAJSONResponse.object(try await getLong("/api/log/stats"), endpoint: "/api/log/stats")
+    }
+
+    /// GET /api/log — records with seq > sinceSeq, oldest first.
+    func logPage(_ source: ARIALogSource, sinceSeq: Int, limit: Int) async throws -> [String: Any] {
+        let path = "/api/log?source=\(source.rawValue)&since_seq=\(sinceSeq)&limit=\(limit)"
+        return try ARIAJSONResponse.object(try await getLong(path), endpoint: path)
+    }
+
+    struct StreamEvent {
+        var id: String?
+        var event = "message"
+        var data = ""
+    }
+
+    /// GET /api/stream (Server-Sent Events). Ends when the connection drops; the caller
+    /// reconnects with the last id and re-pages /api/log from its cursors to cover any gap.
+    func events(lastEventID: String?) -> AsyncThrowingStream<StreamEvent, Error> {
+        let request: URLRequest = {
+            var req = URLRequest(url: url("/api/stream"))
+            req.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+            req.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+            if let lastEventID { req.setValue(lastEventID, forHTTPHeaderField: "Last-Event-ID") }
+            return req
+        }()
+        let session = longSession
+        return AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    let (bytes, resp) = try await session.bytes(for: request)
+                    let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
+                    guard code == 200 else { throw Failure(message: "HTTP \(code) for /api/stream", statusCode: code) }
+                    // Parsed by hand: AsyncBytes.lines skips the blank lines that end SSE events.
+                    var line: [UInt8] = []
+                    var event = StreamEvent()
+                    for try await byte in bytes {
+                        guard byte == 0x0A else { line.append(byte); continue }
+                        if line.last == 0x0D { line.removeLast() }
+                        if line.isEmpty {
+                            if !event.data.isEmpty { continuation.yield(event) }
+                            event = StreamEvent(id: event.id)
+                        } else if line.first != 0x3A {   // ':' = comment
+                            let text = String(decoding: line, as: UTF8.self)
+                            let parts = text.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
+                            var value = parts.count > 1 ? String(parts[1]) : ""
+                            if value.hasPrefix(" ") { value.removeFirst() }
+                            switch parts[0] {
+                            case "id": event.id = value
+                            case "event": event.event = value
+                            case "data": event.data += event.data.isEmpty ? value : "\n" + value
+                            default: break
+                            }
+                        }
+                        line.removeAll(keepingCapacity: true)
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+}
+
+/// The ARIA handheld's own web service is not a target. While Finch is connected to the
+/// handheld, LAN scans annotate its address as self instead of reporting a bare finding.
+@MainActor
+enum ARIASelfDevice {
+    private(set) static var hosts: Set<String> = []
+
+    static func update(host: String?, connected: Bool) {
+        guard let host, !host.isEmpty else { return }
+        if connected { hosts.insert(host) } else { hosts.remove(host) }
+    }
+
+    static func isSelf(_ ip: String) -> Bool { hosts.contains(ip) }
+
+    /// Keeps every hit (nothing hidden) but marks it informational and self-owned.
+    static func annotate(_ hits: [OffenseHit], ip: String) -> [OffenseHit] {
+        guard isSelf(ip) else { return hits }
+        return hits.map { hit in
+            var h = hit
+            guard !h.summary.hasPrefix(selfTag) else { return h }
+            h.detail = "Self-device: this is the ARIA handheld Finch is connected to (reported severity \(h.severity)). " + h.detail
+            h.severity = "INFO"
+            h.summary = selfTag + h.summary
+            return h
+        }
+    }
+
+    static let selfTag = "SELF · ARIA handheld · "
 }

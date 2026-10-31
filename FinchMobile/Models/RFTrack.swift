@@ -45,6 +45,8 @@ struct RFTrack: Identifiable, Codable, Hashable {
     var sources: [RFSourceHit]
     var rssi: Int?
     var estimatedDistanceM: Double?
+    /// RSSI-derived range exceeded the reliable ceiling; shown as unreliable, not a number.
+    var distanceUnreliable: Bool? = nil
     var bearingDeg: Double?
     var latitude: Double?
     var longitude: Double?

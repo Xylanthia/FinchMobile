@@ -134,7 +134,13 @@ enum BLESurveyFix {
     static var latitude: Double?
     static var longitude: Double?
     static var accuracyMeters: Double?
-    static let location = LocationProvider()
+    /// The one phone location/CLHeading source every view reads. CLLocationManager delivers
+    /// delegate callbacks on the run loop of the thread that created it, and the first touch
+    /// can come from the BLE queue (BLEDevice init → ObservationLocation.capture), which has
+    /// no run loop — heading then never arrives ("Compass unavailable"). Always build on main.
+    static let location: LocationProvider = Thread.isMainThread
+        ? LocationProvider()
+        : DispatchQueue.main.sync { LocationProvider() }
 
     static func ingest(_ loc: CLLocation) {
         guard loc.horizontalAccuracy >= 0 else {

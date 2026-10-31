@@ -70,6 +70,10 @@ struct TrackRow: View {
                     Text(String(format: "~%.1f m", d))
                         .font(FinchTheme.monoSmall)
                         .foregroundStyle(.secondary)
+                } else if track.distanceUnreliable == true {
+                    Text(String(format: "> %.0f m · estimate unreliable", TrackFusionEngine.maxReliableDistanceM))
+                        .font(FinchTheme.monoSmall)
+                        .foregroundStyle(FinchTheme.warn)
                 }
             }
             Spacer()

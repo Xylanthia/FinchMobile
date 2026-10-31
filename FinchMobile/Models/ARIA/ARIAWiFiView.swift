@@ -4,8 +4,12 @@ struct ARIAWiFiView: View {
     @Environment(AppModel.self) private var app
 
     var body: some View {
-        let devices = app.aria.session.wifi
+        let devices = app.aria.history.wifi
         List {
+            Section {
+                ARIAHistoryBanner()
+                ARIASourceCounts(source: .wifi)
+            }
             if devices.isEmpty {
                 ARIAEmptyRow(connected: app.aria.connection.state.isConnected)
             }
@@ -21,6 +25,7 @@ struct ARIAWiFiView: View {
                             if let r = d.rssi { Text("\(r) dBm").font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary) }
                         }
                         Text(d.mac).font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.cyan)
+                        ARIARangeTag(source: .wifi, id: d.mac)
                         HStack(spacing: 8) {
                             if let v = d.vendor { Text(v).font(.caption2).foregroundStyle(FinchTheme.textSecondary) }
                             if let enc = d.encryption { Text(enc).font(.caption2).foregroundStyle(FinchTheme.textSecondary) }
@@ -63,9 +68,12 @@ struct ARIAWiFiDetail: View {
 }
 
 struct ARIAEmptyRow: View {
+    @Environment(AppModel.self) private var app
     var connected: Bool
     var body: some View {
-        Text(connected ? "No observations yet." : "Not connected — join ARIA-Setup.")
+        // Never present "nothing" while history is still arriving.
+        let loading = !app.aria.history.loaded || app.aria.history.progressText != nil
+        Text(loading ? "Loading capture history…" : connected ? "No observations yet." : "Not connected — join ARIA-Setup. No stored history yet.")
             .font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary)
             .listRowBackground(FinchTheme.surface)
     }

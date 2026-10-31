@@ -5,8 +5,12 @@ struct ARIASubGHzView: View {
     @State private var outcome: String?
 
     var body: some View {
-        let captures = app.aria.session.subghz
+        let captures = app.aria.history.subghz
         List {
+            Section {
+                ARIAHistoryBanner()
+                ARIASourceCounts(source: .subghz)
+            }
             if captures.isEmpty {
                 ARIAEmptyRow(connected: app.aria.connection.state.isConnected)
             }

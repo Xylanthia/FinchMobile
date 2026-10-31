@@ -37,7 +37,7 @@ final class AppModel {
         playbooks.bind(forensic: forensic)
         sensors.bind(fusion: fusion, forensic: forensic)
         playbooks.loadBundled()
-        forensic.record(category: "system", summary: "Finch Mobile 3.2 (build 36 — ARIA module) boot")
+        forensic.record(category: "system", summary: "Finch Mobile 3.2 (build 39 — ARIA history + Finch pipeline) boot")
     }
 
     func refreshFusion() {

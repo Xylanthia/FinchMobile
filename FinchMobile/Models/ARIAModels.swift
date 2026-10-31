@@ -184,6 +184,7 @@ struct ARIASessionSummary: Codable, Hashable {
     var subghzCount: Int?
     var uasCount: Int?
     var rfidState: String?
+    var rfidError: String?
     var heapFree: Int?
     var queueDrops: Int?
 
@@ -194,6 +195,7 @@ struct ARIASessionSummary: Codable, Hashable {
         case subghzCount = "subghz_count"
         case uasCount = "uas_count"
         case rfidState = "rfid_state"
+        case rfidError = "rfid_error"
         case heapFree = "heap_free"
         case queueDrops = "queue_drops"
     }
@@ -338,7 +340,9 @@ enum ARIAJSONResponse {
         var errorDescription: String? { message }
     }
 
-    static func object(_ data: Data, endpoint: String) throws -> [String: Any] {
+    /// `statusReport`: the endpoint describes hardware state (e.g. /api/rfid), where an
+    /// `error` member is the device's reported fault — data to show, not a failed request.
+    static func object(_ data: Data, endpoint: String, statusReport: Bool = false) throws -> [String: Any] {
         guard !data.isEmpty else { throw Failure(message: "\(endpoint): empty response; retry refresh") }
         let value: Any
         do {
@@ -351,11 +355,39 @@ enum ARIAJSONResponse {
         guard let root = value as? [String: Any] else {
             throw Failure(message: "\(endpoint): expected a JSON object, not a scalar or array")
         }
-        if root["ok"] as? Bool == false || root["error"] != nil {
+        // `"error": null` / `""` is the absence of an error, not an error.
+        let reportedError = (root["error"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+        if root["ok"] as? Bool == false || (!statusReport && reportedError != nil) {
             let detail = root["error"] as? String ?? root["output"] as? String ?? "device reported an error"
             throw Failure(message: "\(endpoint): \(String(detail.prefix(180)))")
         }
         return root
+    }
+
+    /// Vendor strings the firmware uses for "no OUI match" — not a fingerprint.
+    static let nonVendorValues: Set<String> = ["", "unknown", "local/private address", "n/a", "none"]
+
+    /// Maps one firmware Wi-Fi/BLE row (/api/devices or a /api/log record) onto the app
+    /// record shape. A known OUI/company vendor becomes a vendor-only fingerprint attempt so
+    /// rows only read "no fingerprint match" when there genuinely is none.
+    static func normalizeDevice(_ device: [String: Any]) -> (band: String, row: [String: Any])? {
+        let band = (device["band"] as? String ?? device["kind"] as? String ?? "").lowercased()
+        guard band == "ble" || band == "wifi" else { return nil }
+        var row = device
+        if band == "ble" {
+            row["address"] = device["mac"]
+            row["name"] = device["name"] ?? device["ssid"]
+        } else {
+            row["encryption"] = device["encrypt"]
+            if let packets = device["pkts"] as? [String: Any] {
+                for key in ["probe", "beacon", "data", "deauth", "mgmt"] { row[key + "_count"] = packets[key] }
+            }
+        }
+        if row["decode"] == nil, let vendor = device["vendor"] as? String,
+           !nonVendorValues.contains(vendor.lowercased()) {
+            row["decode"] = ["fingerprint_attempts": [["vendor": vendor]], "verification_status": "OUI_VENDOR_ONLY"]
+        }
+        return (band, row)
     }
 
     /// Normalizes the documented live /api/devices schema and nested export schema.
@@ -370,19 +402,8 @@ enum ARIAJSONResponse {
         var wifi: [[String: Any]] = []
         var ble: [[String: Any]] = []
         for device in devices {
-            let band = (device["band"] as? String ?? device["kind"] as? String ?? "").lowercased()
-            var row = device
-            if band == "ble" {
-                row["address"] = device["mac"]
-                row["name"] = device["name"] ?? device["ssid"]
-                ble.append(row)
-            } else if band == "wifi" {
-                row["encryption"] = device["encrypt"]
-                if let packets = device["pkts"] as? [String: Any] {
-                    for key in ["probe", "beacon", "data", "deauth", "mgmt"] { row[key + "_count"] = packets[key] }
-                }
-                wifi.append(row)
-            }
+            guard let normalized = normalizeDevice(device) else { continue }
+            if normalized.band == "ble" { ble.append(normalized.row) } else { wifi.append(normalized.row) }
         }
         root["wifi"] = source["wifi"] as? [Any] ?? wifi
         root["ble"] = source["ble"] as? [Any] ?? ble
@@ -418,6 +439,7 @@ enum ARIAJSONResponse {
         summary["ble_count"] = (root["ble"] as? [Any])?.count
         summary["subghz_count"] = (root["subghz"] as? [Any])?.count
         summary["rfid_state"] = rfid["state"]
+        summary["rfid_error"] = (rfid["error"] as? String).flatMap { $0.isEmpty ? nil : $0 }
         root["summary"] = summary
         var parsed = ARIASessionParser.parse(try JSONSerialization.data(withJSONObject: root, options: [.sortedKeys]))
         parsed.warnings = source["poll_warnings"] as? [String] ?? []

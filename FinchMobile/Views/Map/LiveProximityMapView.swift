@@ -6,7 +6,8 @@ import CoreLocation
 /// Device pins sit at **RSSI-estimated distance**; compass bearing is synthetic (BLE has no AoA).
 struct LiveProximityMapView: View {
     @Environment(AppModel.self) private var app
-    @State private var location = LocationProvider()
+    /// Shared with the ARIA Overview radar so both show the same heading.
+    private var location: LocationProvider { BLESurveyFix.location }
     @State private var camera: MapCameraPosition = .userLocation(followsHeading: true, fallback: .automatic)
     @State private var selectedID: UUID?
     @State private var showRadar = true
@@ -51,7 +52,8 @@ struct LiveProximityMapView: View {
                     } label: {
                         Image(systemName: "location.circle.fill")
                     }
-                    Text("\(devices.count)")
+                    // Phone's own BLE scanner, not the ARIA handheld (see ARIA Overview for those).
+                    Text("\(devices.count) phone BLE")
                         .font(FinchTheme.mono)
                         .foregroundStyle(FinchTheme.cyan)
                 }
@@ -74,9 +76,6 @@ struct LiveProximityMapView: View {
                     app.bleScanner.start()
                 }
                 refreshMaxRing()
-            }
-            .onDisappear {
-                location.stop()
             }
             .onChange(of: devices.count) { _, _ in refreshMaxRing() }
         }
