@@ -236,6 +236,22 @@ enum CountyAssessorService {
             }
         }
 
+        // Without a state or ZIP there is nothing to match on. Previously every catalog row
+        // passed and the first eight were returned — all Texas (Harris, Dallas, …), so every
+        // state-less address search came back as Texas.
+        guard !state.isEmpty || !prefix.isEmpty else { return [] }
+
+        // A geocoded county name narrows the state's rows to that county.
+        let geocodedCounty = comps.county.lowercased()
+            .replacingOccurrences(of: " county", with: "")
+            .trimmingCharacters(in: .whitespaces)
+        if !state.isEmpty, !geocodedCounty.isEmpty {
+            let sameCounty = portals.counties.filter {
+                $0.state.uppercased() == state && $0.county.lowercased() == geocodedCounty
+            }
+            if !sameCounty.isEmpty { return Array(sameCounty.prefix(5)) }
+        }
+
         var hits: [PortalRow] = []
         for row in portals.counties {
             if !state.isEmpty, row.state.uppercased() != state { continue }
