@@ -4,7 +4,6 @@ import UIKit
 struct EngageView: View {
     @Environment(AppModel.self) private var app
     @FocusState private var engageFocused: Bool
-    @State private var lastScan: (query: String, kind: PipelineKind)?
     @State private var mqttDuration: Double = 20
     @State private var showMQTTSheet = false
     @State private var mqttTargetIP: String = ""
@@ -36,7 +35,6 @@ struct EngageView: View {
                     if shouldShowOsint {
                         if let report = app.osintEngine.report {
                             OsintLatticeView(report: report, onAction: followOsintAction)
-                                .refreshable { await repeatScan() }
                         } else if app.osintEngine.isRunning {
                             ProgressView(app.osintEngine.progressText)
                                 .tint(FinchTheme.cyan)
@@ -45,7 +43,6 @@ struct EngageView: View {
                     } else {
                     LatticeView(
                         report: app.glassPipeline.report,
-                        showNetworkHeader: false,
                         onDeepScan: {
                             app.glassPipeline.deepScan(ip: $0)
                             app.statusMessage = "Deep Scan → \($0)"
@@ -68,7 +65,6 @@ struct EngageView: View {
                         },
                         onExport: exportSentinel
                     )
-                    .refreshable { await repeatScan() }
                     }
                 }
                 .padding(.top, 8)
@@ -129,8 +125,7 @@ struct EngageView: View {
                     .background(FinchTheme.cyan)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
             }
-            .disabled(app.glassPipeline.isRunning || app.osintEngine.isRunning
-                      || (app.engageQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && app.selectedPipeline != .glassFabric))
+            .disabled(app.engageQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && app.selectedPipeline != .glassFabric)
         }
         .padding(.horizontal)
     }
@@ -149,13 +144,13 @@ struct EngageView: View {
                                 .padding(.vertical, 6)
                                 .background(
                                     RoundedRectangle(cornerRadius: 8)
-                                        .fill(app.selectedPipeline == kind ? FinchTheme.cyan : FinchTheme.surface)
+                                        .fill(app.selectedPipeline == kind ? FinchTheme.cyan.opacity(0.22) : FinchTheme.surface)
                                 )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 8)
                                         .stroke(app.selectedPipeline == kind ? FinchTheme.cyan : FinchTheme.cyan.opacity(0.25), lineWidth: 1)
                                 )
-                                .foregroundStyle(app.selectedPipeline == kind ? Color.black : FinchTheme.textSecondary)
+                                .foregroundStyle(app.selectedPipeline == kind ? FinchTheme.cyan : FinchTheme.textSecondary)
                         }
                         .buttonStyle(.plain)
                     }
@@ -239,36 +234,8 @@ struct EngageView: View {
         }
     }
 
-    private func repeatScan() async {
-        guard !app.glassPipeline.isRunning && !app.osintEngine.isRunning else { return }
-        if let lastScan {
-            app.engageQuery = lastScan.query
-            app.selectedPipeline = lastScan.kind
-        }
-        await runScan()
-        await app.glassPipeline.waitForCompletion()
-        await Task.yield()
-        while app.glassPipeline.isRunning || app.osintEngine.isRunning {
-            if Task.isCancelled { return }
-            try? await Task.sleep(nanoseconds: 200_000_000)
-        }
-    }
-
     private func engage() {
-        Task { await runScan() }
-    }
-
-    private func runScan() async {
-        guard await app.aria.connection.awaitPreflight() else {
-            app.statusMessage = "Allow Local Network access in Settings, then retry."
-            return
-        }
-        performEngage()
-    }
-
-    private func performEngage() {
         let kind = InputRouter.resolve(query: app.engageQuery, override: app.selectedPipeline)
-        lastScan = (app.engageQuery, app.selectedPipeline)
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         app.lastKind = kind
         rememberSeed(kind, app.engageQuery)
@@ -451,7 +418,7 @@ struct FinchOutlineButtonStyle: ButtonStyle {
     }
 }
 
-/// Uses the same Glass Fabric coordinator as Scan; all actions retain 3.2 behavior.
+/// Network sweep screen under More (separate from the 3.2 Engage engine above).
 struct FinchNetworkView: View {
     @Environment(AppModel.self) private var app
     @Environment(\.scenePhase) private var scenePhase

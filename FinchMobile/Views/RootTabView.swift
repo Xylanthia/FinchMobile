@@ -6,12 +6,12 @@ struct RootTabView: View {
 
     var body: some View {
         TabView {
-            // Finch pipeline (THE MACHINE: OSINT + Glass Fabric + BLE), as in 3.2.
+            // Finch pipeline (THE MACHINE: OSINT + Glass Fabric + BLE), exactly as in 3.2.
             EngageView()
-                .tabItem { Label("Engage", systemImage: "bolt.fill") }
+                .tabItem { Label("Engage", systemImage: "dot.radiowaves.left.and.right") }
 
             ARIADashboardView()
-                .tabItem { Label("ARIA", systemImage: "dot.radiowaves.left.and.right") }
+                .tabItem { Label("ARIA", systemImage: "wave.3.right.circle") }
 
             BLERadarView()
                 .tabItem { Label("Nearby", systemImage: "antenna.radiowaves.left.and.right") }
