@@ -3,7 +3,7 @@ name: Build ARIA IPA
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [aria-ios-app]
 
 permissions:
   contents: read
