@@ -118,10 +118,25 @@ final class ARIAClient {
         guard !command.isEmpty else {
             throw Failure(message: "action has no command", statusCode: nil)
         }
-        let encoded = command.addingPercentEncoding(
-            withAllowedCharacters: .urlQueryAllowed
-        ) ?? command
-        return try await getData("/api/cmd?run=\(encoded)")
+        // The handheld's command endpoint is /api/omni?cmd= (there is no /api/cmd).
+        var components = URLComponents(url: url("/api/omni"), resolvingAgainstBaseURL: true)
+        components?.queryItems = [URLQueryItem(name: "cmd", value: command)]
+        guard let target = components?.url else { throw Failure(message: "bad command", statusCode: nil) }
+        let data = try await getData(target.absoluteString)
+        if let reply = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any], reply["ok"] as? Bool == false {
+            throw Failure(message: reply["output"] as? String ?? "handheld rejected the command", statusCode: 409)
+        }
+        return data
+    }
+
+    /// GET /api/tools — the handheld's control registry (groups and their actions).
+    func fetchTools() async throws -> [ARIAMode] {
+        let root = try ARIAJSONResponse.object(try await getData("/api/tools"), endpoint: "/api/tools")
+        return (root["groups"] as? [[String: Any]] ?? []).compactMap { group in
+            guard let name = group["name"] as? String else { return nil }
+            let (actions, _) = ARIASessionParser.decodeArray(group["actions"] as? [Any], as: ARIAAction.self)
+            return ARIAMode(name: name, command: group["id"] as? String, actions: actions)
+        }
     }
 
     /// Replay a captured Sub-GHz sequence via its raw_capture_ref (§3.4).

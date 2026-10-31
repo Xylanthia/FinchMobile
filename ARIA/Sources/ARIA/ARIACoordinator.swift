@@ -24,6 +24,9 @@ final class ARIACoordinator {
     /// Decoded per-frame intelligence from the handheld's evidence rings.
     let evidence = ARIAEvidence()
     private var lastEvidenceRefresh = Date.distantPast
+    private var lastToolsFetch = Date.distantPast
+    /// The handheld's reply to the last control fired from the app.
+    private(set) var lastFireOutput: String?
     private(set) var streamConnected = false
     private(set) var historyError: String?
 
@@ -87,10 +90,14 @@ final class ARIACoordinator {
             let fix = ObservationLocation.capture()
             exportData = try geotagger.annotate(snapshot.raw, fix: fix)
             session = snapshot
-            modes = snapshot.modes
+            if !snapshot.modes.isEmpty { modes = snapshot.modes }
             summary = snapshot.summary
             lastError = snapshot.warnings.isEmpty ? nil : snapshot.warnings.joined(separator: " · ")
             await history.ingestLive(snapshot)
+            if modes.isEmpty || Date().timeIntervalSince(lastToolsFetch) > 300 {
+                lastToolsFetch = Date()
+                if let tools = try? await client.fetchTools(), !tools.isEmpty { modes = tools }
+            }
             if Date().timeIntervalSince(lastEvidenceRefresh) > 30 {
                 lastEvidenceRefresh = Date()
                 Task { await self.refreshEvidence() }
@@ -248,7 +255,9 @@ final class ARIACoordinator {
             return .failed("not connected to ARIA-Setup")
         }
         do {
-            _ = try await client.fire(action)
+            let reply = try await client.fire(action)
+            let object = (try? JSONSerialization.jsonObject(with: reply)) as? [String: Any]
+            lastFireOutput = object?["output"] as? String ?? String(decoding: reply.prefix(2000), as: UTF8.self)
             // Reconcile from the device rather than assuming our command is current truth.
             await refresh()
             return .success

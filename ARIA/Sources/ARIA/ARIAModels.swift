@@ -243,6 +243,15 @@ struct ARIAAction: Codable, Hashable, Identifiable {
     }
 
     var displayLabel: String { label ?? name }
+
+    /// Actions that only make sense on the handheld itself (its own screen navigation, or
+    /// a value typed on its keyboard) are labelled instead of fired blind.
+    var phoneBlockedReason: String? {
+        let c = command ?? name
+        if c.hasPrefix("ui.") { return "Handheld screen action — use it on the handheld." }
+        if c.contains("%s") { return "Needs a value entered on the handheld." }
+        return nil
+    }
 }
 
 /// A top-level mode and the real action set discovered by walking into it.

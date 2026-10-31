@@ -260,7 +260,9 @@ struct ARIAModeActionsView: View {
             }
             ForEach(mode.actions) { action in
                 Button {
-                    if action.requiresConfirmation == true {
+                    if let reason = action.phoneBlockedReason {
+                        outcome = "\(action.displayLabel): \(reason)"
+                    } else if action.requiresConfirmation == true {
                         pendingConfirm = action
                     } else {
                         fire(action)
@@ -274,6 +276,9 @@ struct ARIAModeActionsView: View {
                         }
                         if let page = action.page {
                             Text(page).font(.caption2).foregroundStyle(FinchTheme.cyanDim)
+                        }
+                        if let reason = action.phoneBlockedReason {
+                            Text(reason).font(.caption2).foregroundStyle(FinchTheme.warn)
                         }
                     }
                 }
@@ -308,7 +313,7 @@ struct ARIAModeActionsView: View {
         Task {
             let result = await app.aria.fire(action)
             switch result {
-            case .success: outcome = "\(action.displayLabel): OK"
+            case .success: outcome = "\(action.displayLabel): OK" + (app.aria.lastFireOutput.map { "\n" + String($0.prefix(600)) } ?? "")
             case .unknown(let m): outcome = "\(action.displayLabel): UNKNOWN — \(m)"
             case .failed(let m): outcome = "\(action.displayLabel): FAILED — \(m)"
             }
