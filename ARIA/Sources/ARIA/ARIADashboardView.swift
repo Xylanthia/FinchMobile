@@ -215,42 +215,49 @@ struct ARIARadarPanel: View {
                         Text(progress).font(FinchTheme.monoSmall)
                     }
                 }
-                count("Computers", "laptopcomputer", live: classified(app.aria.session.wifi, "computer", "laptop"),
-                      total: classified(app.aria.history.wifi, "computer", "laptop").map(String.init) ?? "—")
-                count("Phones", "iphone", live: classified(app.aria.session.wifi, "phone"),
-                      total: classified(app.aria.history.wifi, "phone").map(String.init) ?? "—")
-                count(.wifi, "Wi-Fi devices", "wifi")
-                count(.ble, "BLE devices", "bolt.fill")
-                count(.subghz, "Sub-GHz captures", "chart.bar.fill")
-                count(.uas, "UAS / Remote ID", "airplane")
-                Text("Live: last 60 s · Total: all stored history · ARIA handheld radios only")
+                TimelineView(.periodic(from: .now, by: 1)) { timeline in
+                    let rows = app.aria.overview.rows(now: timeline.date, connected: app.aria.connection.state.isConnected)
+                    ScrollView {
+                        VStack(spacing: 4) {
+                            ForEach(rows) { row in
+                                if row.priority {
+                                    NavigationLink {
+                                        ARIAWiFiDetail(overviewRecords: row.records, categoryTitle: row.title)
+                                    } label: { categoryCount(row) }
+                                    .buttonStyle(.plain)
+                                } else {
+                                    categoryCount(row)
+                                }
+                            }
+                        }
+                    }
+                    .frame(height: CGFloat(min(rows.count, 6)) * 28)
+                }
+                if let error = app.aria.overviewError {
+                    Text(error).font(.system(size: 9)).foregroundStyle(FinchTheme.textSecondary)
+                }
+                Text("Live: last 60 s · Total: all stored history · ARIA handheld radios only · Counts include only fingerprinted devices and decoded Sub-GHz captures")
                     .font(.system(size: 9)).foregroundStyle(FinchTheme.textSecondary)
-                    .lineLimit(1).minimumScaleFactor(0.8)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }.padding(12).background(FinchCardBackground()).glowBorder(active: true, cornerRadius: 12)
         .onAppear { location.requestAndStart() }
     }
 
-    private func classified(_ devices: [ARIAWiFiDevice], _ kinds: String...) -> Int? {
-        let classes = devices.compactMap { $0.decode?.bestFingerprint?.deviceClass?.lowercased() }
-        guard !classes.isEmpty else { return nil }
-        return classes.filter { value in kinds.contains { value.contains($0) } }.count
-    }
-
-    private func count(_ source: ARIALogSource, _ label: String, _ icon: String) -> some View {
-        let history = app.aria.history
-        return count(label, icon, live: history.liveCount(source), total: history.totalText(source))
-    }
-
-    private func count(_ label: String, _ icon: String, live: Int?, total: String) -> some View {
-        HStack {
-            Image(systemName: icon).foregroundStyle(FinchTheme.cyan).frame(width: 22)
-            Text(app.aria.connection.state.isConnected ? live.map(String.init) ?? "—" : "—")
-                .font(.system(.headline, design: .monospaced)).frame(minWidth: 32, alignment: .trailing)
-            Text(label).font(.subheadline)
+    private func categoryCount(_ row: ARIAOverviewCatalog.Row) -> some View {
+        let accent = row.priority ? FinchTheme.secondaryAccent : FinchTheme.cyan
+        return HStack {
+            Image(systemName: row.icon).foregroundStyle(accent).frame(width: 22)
+            Text(row.title).font(.subheadline).foregroundStyle(row.priority ? accent : FinchTheme.textPrimary)
             Spacer()
-            Text(total).font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textPrimary)
+            Text(String(row.live)).font(FinchTheme.monoSmall).frame(width: 48, alignment: .trailing)
+            Text(String(row.total)).font(FinchTheme.monoSmall).frame(width: 64, alignment: .trailing)
         }
+        .foregroundStyle(row.priority ? accent : FinchTheme.textPrimary)
+        .frame(height: 24)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(row.title), live now \(row.live), total seen \(row.total)")
     }
 }
 

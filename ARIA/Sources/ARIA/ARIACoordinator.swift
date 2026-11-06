@@ -14,6 +14,12 @@ final class ARIACoordinator {
     private(set) var modes: [ARIAMode] = []
     private(set) var session: ARIASessionExport = .empty
     private(set) var summary: ARIASessionSummary?
+    private(set) var overview = ARIAOverviewCatalog()
+    private(set) var overviewError: String?
+    private static var overviewCache: URL? {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
+            .appendingPathComponent("aria-overview.json")
+    }
 
     private(set) var lastError: String?
     private(set) var isPolling: Bool = false
@@ -47,6 +53,10 @@ final class ARIACoordinator {
          connection: ARIAConnectionManager = ARIAConnectionManager()) {
         self.client = client
         self.connection = connection
+        if let url = Self.overviewCache, let data = try? Data(contentsOf: url),
+           let saved = try? JSONDecoder().decode(ARIAOverviewCatalog.self, from: data) {
+            overview = saved
+        }
     }
 
     func start() {
@@ -82,6 +92,8 @@ final class ARIACoordinator {
         isPolling = true
         defer { isPolling = false }
 
+        mergeOverviewHistory()
+
         await connection.evaluate(using: client)
         guard connection.state.isConnected else { return }
 
@@ -94,6 +106,18 @@ final class ARIACoordinator {
             summary = snapshot.summary
             lastError = snapshot.warnings.isEmpty ? nil : snapshot.warnings.joined(separator: " · ")
             await history.ingestLive(snapshot)
+            mergeOverviewHistory()
+            overview.ingestSession(snapshot.raw)
+            do {
+                // Read-only endpoint: contains detections and validated RID, absent from /api/devices.
+                let data = try await client.getData("/api/capabilities")
+                let capabilities = try ARIAJSONResponse.object(data, endpoint: "/api/capabilities")
+                overview.ingestCapabilities(capabilities)
+                overviewError = nil
+            } catch {
+                overviewError = "Detection update unavailable; stored counts retained."
+            }
+            saveOverview()
             if modes.isEmpty || Date().timeIntervalSince(lastToolsFetch) > 300 {
                 lastToolsFetch = Date()
                 if let tools = try? await client.fetchTools(), !tools.isEmpty { modes = tools }
@@ -151,6 +175,8 @@ final class ARIACoordinator {
                 try await page(source, stats: s)
             }
             historyError = nil
+            mergeOverviewHistory()
+            saveOverview()
         } catch {
             historyError = "history: \(error.localizedDescription)"
             for source in ARIALogSource.allCases where history.backfill[source] != .complete {
@@ -229,6 +255,44 @@ final class ARIACoordinator {
             if !contiguous { requestBackfill() }
         default:
             break   // ping
+        }
+    }
+
+    // MARK: - Overview category projection
+
+    /// Seed historical classifications without turning a backfill into a fresh sighting.
+    private func mergeOverviewHistory() {
+        func fields<T: Encodable>(_ value: T) -> [String: Any] {
+            guard let data = try? JSONEncoder().encode(value) else { return [:] }
+            return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] ?? [:]
+        }
+        for d in history.wifi where ARIAOverviewCatalog.category(d.category) != nil {
+            overview.insert(id: "wifi:" + d.mac.uppercased(), category: d.category,
+                            row: fields(d), onlyIfMissing: true)
+        }
+        for d in history.ble where ARIAOverviewCatalog.category(d.category) != nil {
+            overview.insert(id: "ble:" + d.address.uppercased(), category: d.category,
+                            row: fields(d), onlyIfMissing: true)
+        }
+        for d in history.subghz {
+            let row = fields(d)
+            if ARIAOverviewCatalog.isDecoded(row) {
+                overview.insert(id: "subghz:" + d.id, category: "subghz_decoded", row: row, onlyIfMissing: true)
+            }
+        }
+        // This store contains decoded RID only; generic RF is never inserted by its parser.
+        for d in history.uas where !d.uasID.trimmingCharacters(in: .whitespaces).isEmpty {
+            overview.insert(id: "uas:" + d.uasID, category: "drone", row: fields(d), onlyIfMissing: true)
+        }
+    }
+
+    private func saveOverview() {
+        guard let url = Self.overviewCache else { return }
+        do {
+            try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try JSONEncoder().encode(overview).write(to: url, options: .atomic)
+        } catch {
+            overviewError = "Overview history could not be saved."
         }
     }
 

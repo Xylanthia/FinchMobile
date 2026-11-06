@@ -54,9 +54,13 @@ struct ARIAWiFiView: View {
 }
 
 struct ARIAWiFiDetail: View {
-    let device: ARIAWiFiDevice
+    var device: ARIAWiFiDevice? = nil
+    var overviewRecords: [ARIAOverviewCatalog.Record] = []
+    var categoryTitle: String? = nil
+    @State private var selectedOverviewID = ""
 
     private var fields: [(String, String?)] {
+        guard let device else { return [] }
         var rows: [(String, String?)] = []
         rows.append(("SSID", device.ssid))
         rows.append(("MAC", device.mac))
@@ -82,6 +86,27 @@ struct ARIAWiFiDetail: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
+                if let categoryTitle {
+                    let selected = overviewRecords.first { $0.id == selectedOverviewID } ?? overviewRecords.first
+                    if let selected {
+                        Picker(categoryTitle, selection: Binding(
+                            get: { selected.id }, set: { selectedOverviewID = $0 }
+                        )) {
+                            ForEach(overviewRecords) { record in
+                                Text(record.label).tag(record.id)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        ARIADeviceFieldsCard(rows: [
+                            ("category", selected.category),
+                            ("device", selected.label),
+                            ("vendor", selected.fields["vendor"] as? String),
+                            ("last heard", selected.heardAt.map { $0.formatted() })
+                        ])
+                        ARIAJSONTree(value: selected.fields)
+                            .padding().background(FinchCardBackground())
+                    }
+                } else if let device {
                 ARIAFrameCounterBar(counts: [
                     ("probe", device.probeCount), ("beacon", device.beaconCount),
                     ("data", device.dataCount), ("deauth", device.deauthCount),
@@ -92,11 +117,12 @@ struct ARIAWiFiDetail: View {
                 ARIAEvidenceSection(address: device.mac)
                 ARIADecodeDetail(decode: device.decode)
                 ARIAStoredRecordSection(source: .wifi, key: device.mac)
+                }
             }
             .padding()
         }
         .background(FinchTheme.background.ignoresSafeArea())
-        .navigationTitle(device.mac)
+        .navigationTitle(categoryTitle ?? device?.mac ?? "Device")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

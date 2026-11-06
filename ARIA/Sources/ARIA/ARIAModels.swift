@@ -58,6 +58,7 @@ struct ARIADecodeEnvelope: Codable, Hashable {
 
 struct ARIAWiFiDevice: Codable, Hashable, Identifiable {
     var mac: String
+    var category: String?       // Firmware classification; vendor alone never implies a class.
     var ssid: String?
     var vendor: String?          // OUI-resolved
     var rssi: Int?
@@ -86,7 +87,7 @@ struct ARIAWiFiDevice: Codable, Hashable, Identifiable {
     var id: String { mac }
 
     enum CodingKeys: String, CodingKey {
-        case mac, ssid, vendor, rssi, encryption
+        case mac, category, ssid, vendor, rssi, encryption
         case seenCount = "seen_count"
         case probeCount = "probe_count"
         case beaconCount = "beacon_count"
@@ -109,6 +110,7 @@ struct ARIAWiFiDevice: Codable, Hashable, Identifiable {
 
 struct ARIABLEDeviceRecord: Codable, Hashable, Identifiable {
     var address: String
+    var category: String?
     var name: String?
     var rssi: Int?
     var companyID: String?        // manufacturer company ID
@@ -132,7 +134,7 @@ struct ARIABLEDeviceRecord: Codable, Hashable, Identifiable {
     var id: String { address }
 
     enum CodingKeys: String, CodingKey {
-        case address, name, rssi
+        case address, category, name, rssi
         case companyID = "company_id"
         case seenCount = "seen_count"
         case adStructures = "ad_structures"
@@ -427,7 +429,7 @@ enum ARIAJSONResponse {
         guard band == "ble" || band == "wifi" else { return nil }
         var row = device
         if band == "ble" {
-            row["address"] = device["mac"]
+            row["address"] = device["mac"] ?? device["address"]
             row["name"] = device["name"] ?? device["ssid"]
         } else {
             row["encryption"] = device["encrypt"]
