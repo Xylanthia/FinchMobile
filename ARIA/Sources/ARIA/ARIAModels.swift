@@ -237,23 +237,17 @@ struct ARIAAction: Codable, Hashable, Identifiable {
     var group: String?               // GROUP column (top-level mode)
     var page: String?                // PAGE column (sub-level)
 
+    var input: Int?
+    var choices: String?
+
     var id: String { command ?? name }
 
     enum CodingKeys: String, CodingKey {
-        case name, label, description, command, group, page
+        case name, label, description, command, group, page, input, choices
         case requiresConfirmation = "requires_confirmation"
     }
 
     var displayLabel: String { label ?? name }
-
-    /// Actions that only make sense on the handheld itself (its own screen navigation, or
-    /// a value typed on its keyboard) are labelled instead of fired blind.
-    var phoneBlockedReason: String? {
-        let c = command ?? name
-        if c.hasPrefix("ui.") { return "Handheld screen action — use it on the handheld." }
-        if c.contains("%s") { return "Needs a value entered on the handheld." }
-        return nil
-    }
 
     /// The handheld's /api/tools lists the UAS Remote ID group with no `actions` array
     /// (aria_tool_outputs.cpp). Remote ID is heard by the Wi-Fi and BLE receivers, so these
@@ -275,7 +269,10 @@ struct ARIAAction: Codable, Hashable, Identifiable {
 
     /// Actions for a /api/tools group, filling the UAS group the handheld leaves empty.
     static func forGroup(_ group: [String: Any]) -> [ARIAAction] {
-        let (actions, _) = ARIASessionParser.decodeArray(group["actions"] as? [Any], as: ARIAAction.self)
+        let (decoded, _) = ARIASessionParser.decodeArray(group["actions"] as? [Any], as: ARIAAction.self)
+        let actions = decoded.map { item in
+            var action = item; action.group = action.group ?? group["id"] as? String; return action
+        }
         return actions.isEmpty && (group["id"] as? String) == "uas" ? uasRemoteIDDefaults : actions
     }
 }

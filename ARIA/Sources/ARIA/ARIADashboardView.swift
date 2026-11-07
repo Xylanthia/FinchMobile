@@ -290,11 +290,6 @@ struct ARIAModeActionsView: View {
     @Environment(AppModel.self) private var app
     let mode: ARIAMode
 
-    @State private var pendingConfirm: ARIAAction?
-    /// Last reply per action, shown in its own row under that action — never floated over the list.
-    @State private var results: [String: String] = [:]
-    @State private var running: Set<String> = []
-
     var body: some View {
         List {
             if mode.command == "uas" || mode.name.localizedCaseInsensitiveContains("UAS") {
@@ -312,81 +307,21 @@ struct ARIAModeActionsView: View {
                     .font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary)
             }
             ForEach(mode.actions) { action in
-                Button {
-                    if action.phoneBlockedReason != nil {
-                        return   // reason is already printed in the row
-                    } else if action.requiresConfirmation == true {
-                        pendingConfirm = action
-                    } else {
-                        fire(action)
-                    }
+                NavigationLink {
+                    ARIAActionDestination(action: action)
                 } label: {
-                    VStack(alignment: .leading, spacing: 2) {
-                        // Unmapped action → render raw name + description generically (§1.5.5).
-                        Text(action.displayLabel).font(FinchTheme.mono).foregroundStyle(FinchTheme.textPrimary)
-                        if let d = action.description, !d.isEmpty {
-                            Text(d).font(.caption2).foregroundStyle(FinchTheme.textSecondary)
-                        }
-                        if let page = action.page {
-                            Text(page).font(.caption2).foregroundStyle(FinchTheme.cyanDim)
-                        }
-                        if let reason = action.phoneBlockedReason {
-                            Text(reason).font(.caption2).foregroundStyle(FinchTheme.warn)
-                        }
-                        if running.contains(action.id) {
-                            HStack(spacing: 6) {
-                                ProgressView().controlSize(.mini)
-                                Text("Running…").font(.caption2).foregroundStyle(FinchTheme.textSecondary)
-                            }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(action.displayLabel).font(FinchTheme.mono)
+                        if let detail = action.description {
+                            Text(detail).font(.caption2).foregroundStyle(FinchTheme.textSecondary)
                         }
                     }
                 }
-                .disabled(!app.aria.connection.state.isConnected || running.contains(action.id))   // connection-gated (§1.6)
                 .listRowBackground(FinchTheme.surface)
-                if let result = results[action.id] {
-                    HStack(alignment: .top, spacing: 8) {
-                        Text(result)
-                            .font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary)
-                            .lineLimit(10).textSelection(.enabled)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        Button { results[action.id] = nil } label: {
-                            Image(systemName: "xmark.circle.fill").foregroundStyle(FinchTheme.textSecondary)
-                        }
-                        .buttonStyle(.borderless)
-                        .accessibilityLabel("Dismiss result")
-                    }
-                    .listRowBackground(FinchTheme.background)
-                }
             }
         }
         .scrollContentBackground(.hidden)
         .background(FinchTheme.background)
         .navigationTitle(mode.name)
-        .confirmationDialog(
-            "Fire \(pendingConfirm?.displayLabel ?? "")?",
-            isPresented: Binding(get: { pendingConfirm != nil }, set: { if !$0 { pendingConfirm = nil } }),
-            titleVisibility: .visible
-        ) {
-            Button("Fire", role: .destructive) {
-                if let a = pendingConfirm { fire(a) }
-                pendingConfirm = nil
-            }
-            Button("Cancel", role: .cancel) { pendingConfirm = nil }
-        }
-    }
-
-    private func fire(_ action: ARIAAction) {
-        running.insert(action.id)
-        Task {
-            let result = await app.aria.fire(action)
-            running.remove(action.id)
-            switch result {
-            case .success:
-                let output = app.aria.lastFireOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                results[action.id] = output.isEmpty ? "OK" : "OK — " + String(output.prefix(600))
-            case .unknown(let m): results[action.id] = "UNKNOWN — \(m)"
-            case .failed(let m): results[action.id] = "FAILED — \(m)"
-            }
-        }
     }
 }
