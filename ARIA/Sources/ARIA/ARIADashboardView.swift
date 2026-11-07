@@ -219,7 +219,15 @@ struct ARIARadarPanel: View {
                     let rows = app.aria.overview.rows(now: timeline.date, connected: app.aria.connection.state.isConnected)
                     ScrollView {
                         VStack(spacing: 4) {
-                            ForEach(rows) { row in
+                            // Radio totals must not depend on optional firmware fingerprints.
+                            // Keep the original device rows visible even on older captures.
+                            categoryCount(rows.first { $0.id == "computer" } ?? .init(id: "computer", records: [], live: 0))
+                            categoryCount(rows.first { $0.id == "phone" } ?? .init(id: "phone", records: [], live: 0))
+                            radioCount(.wifi, "Wi-Fi devices", "wifi")
+                            radioCount(.ble, "BLE devices", "bolt.fill")
+                            categoryCount(rows.first { $0.id == "subghz_decoded" } ?? .init(id: "subghz_decoded", records: [], live: 0))
+                            radioCount(.uas, "UAS / Remote ID", "airplane")
+                            ForEach(rows.filter { !["computer", "phone", "subghz_decoded"].contains($0.id) }) { row in
                                 if row.priority {
                                     NavigationLink {
                                         ARIAWiFiDetail(overviewRecords: row.records, categoryTitle: row.title)
@@ -231,17 +239,32 @@ struct ARIARadarPanel: View {
                             }
                         }
                     }
-                    .frame(height: CGFloat(min(rows.count, 6)) * 28)
+                    .frame(height: 6 * 28)
                 }
                 if let error = app.aria.overviewError {
                     Text(error).font(.system(size: 9)).foregroundStyle(FinchTheme.textSecondary)
                 }
-                Text("Live: last 60 s · Total: all stored history · ARIA handheld radios only · Counts include only fingerprinted devices and decoded Sub-GHz captures")
+                Text("Live: last 60 s · Total: all stored history · ARIA handheld radios only · Wi-Fi/BLE include all devices; device types require fingerprints; Sub-GHz includes decoded captures")
                     .font(.system(size: 9)).foregroundStyle(FinchTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }.padding(12).background(FinchCardBackground()).glowBorder(active: true, cornerRadius: 12)
         .onAppear { location.requestAndStart() }
+    }
+
+    private func radioCount(_ source: ARIALogSource, _ title: String, _ icon: String) -> some View {
+        let history = app.aria.history
+        let live = app.aria.connection.state.isConnected ? history.liveCount(source) : 0
+        return HStack {
+            Image(systemName: icon).foregroundStyle(FinchTheme.cyan).frame(width: 22)
+            Text(title).font(.subheadline)
+            Spacer()
+            Text(String(live)).font(FinchTheme.monoSmall).frame(width: 48, alignment: .trailing)
+            Text(history.totalText(source)).font(FinchTheme.monoSmall).frame(width: 64, alignment: .trailing)
+        }
+        .foregroundStyle(FinchTheme.textPrimary)
+        .frame(height: 24)
+        .accessibilityElement(children: .combine)
     }
 
     private func categoryCount(_ row: ARIAOverviewCatalog.Row) -> some View {
