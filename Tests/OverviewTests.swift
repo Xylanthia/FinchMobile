@@ -53,6 +53,53 @@ import Foundation
                 ["uas_id": " ", "validation": true, "classification": "VALIDATED_REMOTE_ID"]
             ]]
         ]
+        // Real firmware transport shape: four classes in the SAME poll, including
+        // numeric RID types and raw Sub-GHz observation status (not app-only fixtures).
+        var firmwareCapabilities = capabilities
+        firmwareCapabilities["uas"] = ["observations": [
+            ["uas_id": "RID-LIVE", "validation": true, "classification": "VALIDATED_REMOTE_ID",
+             "id_type": 1, "ua_type": 2, "lat": 42.0, "lon": -83.0, "alt_geo": 120.5,
+             "speed": 4.5, "op_id": "operator", "op_lat": 42.1, "op_lon": -83.1,
+             "rid_transport": "BLE service data", "last_seen_ms": 99900, "raw_evidence_id": 81],
+            ["uas_id": "RF-NOISE", "validation": false, "classification": "UNKNOWN_RF"],
+            ["uas_id": "UNVALIDATED", "validation": false, "classification": "VALIDATED_REMOTE_ID"],
+            ["uas_id": "\n ", "validation": true, "classification": "VALIDATED_REMOTE_ID"]
+        ]]
+        let liveSource: [String: Any] = [
+            "session": ["uptime_ms": 100000, "devices": devices],
+            "capabilities": firmwareCapabilities,
+            "subghz_live": ["packets": [
+                ["sequence": 21, "boot_id": 5, "ts_ms": 99000, "observation": ["status": "VERIFIED", "decoded_hex": "1234"]],
+                ["sequence": 22, "boot_id": 5, "observation": ["status": "UNKNOWN"]],
+                ["sequence": 23, "boot_id": 5, "observation": ["status": "INCOMPLETE"]],
+                ["sequence": 24, "boot_id": 5, "observation": ["status": "CANDIDATE"]]
+            ]]
+        ]
+        let liveSession = try ARIAJSONResponse.session(liveSource)
+        precondition(liveSession.malformedSkipped == 0)
+        precondition(liveSession.uas.count == 1, "Validated firmware RID reaches the UAS tab/history")
+        let aircraft = liveSession.uas[0]
+        precondition(aircraft.uasID == "RID-LIVE" && aircraft.idType == "1" && aircraft.uaType == "2")
+        precondition(aircraft.latitude == 42 && aircraft.longitude == -83 && aircraft.altitude == 120.5)
+        precondition(aircraft.speed == 4.5 && aircraft.operatorID == "operator")
+        precondition(aircraft.operatorLatitude == 42.1 && aircraft.operatorLongitude == -83.1)
+        precondition(aircraft.decoderProvenance == "BLE service data")
+        precondition(liveSession.subghz.count == 4, "Unknown/partial/candidate captures remain on their radio tab")
+        let normalizedLive = try JSONSerialization.jsonObject(with: liveSession.raw) as! [String: Any]
+        let rawFirmware = normalizedLive["firmware_response"] as! [String: Any]
+        precondition(NSDictionary(dictionary: rawFirmware).isEqual(to: liveSource), "Original evidence survives normalization")
+        var integrated = ARIAOverviewCatalog()
+        integrated.ingestSession(liveSession.raw, now: now)
+        integrated.ingestCapabilities(rawFirmware["capabilities"] as! [String: Any], now: now)
+        let integratedRows = integrated.rows(now: now, connected: true)
+        for category in ["phone", "computer", "drone", "subghz_decoded"] {
+            precondition(integratedRows.contains { $0.id == category && $0.total > 0 })
+        }
+        precondition(integratedRows.first { $0.id == "subghz_decoded" }?.total == 1)
+        let exported = try ARIAJSONResponse.session(["wifi": [], "uas": firmwareCapabilities["uas"]!])
+        precondition(exported.uas == liveSession.uas, "Nested capture exports use the same RID adapter")
+        let legacy = try ARIAJSONResponse.session(["wifi": [], "uas": [["uas_id": "legacy", "id_type": "serial"]]])
+        precondition(legacy.uas.first?.idType == "serial")
         catalog.ingestCapabilities(capabilities, now: now)
         catalog.ingestCapabilities(capabilities, now: now)
         rows = catalog.rows(now: now, connected: true)

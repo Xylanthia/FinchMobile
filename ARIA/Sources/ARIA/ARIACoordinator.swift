@@ -108,13 +108,13 @@ final class ARIACoordinator {
             await history.ingestLive(snapshot)
             mergeOverviewHistory()
             overview.ingestSession(snapshot.raw)
-            do {
-                // Read-only endpoint: contains detections and validated RID, absent from /api/devices.
-                let data = try await client.getData("/api/capabilities")
-                let capabilities = try ARIAJSONResponse.object(data, endpoint: "/api/capabilities")
+            let normalized = (try? JSONSerialization.jsonObject(with: snapshot.raw)) as? [String: Any]
+            let firmware = normalized?["firmware_response"] as? [String: Any]
+            if let capabilities = firmware?["capabilities"] as? [String: Any] {
+                // Share the same poll with UAS history, details and export.
                 overview.ingestCapabilities(capabilities)
                 overviewError = nil
-            } catch {
+            } else {
                 overviewError = "Detection update unavailable; stored counts retained."
             }
             saveOverview()

@@ -90,7 +90,7 @@ final class ARIAClient {
         }
         var root: [String: Any] = ["session": devices, "schema": "finch.aria.live.v1"]
         var warnings: [String] = []
-        for (key, endpoint) in [("subghz_live", "/api/subghz/raw?n=50")] {
+        for (key, endpoint) in [("subghz_live", "/api/subghz/raw?n=50"), ("capabilities", "/api/capabilities")] {
             do {
                 root[key] = try ARIAJSONResponse.object(try await getData(endpoint), endpoint: endpoint)
             } catch {

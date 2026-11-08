@@ -480,13 +480,39 @@ enum ARIAJSONResponse {
             }
             return row
         }
-        // Generic RF observations are deliberately not promoted to drone records.
-        root["uas"] = source["uas"] as? [Any] ?? []
+        // Firmware sends a UAS object; the live poll receives it through capabilities.
+        // Keep every original field and translate only the typed app's key/value aliases.
+        let capabilities = source["capabilities"] as? [String: Any] ?? [:]
+        let uas = source["uas"] as? [String: Any] ?? capabilities["uas"] as? [String: Any]
+        if let uas {
+            root["uas"] = (uas["observations"] as? [[String: Any]] ?? []).compactMap { observation -> [String: Any]? in
+                guard observation["validation"] as? Bool == true,
+                      observation["classification"] as? String == "VALIDATED_REMOTE_ID",
+                      let id = observation["uas_id"] as? String,
+                      !id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+                var row = observation
+                for key in ["id_type", "ua_type"] {
+                    if let value = row[key] as? NSNumber { row[key] = value.stringValue }
+                }
+                row["latitude"] = observation["latitude"] ?? observation["lat"]
+                row["longitude"] = observation["longitude"] ?? observation["lon"]
+                row["altitude"] = observation["altitude"] ?? observation["alt_geo"] ?? observation["altitude_geo_m"]
+                row["speed"] = observation["speed"] ?? observation["horizontal_speed_mps"]
+                row["operator_id"] = observation["operator_id"] ?? observation["op_id"]
+                row["operator_lat"] = observation["operator_lat"] ?? observation["op_lat"] ?? observation["operator_latitude"]
+                row["operator_lon"] = observation["operator_lon"] ?? observation["op_lon"] ?? observation["operator_longitude"]
+                row["decoder_provenance"] = observation["decoder_provenance"] ?? observation["rid_transport"]
+                return row
+            }
+        } else {
+            root["uas"] = source["uas"] as? [Any] ?? []
+        }
         var summary = source["summary"] as? [String: Any] ?? [:]
         if let uptime = live["uptime_ms"] as? Int { summary["uptime_s"] = uptime / 1000 }
         summary["wifi_count"] = (root["wifi"] as? [Any])?.count
         summary["ble_count"] = (root["ble"] as? [Any])?.count
         summary["subghz_count"] = (root["subghz"] as? [Any])?.count
+        summary["uas_count"] = (root["uas"] as? [Any])?.count
         root["summary"] = summary
         var parsed = ARIASessionParser.parse(try JSONSerialization.data(withJSONObject: root, options: [.sortedKeys]))
         parsed.warnings = source["poll_warnings"] as? [String] ?? []
