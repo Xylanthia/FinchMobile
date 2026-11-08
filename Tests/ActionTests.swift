@@ -23,7 +23,7 @@ import Foundation
         precondition(ARIAAction.confirmationCommand(from: "./aria wifi lab-disconnect confirm 123456789") == nil)
         precondition(ARIAAction.confirmationCommand(from: "ERROR") == nil)
         // Every current registry action must have either native navigation or a concrete command.
-        let registry = try String(contentsOfFile: "/work/Tests/menu-fixture.h", encoding: .utf8)
+        let registry = try String(contentsOfFile: "Tests/menu-fixture.h", encoding: .utf8)
         let regex = try NSRegularExpression(pattern: #"\"(ui\.[^\"]+)\""#)
         for match in regex.matches(in: registry, range: NSRange(registry.startIndex..., in: registry)) {
             let command = String(registry[Range(match.range(at: 1), in: registry)!])

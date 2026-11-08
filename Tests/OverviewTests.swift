@@ -12,8 +12,8 @@ import Foundation
             ["mac": "AA:06", "band": "wifi", "category": "drone", "last_seen_ms": 0]
         ]
         let captures: [[String: Any]] = [
-            ["sequence": 1, "boot": 10, "ts_ms": 99000, "decode": ["decoded_status": "VERIFIED"]],
-            ["sequence": 2, "boot": 10, "ts_ms": 99000, "decode": ["decoded_status": "UNKNOWN"]],
+            ["sequence": 1, "boot": 10, "ts_ms": 99000, "replay_eligible": true, "decode": ["decoded_status": "UNKNOWN"]],
+            ["sequence": 2, "boot": 10, "ts_ms": 99000, "replay_eligible": false, "decode": ["decoded_status": "VERIFIED"]],
             ["sequence": 3, "boot": 10, "ts_ms": 99000, "decode": ["decoded_status": "INCOMPLETE"]],
             ["sequence": 4, "boot": 10, "decode": ["decoded_status": "ERROR"]],
             ["sequence": 5, "boot": 10]
@@ -35,8 +35,8 @@ import Foundation
         precondition(rows.first { $0.id == "computer" }?.live == 0)
         precondition(rows.first { $0.id == "computer" }?.total == 1)
         precondition(rows.first { $0.id == "phone" }?.live == 1)
-        precondition(rows.first { $0.id == "subghz_decoded" }?.total == 1)
-        precondition(rows.first { $0.id == "subghz_decoded" }?.live == 1, "Sub-GHz firmware ts_ms uses uptime")
+        precondition(rows.first { $0.id == "subghz_replayable" }?.total == 1)
+        precondition(rows.first { $0.id == "subghz_replayable" }?.live == 1, "Sub-GHz firmware ts_ms uses uptime")
         precondition(!rows.contains { ["unclassified", "drone_control_candidate"].contains($0.id) })
         let capabilities: [String: Any] = [
             "uptime_ms": 100000,
@@ -69,7 +69,7 @@ import Foundation
             "session": ["uptime_ms": 100000, "devices": devices],
             "capabilities": firmwareCapabilities,
             "subghz_live": ["packets": [
-                ["sequence": 21, "boot_id": 5, "ts_ms": 99000, "observation": ["status": "VERIFIED", "decoded_hex": "1234"]],
+                ["sequence": 21, "boot_id": 5, "ts_ms": 99000, "replay_state": "REPLAYABLE_RAW_CAPTURE", "observation": ["status": "UNKNOWN", "decoded_hex": "1234"]],
                 ["sequence": 22, "boot_id": 5, "observation": ["status": "UNKNOWN"]],
                 ["sequence": 23, "boot_id": 5, "observation": ["status": "INCOMPLETE"]],
                 ["sequence": 24, "boot_id": 5, "observation": ["status": "CANDIDATE"]]
@@ -92,10 +92,10 @@ import Foundation
         integrated.ingestSession(liveSession.raw, now: now)
         integrated.ingestCapabilities(rawFirmware["capabilities"] as! [String: Any], now: now)
         let integratedRows = integrated.rows(now: now, connected: true)
-        for category in ["phone", "computer", "drone", "subghz_decoded"] {
+        for category in ["phone", "computer", "drone", "subghz_replayable"] {
             precondition(integratedRows.contains { $0.id == category && $0.total > 0 })
         }
-        precondition(integratedRows.first { $0.id == "subghz_decoded" }?.total == 1)
+        precondition(integratedRows.first { $0.id == "subghz_replayable" }?.total == 1)
         let exported = try ARIAJSONResponse.session(["wifi": [], "uas": firmwareCapabilities["uas"]!])
         precondition(exported.uas == liveSession.uas, "Nested capture exports use the same RID adapter")
         let legacy = try ARIAJSONResponse.session(["wifi": [], "uas": [["uas_id": "legacy", "id_type": "serial"]]])
@@ -110,7 +110,7 @@ import Foundation
         precondition(rows.allSatisfy { $0.total > 0 && $0.live <= $0.total })
         precondition(catalog.rows(now: now.addingTimeInterval(61), connected: true).allSatisfy { $0.live == 0 })
         precondition(catalog.rows(now: now, connected: false).allSatisfy { $0.live == 0 && $0.total > 0 })
-        // Empty follow-up snapshots and app relaunch retain totals and original sighting time.
+        // Catalog encoding preserves values; the app does not persist this catalog.
         catalog.ingestCapabilities(["uptime_ms": 200000, "detections": []], now: now.addingTimeInterval(100))
         let saved = try JSONEncoder().encode(catalog)
         let restored = try JSONDecoder().decode(ARIAOverviewCatalog.self, from: saved)
@@ -129,6 +129,6 @@ import Foundation
         let aged = try JSONSerialization.data(withJSONObject: ["ble": [["address": "BLE-0", "category": "phone", "last_seen_ms": 70000]]])
         manyBLE.ingestSession(aged, now: now.addingTimeInterval(70))
         precondition(manyBLE.rows(now: now.addingTimeInterval(70), connected: true).first?.live == 0)
-        print("PASS: category parsing, BLE history, vendor-only exclusion, age/uptime, decoded captures, RID/detection deduplication, priority, filtering, persistence and expiry")
+        print("PASS: category parsing, BLE history, vendor-only exclusion, age/uptime, replay eligibility, RID/detection deduplication, priority, filtering, persistence and expiry")
     }
 }

@@ -31,7 +31,7 @@ struct ARIAOverviewCatalog: Codable {
             case "alpr_camera": return "ALPR cameras"
             case "gunshot_detector": return "Gunshot detectors"
             case "drone": return "Drones"
-            case "subghz_decoded": return "Sub-GHz decoded"
+            case "subghz_replayable": return "Replayable captures"
             default: return id.replacingOccurrences(of: "_", with: " ").capitalized
             }
         }
@@ -42,7 +42,7 @@ struct ARIAOverviewCatalog: Codable {
             case "drone": return "airplane"
             case "alpr_camera", "other_camera": return "camera"
             case "gunshot_detector": return "waveform"
-            case "subghz_decoded": return "chart.bar.fill"
+            case "subghz_replayable": return "chart.bar.fill"
             default: return "sensor"
             }
         }
@@ -96,18 +96,16 @@ struct ARIAOverviewCatalog: Codable {
             }
         }
         for row in root["subghz"] as? [[String: Any]] ?? [] {
-            guard Self.isDecoded(row), let seq = Self.number(row["sequence"]) else { continue }
+            guard Self.isReplayable(row), let seq = Self.number(row["sequence"]) else { continue }
             let boot = Self.number(row["boot"] ?? row["boot_id"]) ?? 0
-            insert(id: "subghz:\(Int(seq))-\(Int(boot))", category: "subghz_decoded", row: row,
+            insert(id: "subghz:\(Int(seq))-\(Int(boot))", category: "subghz_replayable", row: row,
                    heardAt: Self.heard(row, uptime: uptime, absolute: true, now: now))
         }
     }
 
-    static func isDecoded(_ row: [String: Any]) -> Bool {
-        let decode = row["decode"] as? [String: Any] ?? [:]
-        let state = (decode["decoded_status"] as? String ?? row["decode_state"] as? String ?? "").uppercased()
-        // Missing, ERROR, UNKNOWN and INCOMPLETE are not successful decodes.
-        return ["DECODED", "VERIFIED", "VALID", "VALIDATED"].contains(state)
+    static func isReplayable(_ row: [String: Any]) -> Bool {
+        if let eligible = row["replay_eligible"] as? Bool { return eligible }
+        return ["REPLAYABLE_FRAME", "REPLAYABLE_RAW_CAPTURE", "REPLAY_PREPARED"].contains(row["replay_state"] as? String ?? "")
     }
 
     mutating func ingestCapabilities(_ root: [String: Any], now: Date = Date()) {

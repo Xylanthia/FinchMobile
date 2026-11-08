@@ -163,11 +163,21 @@ struct ARIASubGHzCapture: Codable, Hashable, Identifiable {
 
     var id: String { "\(sequence)-\(boot ?? 0)" }
 
+    var replayEligible: Bool?
+    var replayState: String?
+
+    var isReplayable: Bool {
+        if let replayEligible { return replayEligible }
+        return ["REPLAYABLE_FRAME", "REPLAYABLE_RAW_CAPTURE", "REPLAY_PREPARED"].contains(replayState ?? "")
+    }
+
     enum CodingKeys: String, CodingKey {
         case sequence, boot, rssi, detail, decode
         case frequencyMHz = "frequency_mhz"
         case pulseCount = "pulse_count"
         case durationUS = "duration_us"
+        case replayEligible = "replay_eligible"
+        case replayState = "replay_state"
     }
 
     /// Replay endpoint path (raw_capture_ref), per transport §1.

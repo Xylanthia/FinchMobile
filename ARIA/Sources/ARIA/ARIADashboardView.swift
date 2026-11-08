@@ -90,7 +90,7 @@ struct ARIADashboardView: View {
                                 Text("Join ARIA-Setup Wi-Fi to view live devices.")
                                     .font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary)
                             } else if let error = app.aria.lastError {
-                                Text("Last snapshot · \(error)").font(FinchTheme.monoSmall).lineLimit(2)
+                                Text("Session update · \(error)").font(FinchTheme.monoSmall).lineLimit(2)
                             }
                         }
                         .padding(.horizontal).padding(.bottom, 8)
@@ -206,7 +206,7 @@ struct ARIARadarPanel: View {
                 HStack(alignment: .firstTextBaseline) {
                     Text("ARIA HANDHELD").font(FinchTheme.monoTitle)
                     Spacer()
-                    Text("LIVE NOW · TOTAL SEEN").font(.system(size: 9, design: .monospaced))
+                    Text("CURRENT BOOT SESSION").font(.system(size: 9, design: .monospaced))
                         .foregroundStyle(FinchTheme.textSecondary)
                 }
                 if let progress = app.aria.history.progressText {
@@ -225,9 +225,9 @@ struct ARIARadarPanel: View {
                             categoryCount(rows.first { $0.id == "phone" } ?? .init(id: "phone", records: [], live: 0))
                             radioCount(.wifi, "Wi-Fi devices", "wifi")
                             radioCount(.ble, "BLE devices", "bolt.fill")
-                            categoryCount(rows.first { $0.id == "subghz_decoded" } ?? .init(id: "subghz_decoded", records: [], live: 0))
+                            categoryCount(rows.first { $0.id == "subghz_replayable" } ?? .init(id: "subghz_replayable", records: [], live: 0))
                             radioCount(.uas, "UAS / Remote ID", "airplane")
-                            ForEach(rows.filter { !["computer", "phone", "subghz_decoded"].contains($0.id) }) { row in
+                            ForEach(rows.filter { !["computer", "phone", "subghz_replayable"].contains($0.id) }) { row in
                                 if row.priority {
                                     NavigationLink {
                                         ARIAWiFiDetail(overviewRecords: row.records, categoryTitle: row.title)
@@ -244,7 +244,7 @@ struct ARIARadarPanel: View {
                 if let error = app.aria.overviewError {
                     Text(error).font(.system(size: 9)).foregroundStyle(FinchTheme.textSecondary)
                 }
-                Text("Live: last 60 s · Total: all stored history · ARIA handheld radios only · Wi-Fi/BLE include all devices; device types require fingerprints; Sub-GHz includes decoded captures")
+                Text("Captures from this boot. Device types use the same classification pipeline; unclassified devices remain in Wi-Fi and BLE.")
                     .font(.system(size: 9)).foregroundStyle(FinchTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -254,12 +254,10 @@ struct ARIARadarPanel: View {
 
     private func radioCount(_ source: ARIALogSource, _ title: String, _ icon: String) -> some View {
         let history = app.aria.history
-        let live = app.aria.connection.state.isConnected ? history.liveCount(source) : 0
         return HStack {
             Image(systemName: icon).foregroundStyle(FinchTheme.cyan).frame(width: 22)
             Text(title).font(.subheadline)
             Spacer()
-            Text(String(live)).font(FinchTheme.monoSmall).frame(width: 48, alignment: .trailing)
             Text(history.totalText(source)).font(FinchTheme.monoSmall).frame(width: 64, alignment: .trailing)
         }
         .foregroundStyle(FinchTheme.textPrimary)
@@ -273,14 +271,13 @@ struct ARIARadarPanel: View {
             Image(systemName: row.icon).foregroundStyle(accent).frame(width: 22)
             Text(row.title).font(.subheadline).foregroundStyle(row.priority ? accent : FinchTheme.textPrimary)
             Spacer()
-            Text(String(row.live)).font(FinchTheme.monoSmall).frame(width: 48, alignment: .trailing)
             Text(String(row.total)).font(FinchTheme.monoSmall).frame(width: 64, alignment: .trailing)
         }
         .foregroundStyle(row.priority ? accent : FinchTheme.textPrimary)
         .frame(height: 24)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(row.title), live now \(row.live), total seen \(row.total)")
+        .accessibilityLabel("\(row.title), this session \(row.total)")
     }
 }
 

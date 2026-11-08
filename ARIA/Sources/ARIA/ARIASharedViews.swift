@@ -199,35 +199,22 @@ struct ARIADecodeDetail: View {
     }
 }
 
-// MARK: - Live vs total (one canonical pair per source, labelled identically everywhere)
+// MARK: - Current boot session
 
-/// "Live now" = heard by the handheld in the last 60 s (Sub-GHz: still in its RAM ring).
-/// "Total seen" = every distinct device/capture in the persistent history, in range or not.
-/// Total never decrements when something leaves range, and Total ≥ Live always.
 struct ARIASourceCounts: View {
     @Environment(AppModel.self) private var app
     let source: ARIALogSource
 
     var body: some View {
-        let history = app.aria.history
-        let connected = app.aria.connection.state.isConnected
         VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text(source == .subghz ? "in handheld RAM now" : "live now")
-                    .font(.caption2).foregroundStyle(FinchTheme.textSecondary)
-                Text(connected ? history.liveCount(source).formatted() : "—")
-                    .font(FinchTheme.monoSmall.weight(.semibold)).foregroundStyle(FinchTheme.cyan)
+            HStack {
+                Text("This session").font(.caption2).foregroundStyle(FinchTheme.textSecondary)
                 Spacer()
-                Text("total seen").font(.caption2).foregroundStyle(FinchTheme.textSecondary)
-                Text(history.totalText(source))
-                    .font(FinchTheme.monoSmall.weight(.semibold)).foregroundStyle(FinchTheme.textPrimary)
+                Text(app.aria.history.totalText(source))
+                    .font(FinchTheme.monoSmall.weight(.semibold)).foregroundStyle(FinchTheme.cyan)
             }
-            if let logged = history.handheldTotal(source) {
-                Text("handheld flash log: \(logged.formatted()) records")
-                    .font(.system(.caption2, design: .monospaced)).foregroundStyle(FinchTheme.textSecondary)
-            }
-            if case .unavailable(let why) = history.backfill[source] {
-                Text("history unavailable · \(why)").font(.caption2).foregroundStyle(FinchTheme.warn)
+            if case .unavailable(let why) = app.aria.history.backfill[source] {
+                Text("Session incomplete · \(why)").font(.caption2).foregroundStyle(FinchTheme.warn)
             }
         }
         .listRowBackground(FinchTheme.surface)
@@ -249,18 +236,9 @@ struct ARIAHistoryBanner: View {
     }
 }
 
-/// Marks a history row that is no longer being heard. The row itself is never removed.
+/// Captures remain part of this boot session after the transmitter leaves range.
 struct ARIARangeTag: View {
-    @Environment(AppModel.self) private var app
     let source: ARIALogSource
     let id: String
-
-    var body: some View {
-        if !app.aria.history.isLive(source, id) {
-            let last = app.aria.history.lastSeen(source, id)
-            Text("NOT IN RANGE" + (last.map { " · last \($0.formatted(date: .omitted, time: .shortened))" } ?? ""))
-                .font(.system(.caption2, design: .monospaced))
-                .foregroundStyle(FinchTheme.textSecondary)
-        }
-    }
+    var body: some View { EmptyView() }
 }

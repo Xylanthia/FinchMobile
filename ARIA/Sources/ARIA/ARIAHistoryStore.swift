@@ -87,7 +87,8 @@ enum ARIAHistoryCodec {
             let fallback = ARIASubGHzCapture(sequence: int(mapped["sequence"]) ?? 0, boot: int(mapped["boot"]))
             return .subghz(decode(mapped, as: ARIASubGHzCapture.self) ?? fallback)
         case .uas:
-            return .uas(decode(row, as: ARIAUASRecord.self) ?? ARIAUASRecord(uasID: key))
+            let normalized = try? ARIAJSONResponse.session(["wifi": [], "uas": ["observations": [row]]])
+            return .uas(normalized?.uas.first ?? decode(row, as: ARIAUASRecord.self) ?? ARIAUASRecord(uasID: key))
         }
     }
 
@@ -100,6 +101,8 @@ enum ARIAHistoryCodec {
         if let rssi = r["rssi"] as? NSNumber { row["rssi"] = Int(rssi.doubleValue.rounded()) }
         row["pulse_count"] = int(r["pulse_count"])
         row["duration_us"] = int(r["duration_us"])
+        row["replay_eligible"] = r["replay_eligible"]
+        row["replay_state"] = r["replay_state"]
         let state = r["decode_state"] as? String ?? "UNKNOWN"
         let proto = r["protocol"] as? String ?? "UNKNOWN"
         var detail = [state, proto, r["rx_modulation"] as? String ?? ""].filter { !$0.isEmpty }
@@ -117,6 +120,10 @@ enum ARIAHistoryCodec {
     }
 
     static func row(_ source: ARIALogSource, _ dict: [String: Any], fromLog: Bool) -> ARIAHistoryRow? {
+        if source == .uas, dict["validation"] != nil || dict["classification"] != nil {
+            guard dict["validation"] as? Bool == true,
+                  dict["classification"] as? String == "VALIDATED_REMOTE_ID" else { return nil }
+        }
         guard let key = key(source, dict),
               JSONSerialization.isValidJSONObject(dict),
               let data = try? JSONSerialization.data(withJSONObject: dict, options: [.sortedKeys]),
@@ -128,8 +135,7 @@ enum ARIAHistoryCodec {
 
 // MARK: - SQLite persistence (confined to one serial queue)
 
-/// Durable local record of everything the handheld has reported. Rows are never deleted by
-/// going out of range; only an explicit operator clear removes them.
+/// Volatile current-boot store. No capture database is written to the phone.
 final class ARIAHistoryDB {
     struct Cursor { var epoch: String; var lastSeq: Int; var logRecords: Int }
     struct Stored { let source: ARIALogSource; let key: String; let json: String; let firstSeen: Date; let lastSeen: Date }
@@ -152,26 +158,25 @@ final class ARIAHistoryDB {
     }
 
     private func open() {
-        do {
-            let dir = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
-                                                  appropriateFor: nil, create: true)
-            let url = dir.appendingPathComponent("ARIAHistory.sqlite")
-            guard sqlite3_open_v2(url.path, &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nil) == SQLITE_OK else {
-                openError = "history store: \(lastMessage)"
-                return
+        // Upgrade from the old cross-session cache: never reload it, and remove its files.
+        if let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+            for name in ["ARIAHistory.sqlite", "ARIAHistory.sqlite-wal", "ARIAHistory.sqlite-shm", "aria-overview.json"] {
+                try? FileManager.default.removeItem(at: dir.appendingPathComponent(name))
             }
-            exec("PRAGMA journal_mode=WAL")
-            exec("PRAGMA synchronous=NORMAL")
-            exec("""
-                CREATE TABLE IF NOT EXISTS records(
-                  source TEXT NOT NULL, key TEXT NOT NULL, json TEXT NOT NULL, origin TEXT NOT NULL,
-                  first_seen REAL NOT NULL, last_seen REAL NOT NULL, log_records INTEGER NOT NULL,
-                  PRIMARY KEY(source, key))
-                """)
-            exec("CREATE TABLE IF NOT EXISTS cursors(source TEXT PRIMARY KEY, epoch TEXT NOT NULL, last_seq INTEGER NOT NULL, log_records INTEGER NOT NULL)")
-        } catch {
-            openError = "history store: \(error.localizedDescription)"
         }
+        guard sqlite3_open_v2(":memory:", &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nil) == SQLITE_OK else {
+            openError = "session store: \(lastMessage)"
+            return
+        }
+        exec("PRAGMA temp_store=MEMORY")
+        exec("""
+            CREATE TABLE records(
+              source TEXT NOT NULL, key TEXT NOT NULL, json TEXT NOT NULL, origin TEXT NOT NULL,
+              first_seen REAL NOT NULL, last_seen REAL NOT NULL, log_records INTEGER NOT NULL,
+              PRIMARY KEY(source, key))
+            """)
+        exec("CREATE TABLE cursors(source TEXT PRIMARY KEY, epoch TEXT NOT NULL, last_seq INTEGER NOT NULL, log_records INTEGER NOT NULL)")
+        exec("CREATE TABLE observations(capture_id TEXT PRIMARY KEY, source TEXT NOT NULL, json TEXT NOT NULL)")
     }
 
     private var lastMessage: String { db.map { String(cString: sqlite3_errmsg($0)) } ?? "not open" }
@@ -222,6 +227,20 @@ final class ARIAHistoryDB {
             sqlite3_bind_int64(stmt, 6, row.fromLog ? 1 : 0)
             if sqlite3_step(stmt) != SQLITE_DONE { ok = false; break }
         }
+        if ok {
+            var event: OpaquePointer?
+            if sqlite3_prepare_v2(db, "INSERT OR IGNORE INTO observations(capture_id, source, json) VALUES(?1, ?2, ?3)", -1, &event, nil) == SQLITE_OK {
+                for row in rows where row.fromLog {
+                    guard let data = row.json.data(using: .utf8),
+                          let fields = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+                          let id = fields["capture_id"] as? String else { ok = false; break }
+                    sqlite3_reset(event)
+                    bind(event, 1, id); bind(event, 2, row.source.rawValue); bind(event, 3, row.json)
+                    if sqlite3_step(event) != SQLITE_DONE { ok = false; break }
+                }
+            } else { ok = false }
+            sqlite3_finalize(event)
+        }
         if ok, let cursor {
             let (source, c) = cursor
             var cs: OpaquePointer?
@@ -270,7 +289,7 @@ final class ARIAHistoryDB {
     /// and no size cap. The summary is written last, from the counts actually written, so it
     /// always equals the exported array lengths. Runs inside one read transaction.
     @discardableResult
-    func writeExport(to url: URL, header: [String: Any], liveKeys: Set<String>,
+    func writeExport(to url: URL, header: [String: Any],
                      summary: ([ARIALogSource: Int]) -> [String: Any]) throws -> [ARIALogSource: Int] {
         FileManager.default.createFile(atPath: url.path, contents: nil)
         let handle = try FileHandle(forWritingTo: url)
@@ -282,8 +301,7 @@ final class ARIAHistoryDB {
             if buffer.count >= 256 * 1024 { try handle.write(contentsOf: buffer); buffer.removeAll(keepingCapacity: true) }
         }
         func json(_ object: Any) -> String {
-            guard JSONSerialization.isValidJSONObject(object),
-                  let d = try? JSONSerialization.data(withJSONObject: object, options: [.sortedKeys]) else { return "null" }
+            guard let d = try? JSONSerialization.data(withJSONObject: object, options: [.sortedKeys, .fragmentsAllowed]) else { return "null" }
             return String(decoding: d, as: UTF8.self)
         }
 
@@ -310,7 +328,6 @@ final class ARIAHistoryDB {
                     "phone_first_received": iso.string(from: Date(timeIntervalSince1970: sqlite3_column_double(stmt, 3))),
                     "phone_last_received": iso.string(from: Date(timeIntervalSince1970: sqlite3_column_double(stmt, 4))),
                     "handheld_log_records": Int(sqlite3_column_int64(stmt, 5)),
-                    "in_range_at_export": liveKeys.contains("\(source.rawValue):\(key)"),
                 ]
                 // Splice the stored firmware JSON in verbatim as "record" (evidence, not re-encoded).
                 let metaPrefix = String(json(meta).dropLast())
@@ -321,7 +338,19 @@ final class ARIAHistoryDB {
             counts[source] = n
             try emit("],")
         }
-        try emit("\"summary\":\(json(summary(counts)))}")
+        // Every logged observation this boot, including repeated sightings of the same device.
+        try emit("\"observations\":[")
+        var events: OpaquePointer?
+        guard sqlite3_prepare_v2(db, "SELECT json FROM observations ORDER BY rowid", -1, &events, nil) == SQLITE_OK else {
+            throw ARIAClient.Failure(message: "session observations unavailable", statusCode: nil)
+        }
+        defer { sqlite3_finalize(events) }
+        var eventCount = 0
+        while sqlite3_step(events) == SQLITE_ROW {
+            try emit((eventCount == 0 ? "" : ",") + text(events, 0))
+            eventCount += 1
+        }
+        try emit("],\"observation_count\":\(eventCount),\"summary\":\(json(summary(counts)))}")
         try handle.write(contentsOf: buffer)
         return counts
     }
@@ -338,14 +367,14 @@ final class ARIAHistoryDB {
     func clear() {
         exec("DELETE FROM records")
         exec("DELETE FROM cursors")
+        exec("DELETE FROM observations")
     }
 }
 
 // MARK: - Observable history (UI state)
 
-/// Everything ever reported by the handheld this session and before, backfilled from
-/// /api/log and kept current by /api/stream and the live snapshot. A device that leaves
-/// range keeps its row and its place in every count; only its live marker expires.
+/// Captures from the current handheld boot, recovered from that boot’s log and updated live.
+/// Reboot clears the entire store. App relaunch starts empty and recovers only the current boot.
 @MainActor
 @Observable
 final class ARIAHistory {
@@ -374,7 +403,9 @@ final class ARIAHistory {
     private(set) var backfill: [ARIALogSource: Backfill] = [:]
     /// Last /api/log/stats response (the handheld's own totals), verbatim.
     private(set) var handheldStats: [String: Any] = [:]
-    private(set) var loaded = false
+    private(set) var loaded = true
+    private(set) var bootID: Int?
+    private(set) var generation = 0
     private(set) var storeError: String?
 
     private var slots: [ARIALogSource: [String: Slot]] = [:]
@@ -385,10 +416,10 @@ final class ARIAHistory {
 
     init() {
         storeError = db.openError
-        Task { await load() }
+
     }
 
-    // MARK: Counts (one canonical pair per source, used by every screen)
+    // MARK: Current-session counts
 
     func total(_ source: ARIALogSource) -> Int { slots[source]?.count ?? 0 }
 
@@ -413,7 +444,7 @@ final class ARIAHistory {
         return ARIAHistoryCodec.int((sources?[source.rawValue] as? [String: Any])?["total_available"])
     }
 
-    /// "Total seen" text; never a bare 0 while history is still arriving.
+    /// Current-boot count, including captures recovered before the app connected.
     func totalText(_ source: ARIALogSource) -> String {
         if !loaded { return "loading…" }
         if case .loading(let done, let all) = backfill[source] {
@@ -427,29 +458,34 @@ final class ARIAHistory {
         var done = 0, all = 0, active = false
         for case .loading(let d, let t) in backfill.values { done += d; all += t; active = true }
         guard active || !loaded else { return nil }
-        return loaded ? "Loading capture history: \(done.formatted()) / \(all.formatted())" : "Loading capture history…"
+        return loaded ? "Loading boot session: \(done.formatted()) / \(all.formatted())" : "Loading boot session…"
     }
 
-    // MARK: Loading
-
-    private func load() async {
-        typealias Decoded = (ARIALogSource, String, ARIAHistoryValue, Date, Date)
-        let (items, cursors): ([Decoded], [ARIALogSource: ARIAHistoryDB.Cursor]) = await db.run { db in
-            var items: [Decoded] = []
-            db.forEach { s in
-                guard let data = s.json.data(using: .utf8),
-                      let dict = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return }
-                items.append((s.source, s.key, ARIAHistoryCodec.value(s.source, dict, key: s.key), s.firstSeen, s.lastSeen))
-            }
-            return (items, db.cursors())
-        }
-        for (source, key, value, first, last) in items {
-            slots[source, default: [:]][key] = Slot(value: value, firstSeen: first, lastSeen: last, order: nextOrder)
-            nextOrder += 1
-        }
-        self.cursors.merge(cursors) { current, _ in current }
-        loaded = true
+    /// Called only after the coordinator verifies the handheld boot identity.
+    func beginSession(boot: Int) async {
+        guard bootID != boot else { return }
+        generation += 1
+        bootID = boot
+        slots = [:]; cursors = [:]; liveSeen = [:]; backfill = [:]
+        handheldStats = [:]; nextOrder = 0; storeError = db.openError
         rebuildAll()
+        await db.run { $0.clear() }
+    }
+
+    /// The log epoch survives reboots. this_boot excludes older records; pending records
+    /// have sequence numbers but are not yet in last_seq (the flushed boundary).
+    static func bootFloor(_ stats: [String: Any]) -> Int {
+        let last = ARIAHistoryCodec.int(stats["last_seq"]) ?? 0
+        let count = ARIAHistoryCodec.int(stats["this_boot"]) ?? 0
+        let pending = ARIAHistoryCodec.int(stats["pending_unflushed"]) ?? 0
+        return max(0, last - max(0, count - pending))
+    }
+
+    func seedCursor(_ source: ARIALogSource, stats: [String: Any]) {
+        let epoch = stats["epoch"] as? String ?? ""
+        if cursors[source]?.epoch != epoch {
+            cursors[source] = ARIAHistoryDB.Cursor(epoch: epoch, lastSeq: Self.bootFloor(stats), logRecords: 0)
+        }
     }
 
     // MARK: Ingest
@@ -463,7 +499,14 @@ final class ARIAHistory {
             if var slot = slots[row.source]?[row.key] {
                 // A Sub-GHz capture is immutable: the flash-log record (full waveform) replaces a
                 // live-ring row, never the reverse.
-                if (row.source == .subghz) ? row.fromLog : current { slot.value = row.value }
+                if case .subghz(let previous) = slot.value, case .subghz(let incoming) = row.value {
+                    var capture = row.fromLog ? incoming : previous
+                    // Older flash logs omit replay metadata. Preserve the firmware's live
+                    // eligibility when the full waveform arrives, and accept later updates.
+                    capture.replayEligible = incoming.replayEligible ?? previous.replayEligible
+                    capture.replayState = incoming.replayState ?? previous.replayState
+                    slot.value = .subghz(capture)
+                } else if current { slot.value = row.value }
                 slot.lastSeen = max(slot.lastSeen, time)
                 slots[row.source]?[row.key] = slot
             } else {
@@ -479,17 +522,39 @@ final class ARIAHistory {
     /// is also written to the store (so live is always a subset of total).
     func ingestLive(_ snapshot: ARIASessionExport) async {
         guard let root = (try? JSONSerialization.jsonObject(with: snapshot.raw)) as? [String: Any] else { return }
+        guard bootID != nil else { return }
+        let version = generation
         let now = Date()
-        let rows: [ARIAHistoryRow] = await db.run { db in
+        let (rows, ok): ([ARIAHistoryRow], Bool) = await db.run { db in
             var rows: [ARIAHistoryRow] = []
             for source in ARIALogSource.allCases {
                 for dict in root[source.rawValue] as? [[String: Any]] ?? [] {
                     if let row = ARIAHistoryCodec.row(source, dict, fromLog: false) { rows.append(row) }
                 }
             }
-            db.upsert(rows, at: now, cursor: nil)
-            return rows
+            let firmware = root["firmware_response"] as? [String: Any] ?? [:]
+            let capabilities = firmware["capabilities"] as? [String: Any] ?? [:]
+            for detection in capabilities["detections"] as? [[String: Any]] ?? [] {
+                guard let radio = detection["radio"] as? String,
+                      let source = ARIALogSource(rawValue: radio), source == .wifi || source == .ble,
+                      let key = ARIAHistoryCodec.key(source, detection) else { continue }
+                let index = rows.firstIndex { $0.source == source && $0.key == key }
+                var fields = detection
+                if let index, let data = rows[index].json.data(using: .utf8),
+                   let live = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] {
+                    fields.merge(live) { _, live in live }
+                    if ARIAOverviewCatalog.category(detection["category"] as? String) != nil {
+                        fields["category"] = detection["category"]
+                    }
+                }
+                if let row = ARIAHistoryCodec.row(source, fields, fromLog: false) {
+                    if let index { rows[index] = row } else { rows.append(row) }
+                }
+            }
+            return (rows, db.upsert(rows, at: now, cursor: nil))
         }
+        guard version == generation else { return }
+        guard ok else { storeError = "Session capture could not be stored."; return }
         // Sub-GHz "live" = still in the handheld's RAM ring, replaced wholesale each snapshot.
         liveSeen = liveSeen.filter { !$0.key.hasPrefix("subghz:") }
         rebuild(merge(rows, at: now, current: true))
@@ -518,25 +583,31 @@ final class ARIAHistory {
     /// over the same range never double-count. Returns false on a gap (caller re-pages).
     @discardableResult
     func ingestLog(_ source: ARIALogSource, epoch: String, records: [[String: Any]], requireContiguous: Bool) async -> Bool {
+        guard let bootID else { return false }
+        let version = generation
         var cursor = cursors[source] ?? ARIAHistoryDB.Cursor(epoch: epoch, lastSeq: 0, logRecords: 0)
         if cursor.epoch != epoch { cursor = ARIAHistoryDB.Cursor(epoch: epoch, lastSeq: 0, logRecords: cursor.logRecords) }
         let fresh = records
             .compactMap { r -> (Int, [String: Any])? in ARIAHistoryCodec.int(r["seq"]).map { ($0, r) } }
-            .filter { $0.0 > cursor.lastSeq }
+            .filter { $0.0 > cursor.lastSeq && ARIAHistoryCodec.int($0.1["boot"]) == bootID }
             .sorted { $0.0 < $1.0 }
         guard let firstSeq = fresh.first?.0 else { return true }
-        if requireContiguous && firstSeq != cursor.lastSeq + 1 { return false }
+        if requireContiguous && (firstSeq != cursor.lastSeq + 1 ||
+            zip(fresh, fresh.dropFirst()).contains(where: { $1.0 != $0.0 + 1 })) { return false }
+        let rows = fresh.compactMap { ARIAHistoryCodec.row(source, $0.1, fromLog: true) }
+        guard rows.count == fresh.count else {
+            storeError = "Malformed capture in current boot log; session recovery is incomplete."
+            return false
+        }
         cursor.lastSeq = fresh.last!.0
         cursor.logRecords += fresh.count
         cursors[source] = cursor   // claim the range before suspending
 
         let now = Date()
         let saved = cursor
-        let (rows, ok): ([ARIAHistoryRow], Bool) = await db.run { db in
-            let rows = fresh.compactMap { ARIAHistoryCodec.row(source, $0.1, fromLog: true) }
-            return (rows, db.upsert(rows, at: now, cursor: (source, saved)))
-        }
-        if !ok { storeError = "history store write failed; records kept in memory only" }
+        let ok = await db.run { $0.upsert(rows, at: now, cursor: (source, saved)) }
+        guard version == generation else { return false }
+        guard ok else { storeError = "Session capture could not be stored."; return false }
         // Stream records are sightings happening now; backfilled pages are history.
         rebuild(merge(rows, at: now, current: requireContiguous))
         return true
@@ -555,52 +626,59 @@ final class ARIAHistory {
 
     // MARK: Export
 
-    func writeExport(to url: URL, liveSnapshot: Data) async throws -> [ARIALogSource: Int] {
-        var live = Set<String>()
-        let cutoff = Date().addingTimeInterval(-Self.liveWindow)
-        for (k, v) in liveSeen where v >= cutoff || k.hasPrefix("subghz:") { live.insert(k) }
-        var liveCounts: [String: Int] = [:]
-        var handheld: [String: Any] = [:]
-        var ingested: [String: Int] = [:]
-        for source in ARIALogSource.allCases {
-            liveCounts[source.rawValue] = liveCount(source)
-            handheld[source.rawValue] = handheldTotal(source).map { $0 as Any } ?? NSNull()
-            ingested[source.rawValue] = cursors[source]?.logRecords ?? 0
+    func writeExport(to url: URL, metadata: [String: Any]) async throws -> [ARIALogSource: Int] {
+        guard let bootID, storeError == nil else {
+            throw ARIAClient.Failure(message: storeError ?? "Connect to ARIA to start a boot session.", statusCode: nil)
         }
-        let snapshotObject = (try? JSONSerialization.jsonObject(with: liveSnapshot)) ?? NSNull()
+        let version = generation
         let header: [String: Any] = [
-            "schema": "finch.aria.history.v1",
+            "schema": "aria.boot-session.v1",
             "exported_at": ISO8601DateFormatter().string(from: Date()),
-            "handheld_log_stats": handheldStats.isEmpty ? NSNull() as Any : handheldStats as Any,
-            "live_snapshot_at_export": snapshotObject,
+            "boot_id": bootID,
+            "scope": "current_handheld_boot_to_export",
+            "session": metadata,
+            "retention": "memory_only_until_explicit_export",
         ]
-        let liveWindow = Int(Self.liveWindow)
-        return try await db.run { db -> Result<[ARIALogSource: Int], Error> in
+        let result = try await db.run { db -> Result<[ARIALogSource: Int], Error> in
             Result {
-                try db.writeExport(to: url, header: header, liveKeys: live) { counts in
+                try db.writeExport(to: url, header: header) { counts in
                     var exported: [String: Int] = [:]
                     for (s, n) in counts { exported[s.rawValue] = n }
-                    return [
-                        "exported_counts": exported,
-                        "exported_counts_note": "Equal to the length of each top-level array. wifi/ble/uas = distinct devices; subghz = distinct captures.",
-                        "live_at_export_counts": liveCounts,
-                        "live_at_export_note": "Devices heard within the last \(liveWindow) s (Sub-GHz: captures still in the handheld RAM ring). A separate number from exported_counts.",
-                        "handheld_log_total_available": handheld,
-                        "handheld_log_records_ingested": ingested,
-                        "handheld_log_note": "Records in the handheld flash log (/api/log/stats). Wi-Fi/BLE/UAS log one record per first sighting plus one per 5 min still present, so these exceed the distinct-device counts; for subghz each record is one capture.",
-                    ]
+                    return ["counts": exported,
+                            "counts_note": "Array lengths: distinct devices for wifi/ble/uas, distinct captures for subghz. observations contains every recovered log event from this boot."]
                 }
             }
         }.get()
+        guard generation == version else {
+            try? FileManager.default.removeItem(at: url)
+            throw ARIAClient.Failure(message: "ARIA rebooted during export. Export the new session again.", statusCode: nil)
+        }
+        return result
     }
 
-    func clearLocal() async {
-        await db.run { $0.clear() }
-        slots = [:]
-        cursors = [:]
-        liveSeen = [:]
-        backfill = [:]
-        rebuildAll()
+    /// Every Overview category is derived from the same current-session rows as the radio tabs.
+    func overviewCatalog() -> ARIAOverviewCatalog {
+        var result = ARIAOverviewCatalog()
+        func fields<T: Encodable>(_ value: T) -> [String: Any] {
+            guard let data = try? JSONEncoder().encode(value) else { return [:] }
+            return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] ?? [:]
+        }
+        for device in wifi {
+            result.insert(id: "wifi:" + device.mac.uppercased(), category: device.category, row: fields(device))
+        }
+        for device in ble {
+            result.insert(id: "ble:" + device.address.uppercased(), category: device.category, row: fields(device))
+        }
+        for capture in subghz {
+            let row = fields(capture)
+            if capture.isReplayable {
+                result.insert(id: "subghz:" + capture.id, category: "subghz_replayable", row: row)
+            }
+        }
+        for aircraft in uas {
+            result.insert(id: "uas:" + aircraft.uasID, category: "drone", row: fields(aircraft))
+        }
+        return result
     }
 
     // MARK: Sorted views
