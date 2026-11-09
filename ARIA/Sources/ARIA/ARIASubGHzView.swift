@@ -1,18 +1,28 @@
 import SwiftUI
 
 struct ARIASubGHzView: View {
+    @State private var query = ""
+    @State private var scope: ARIAListScope = .total
     @Environment(AppModel.self) private var app
     @State private var outcome: String?
 
     var body: some View {
-        let captures = app.aria.history.subghz
+        let captures = app.aria.history.subghz.filter {
+            (scope == .total || (app.aria.connection.state.isConnected && app.aria.history.isLive(.subghz, $0.id)))
+                && ARIAListFilter.matches(query, $0)
+        }
         List {
             Section {
                 ARIAHistoryBanner()
                 ARIASourceCounts(source: .subghz)
+                ARIAListSearch(query: $query, scope: $scope, wifi: false)
             }
             if captures.isEmpty {
-                ARIAEmptyRow(connected: app.aria.connection.state.isConnected)
+                if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    ARIAEmptyRow(connected: app.aria.connection.state.isConnected)
+                } else {
+                    Text("No matching results").foregroundStyle(FinchTheme.textSecondary)
+                }
             }
             ForEach(captures) { c in
                 NavigationLink {

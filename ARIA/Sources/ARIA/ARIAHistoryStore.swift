@@ -120,7 +120,7 @@ enum ARIAHistoryCodec {
     }
 
     static func row(_ source: ARIALogSource, _ dict: [String: Any], fromLog: Bool) -> ARIAHistoryRow? {
-        if source == .uas, dict["validation"] != nil || dict["classification"] != nil {
+        if source == .uas {
             guard dict["validation"] as? Bool == true,
                   dict["classification"] as? String == "VALIDATED_REMOTE_ID" else { return nil }
         }
@@ -557,8 +557,26 @@ final class ARIAHistory {
         guard ok else { storeError = "Session capture could not be stored."; return }
         // Sub-GHz "live" = still in the handheld's RAM ring, replaced wholesale each snapshot.
         liveSeen = liveSeen.filter { !$0.key.hasPrefix("subghz:") }
-        rebuild(merge(rows, at: now, current: true))
+        let touched = merge(rows, at: now, current: true)
+        // Receiving a snapshot is not a new sighting. Retain the firmware's ages.
+        let firmware = root["firmware_response"] as? [String: Any] ?? root
+        let session = firmware["session"] as? [String: Any] ?? firmware
+        let capabilities = firmware["capabilities"] as? [String: Any] ?? [:]
+        let uptime = ARIAHistoryCodec.int(session["uptime_ms"] ?? capabilities["uptime_ms"])
+        for row in rows {
+            guard let data = row.json.data(using: .utf8),
+                  let fields = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { continue }
+            var age: Int?
+            if row.source == .wifi || row.source == .ble {
+                age = ARIAHistoryCodec.int(fields["age_ms"] ?? fields["last_seen_ms"])
+                if fields["radio"] != nil, let uptime, let last = age { age = max(0, uptime - last) }
+            } else if row.source == .uas, let uptime, let last = ARIAHistoryCodec.int(fields["last_seen_ms"]) {
+                age = max(0, uptime - last)
+            }
+            if let age { liveSeen[row.source.rawValue + ":" + row.key] = now.addingTimeInterval(-Double(age) / 1000) }
+        }
         expireLive()
+        rebuild(touched)
     }
 
     /// /api/stream "live" event: devices updated since the last event.
@@ -664,19 +682,21 @@ final class ARIAHistory {
             return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] ?? [:]
         }
         for device in wifi {
-            result.insert(id: "wifi:" + device.mac.uppercased(), category: device.category, row: fields(device))
+            result.insert(id: "wifi:" + device.mac.uppercased(), category: ARIAOverviewCatalog.category(device.category) ?? "radio_only", row: fields(device), heardAt: liveSeen["wifi:" + device.mac.uppercased()])
         }
         for device in ble {
-            result.insert(id: "ble:" + device.address.uppercased(), category: device.category, row: fields(device))
+            result.insert(id: "ble:" + device.address.uppercased(), category: ARIAOverviewCatalog.category(device.category) ?? "radio_only", row: fields(device), heardAt: liveSeen["ble:" + device.address.uppercased()])
         }
         for capture in subghz {
             let row = fields(capture)
             if capture.isReplayable {
-                result.insert(id: "subghz:" + capture.id, category: "subghz_replayable", row: row)
+                result.insert(id: "subghz:" + capture.id, category: "subghz_replayable", row: row, heardAt: liveSeen["subghz:" + capture.id])
             }
         }
         for aircraft in uas {
-            result.insert(id: "uas:" + aircraft.uasID, category: "drone", row: fields(aircraft))
+            result.insert(id: "uas:" + aircraft.uasID, category: "remote_id", row: fields(aircraft), heardAt: liveSeen["uas:" + aircraft.uasID])
+            result.addRemoteIDBearer(radio: "ble", address: aircraft.bleAddress)
+            result.addRemoteIDBearer(radio: "wifi", address: aircraft.wifiAddress)
         }
         return result
     }

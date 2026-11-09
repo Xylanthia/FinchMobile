@@ -49,7 +49,7 @@ enum ARIAClient {
         precondition(rows.first { $0.id == "computer" }?.total == 2)
         precondition(rows.first { $0.id == "phone" }?.total == 2)
         precondition(rows.first { $0.id == "alpr_camera" }?.total == 1)
-        precondition(rows.first { $0.id == "drone" }?.total == 1)
+        precondition(rows.first { $0.id == "remote_id" }?.total == 1)
         precondition(rows.first { $0.id == "subghz_replayable" }?.total == 1, "Log backfill preserves eligibility; decoding alone is insufficient")
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("aria-session-test-\(UUID()).json")
         defer { try? FileManager.default.removeItem(at: url) }
@@ -63,6 +63,23 @@ enum ARIAClient {
         for source in ARIALogSource.allCases {
             precondition((exported[source.rawValue] as! [Any]).count == counts[source])
         }
+        let stale = try ARIAJSONResponse.session([
+            "session": ["uptime_ms": 100000, "devices": [
+                ["mac": "AA:01", "band": "wifi", "category": "computer", "last_seen_ms": 70000],
+                ["mac": "BB:01", "band": "ble", "category": "phone", "last_seen_ms": 0]
+            ]],
+            "capabilities": ["uptime_ms": 100000, "uas": ["observations": [
+                ["uas_id": "RID", "validation": true, "classification": "VALIDATED_REMOTE_ID", "ble_address": "BB:01", "last_seen_ms": 100000]
+            ]]]
+        ])
+        await history.ingestLive(stale)
+        precondition(!history.isLive(.wifi, "AA:01"), "Polling stale snapshots never renews their live age")
+        let display = history.overviewCatalog()
+        let totalRows = display.displayRows(connected: false, scope: .total)
+        precondition(totalRows.first { $0.id == "remote_id" }?.total == 1)
+        precondition(totalRows.first { $0.id == "ble_devices" }?.total == history.ble.count - 1, "Actual history projection excludes RID radio bearer")
+        precondition(display.displayRows(connected: false, scope: .live).isEmpty)
+        precondition(totalRows.first { $0.id == "computer" }?.total == 2, "Expired devices stay in total seen")
         await history.beginSession(boot: 43)
         precondition(ARIALogSource.allCases.allSatisfy { history.total($0) == 0 })
         precondition(history.overviewCatalog().records.isEmpty && history.cursors.isEmpty)

@@ -242,3 +242,26 @@ struct ARIARangeTag: View {
     let id: String
     var body: some View { EmptyView() }
 }
+
+struct ARIAListSearch: View {
+    @Binding var query: String
+    @Binding var scope: ARIAListScope
+    var wifi = false
+    var body: some View {
+        VStack(spacing: 10) {
+            Picker("Display", selection: $scope) {
+                ForEach(ARIAListScope.allCases) { Text($0.rawValue).tag($0) }
+            }.pickerStyle(.segmented)
+            HStack {
+                Image(systemName: "magnifyingglass")
+                TextField(wifi ? "Name, vendor, MAC/BSSID or SSID" : "Name, vendor or address", text: $query)
+                    .textInputAutocapitalization(.never).autocorrectionDisabled()
+                    .accessibilityLabel("Search current list")
+                if !query.isEmpty {
+                    Button { query = "" } label: { Image(systemName: "xmark.circle.fill") }
+                        .accessibilityLabel("Clear search")
+                }
+            }.font(.subheadline)
+        }
+    }
+}

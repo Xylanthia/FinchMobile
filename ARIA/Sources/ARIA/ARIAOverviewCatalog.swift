@@ -30,7 +30,10 @@ struct ARIAOverviewCatalog: Codable {
             case "phone": return "Phones"
             case "alpr_camera": return "ALPR cameras"
             case "gunshot_detector": return "Gunshot detectors"
-            case "drone": return "Drones"
+            case "drone": return "Drone-vendor devices"
+            case "remote_id": return "Remote ID (UAS)"
+            case "wifi_devices": return "Wi-Fi devices"
+            case "ble_devices": return "BLE devices"
             case "subghz_replayable": return "Replayable captures"
             default: return id.replacingOccurrences(of: "_", with: " ").capitalized
             }
@@ -39,7 +42,9 @@ struct ARIAOverviewCatalog: Codable {
             switch id {
             case "computer": return "laptopcomputer"
             case "phone": return "iphone"
-            case "drone": return "airplane"
+            case "drone", "remote_id": return "airplane"
+            case "wifi_devices": return "wifi"
+            case "ble_devices": return "bolt.fill"
             case "alpr_camera", "other_camera": return "camera"
             case "gunshot_detector": return "waveform"
             case "subghz_replayable": return "chart.bar.fill"
@@ -48,6 +53,7 @@ struct ARIAOverviewCatalog: Codable {
         }
     }
 
+    private(set) var remoteIDBearers: Set<String> = []
     private(set) var records: [String: Record] = [:]
 
     static func category(_ value: String?) -> String? {
@@ -91,7 +97,7 @@ struct ARIAOverviewCatalog: Codable {
         for radio in ["wifi", "ble"] {
             for row in root[radio] as? [[String: Any]] ?? [] {
                 guard let mac = row["mac"] as? String ?? row["address"] as? String else { continue }
-                insert(id: radio + ":" + mac.uppercased(), category: row["category"] as? String,
+                insert(id: radio + ":" + mac.uppercased(), category: Self.category(row["category"] as? String) ?? "radio_only",
                        row: row, heardAt: Self.heard(row, uptime: uptime, absolute: false, now: now))
             }
         }
@@ -113,7 +119,7 @@ struct ARIAOverviewCatalog: Codable {
         for row in root["detections"] as? [[String: Any]] ?? [] {
             guard let mac = row["mac"] as? String,
                   let radio = row["radio"] as? String, ["wifi", "ble"].contains(radio) else { continue }
-            insert(id: radio + ":" + mac.uppercased(), category: row["category"] as? String,
+            insert(id: radio + ":" + mac.uppercased(), category: Self.category(row["category"] as? String) ?? "radio_only",
                    row: row, heardAt: Self.heard(row, uptime: uptime, absolute: true, now: now))
         }
         let uas = root["uas"] as? [String: Any] ?? [:]
@@ -121,14 +127,41 @@ struct ARIAOverviewCatalog: Codable {
             guard row["validation"] as? Bool == true,
                   row["classification"] as? String == "VALIDATED_REMOTE_ID",
                   let id = row["uas_id"] as? String, !id.trimmingCharacters(in: .whitespaces).isEmpty else { continue }
-            insert(id: "uas:" + id, category: "drone", row: row,
+            for radio in ["ble", "wifi"] {
+                if let address = row[radio + "_address"] as? String, !address.isEmpty {
+                    remoteIDBearers.insert(radio + ":" + address.uppercased())
+                }
+            }
+            insert(id: "uas:" + id, category: "remote_id", row: row,
                    heardAt: Self.heard(row, uptime: uptime, absolute: true, now: now))
         }
     }
 
+    mutating func addRemoteIDBearer(radio: String, address: String?) {
+        if let address, !address.isEmpty { remoteIDBearers.insert(radio + ":" + address.uppercased()) }
+    }
+
+    func displayRows(now: Date = Date(), connected: Bool, scope: ARIAListScope) -> [Row] {
+        var result = rows(now: now, connected: connected)
+        for radio in ["wifi", "ble"] {
+            let devices = records.values.filter { $0.id.hasPrefix(radio + ":") && !remoteIDBearers.contains($0.id) }
+            let live = connected ? devices.filter {
+                guard let heard = $0.heardAt else { return false }
+                return (0...60).contains(now.timeIntervalSince(heard))
+            }.count : 0
+            result.append(Row(id: radio + "_devices", records: Array(devices), live: live))
+        }
+        let order = ["computer", "phone", "wifi_devices", "ble_devices", "subghz_replayable", "remote_id"]
+        return result.filter { scope.includes(live: $0.live, total: $0.total) }.sorted {
+            let a = order.firstIndex(of: $0.id) ?? order.count
+            let b = order.firstIndex(of: $1.id) ?? order.count
+            return a == b ? $0.title < $1.title : a < b
+        }
+    }
+
     func rows(now: Date = Date(), connected: Bool) -> [Row] {
-        let priority = ["alpr_camera", "gunshot_detector", "drone"]
-        return Dictionary(grouping: records.values, by: \.category).map { key, records in
+        let priority = ["alpr_camera", "gunshot_detector", "remote_id", "drone"]
+        return Dictionary(grouping: records.values.filter { $0.category != "radio_only" && !remoteIDBearers.contains($0.id) }, by: \.category).map { key, records in
             Row(id: key, records: records.sorted { $0.id < $1.id }, live: connected ? records.filter {
                 guard let heard = $0.heardAt else { return false }
                 return now.timeIntervalSince(heard) >= 0 && now.timeIntervalSince(heard) <= 60

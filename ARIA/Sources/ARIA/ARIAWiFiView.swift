@@ -1,17 +1,27 @@
 import SwiftUI
 
 struct ARIAWiFiView: View {
+    @State private var query = ""
+    @State private var scope: ARIAListScope = .total
     @Environment(AppModel.self) private var app
 
     var body: some View {
-        let devices = app.aria.history.wifi
+        let devices = app.aria.history.wifi.filter {
+            (scope == .total || (app.aria.connection.state.isConnected && app.aria.history.isLive(.wifi, $0.id)))
+                && ARIAListFilter.matches(query, $0)
+        }
         List {
             Section {
                 ARIAHistoryBanner()
                 ARIASourceCounts(source: .wifi)
+                ARIAListSearch(query: $query, scope: $scope, wifi: true)
             }
             if devices.isEmpty {
-                ARIAEmptyRow(connected: app.aria.connection.state.isConnected)
+                if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    ARIAEmptyRow(connected: app.aria.connection.state.isConnected)
+                } else {
+                    Text("No matching results").foregroundStyle(FinchTheme.textSecondary)
+                }
             }
             ForEach(devices) { d in
                 NavigationLink {

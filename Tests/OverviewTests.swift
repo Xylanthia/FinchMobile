@@ -2,6 +2,19 @@ import Foundation
 
 @main struct OverviewTests {
     static func main() throws {
+        let fp = ARIADecodeEnvelope(fingerprintAttempts: [ARIAFingerprintAttempt(vendor: "Samsung Electronics Co.")])
+        let ble = ARIABLEDeviceRecord(address: "A4:30:7A:ED:00:01", name: "TL-ACD829562839", decode: fp, vendor: "Ericsson AB")
+        for query in ["tl-acd", "ERICSSON", "samsung", "7a:ed", "", "  "] {
+            precondition(ARIAListFilter.matches(query, ble), "BLE search: \(query)")
+        }
+        precondition(!ARIAListFilter.matches("missing", ble))
+        let wifi = ARIAWiFiDevice(mac: "AA:01", ssid: "Test SSID", vendor: "Ericsson AB", decode: fp, bssid: "A4:30:7A:ED:00:01")
+        for query in ["test ssid", "ERICSSON", "samsung", "7a:ed", "aa:01"] {
+            precondition(ARIAListFilter.matches(query, wifi), "Wi-Fi search: \(query)")
+        }
+        let sub = ARIASubGHzCapture(sequence: 1, detail: "sensor", decode: ARIADecodeEnvelope(decodedFields: ["name": "Outdoor", "mac": "A4:30:7A:ED"], fingerprintAttempts: [ARIAFingerprintAttempt(vendor: "Acme")]))
+        for query in ["outdoor", "ACME", "7a:ed"] { precondition(ARIAListFilter.matches(query, sub)) }
+        precondition(!ARIAListFilter.matches("missing", sub))
         let now = Date(timeIntervalSince1970: 1000)
         let devices: [[String: Any]] = [
             ["mac": "AA:01", "band": "wifi", "category": "computer", "last_seen_ms": 60001],
@@ -38,6 +51,23 @@ import Foundation
         precondition(rows.first { $0.id == "subghz_replayable" }?.total == 1)
         precondition(rows.first { $0.id == "subghz_replayable" }?.live == 1, "Sub-GHz firmware ts_ms uses uptime")
         precondition(!rows.contains { ["unclassified", "drone_control_candidate"].contains($0.id) })
+        let liveRows = catalog.displayRows(now: now, connected: true, scope: .live)
+        precondition(!liveRows.contains { $0.id == "computer" })
+        precondition(liveRows.allSatisfy { $0.live > 0 })
+        precondition(catalog.displayRows(now: now, connected: false, scope: .live).isEmpty)
+        precondition(catalog.displayRows(now: now.addingTimeInterval(61), connected: true, scope: .live).isEmpty)
+        precondition(catalog.displayRows(now: now, connected: false, scope: .total).contains { $0.id == "computer" && $0.total == 1 })
+        var dedup = catalog
+        dedup.ingestCapabilities(["uptime_ms": 100000, "uas": ["observations": [
+            ["uas_id": "RID", "validation": true, "classification": "VALIDATED_REMOTE_ID", "wifi_address": "aa:06", "ble_address": "aa:03", "last_seen_ms": 100000],
+            ["uas_id": "RID", "validation": true, "classification": "VALIDATED_REMOTE_ID", "last_seen_ms": 100000],
+            ["uas_id": "keyword-only", "validation": false, "classification": "UAS_CANDIDATE"]
+        ]]], now: now)
+        let dedupRows = dedup.displayRows(now: now, connected: true, scope: .total)
+        precondition(dedupRows.first { $0.id == "remote_id" }?.total == 1)
+        precondition(dedupRows.first { $0.id == "wifi_devices" }?.total == 3)
+        precondition(dedupRows.first { $0.id == "ble_devices" }?.total == 1)
+        precondition(!dedupRows.contains { $0.id == "drone" }, "RID bearer does not also count as a generic vendor detection")
         let capabilities: [String: Any] = [
             "uptime_ms": 100000,
             "detections": [
@@ -92,19 +122,20 @@ import Foundation
         integrated.ingestSession(liveSession.raw, now: now)
         integrated.ingestCapabilities(rawFirmware["capabilities"] as! [String: Any], now: now)
         let integratedRows = integrated.rows(now: now, connected: true)
-        for category in ["phone", "computer", "drone", "subghz_replayable"] {
+        for category in ["phone", "computer", "remote_id", "subghz_replayable"] {
             precondition(integratedRows.contains { $0.id == category && $0.total > 0 })
         }
         precondition(integratedRows.first { $0.id == "subghz_replayable" }?.total == 1)
         let exported = try ARIAJSONResponse.session(["wifi": [], "uas": firmwareCapabilities["uas"]!])
         precondition(exported.uas == liveSession.uas, "Nested capture exports use the same RID adapter")
         let legacy = try ARIAJSONResponse.session(["wifi": [], "uas": [["uas_id": "legacy", "id_type": "serial"]]])
-        precondition(legacy.uas.first?.idType == "serial")
+        precondition(legacy.uas.isEmpty, "Unvalidated legacy arrays cannot become Remote ID")
         catalog.ingestCapabilities(capabilities, now: now)
         catalog.ingestCapabilities(capabilities, now: now)
         rows = catalog.rows(now: now, connected: true)
-        precondition(rows.prefix(3).map(\.id) == ["alpr_camera", "gunshot_detector", "drone"])
-        precondition(rows.first { $0.id == "drone" }?.total == 2, "One unique RID plus one fingerprint; detection roster duplicate excluded")
+        precondition(rows.prefix(3).map(\.id) == ["alpr_camera", "gunshot_detector", "remote_id"])
+        precondition(rows.first { $0.id == "remote_id" }?.total == 1)
+        precondition(rows.first { $0.id == "drone" }?.total == 1, "Vendor matches stay separate from validated Remote ID")
         precondition(rows.first { $0.id == "gunshot_detector" }?.live == 0, "Detection time is uptime, not age")
         precondition(rows.first { $0.id == "alpr_camera" }?.records.first?.fields["matched_patterns"] as? [String] == ["name:flock"])
         precondition(rows.allSatisfy { $0.total > 0 && $0.live <= $0.total })

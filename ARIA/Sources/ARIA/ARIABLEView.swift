@@ -1,17 +1,27 @@
 import SwiftUI
 
 struct ARIABLEView: View {
+    @State private var query = ""
+    @State private var scope: ARIAListScope = .total
     @Environment(AppModel.self) private var app
 
     var body: some View {
-        let devices = app.aria.history.ble
+        let devices = app.aria.history.ble.filter {
+            (scope == .total || (app.aria.connection.state.isConnected && app.aria.history.isLive(.ble, $0.id)))
+                && ARIAListFilter.matches(query, $0)
+        }
         List {
             Section {
                 ARIAHistoryBanner()
                 ARIASourceCounts(source: .ble)
+                ARIAListSearch(query: $query, scope: $scope, wifi: false)
             }
             if devices.isEmpty {
-                ARIAEmptyRow(connected: app.aria.connection.state.isConnected)
+                if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    ARIAEmptyRow(connected: app.aria.connection.state.isConnected)
+                } else {
+                    Text("No matching results").foregroundStyle(FinchTheme.textSecondary)
+                }
             }
             ForEach(devices) { d in
                 NavigationLink {

@@ -189,6 +189,8 @@ struct ARIASubGHzCapture: Codable, Hashable, Identifiable {
 /// Only VALIDATED Remote ID records. GENERIC_RF observations never become these (spec §3.5).
 struct ARIAUASRecord: Codable, Hashable, Identifiable {
     var uasID: String
+    var bleAddress: String?
+    var wifiAddress: String?
     var idType: String?
     var uaType: String?
     var latitude: Double?
@@ -204,6 +206,8 @@ struct ARIAUASRecord: Codable, Hashable, Identifiable {
 
     enum CodingKeys: String, CodingKey {
         case uasID = "uas_id"
+        case bleAddress = "ble_address"
+        case wifiAddress = "wifi_address"
         case idType = "id_type"
         case uaType = "ua_type"
         case latitude, longitude, altitude, speed
@@ -515,7 +519,9 @@ enum ARIAJSONResponse {
                 return row
             }
         } else {
-            root["uas"] = source["uas"] as? [Any] ?? []
+            root["uas"] = (source["uas"] as? [[String: Any]] ?? []).filter {
+                $0["validation"] as? Bool == true && $0["classification"] as? String == "VALIDATED_REMOTE_ID"
+            }
         }
         var summary = source["summary"] as? [String: Any] ?? [:]
         if let uptime = live["uptime_ms"] as? Int { summary["uptime_s"] = uptime / 1000 }
