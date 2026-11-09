@@ -534,15 +534,21 @@ final class ARIAHistory {
             }
             let firmware = root["firmware_response"] as? [String: Any] ?? [:]
             let capabilities = firmware["capabilities"] as? [String: Any] ?? [:]
+            let session = firmware["session"] as? [String: Any] ?? firmware
+            let uptime = ARIAHistoryCodec.int(session["uptime_ms"] ?? capabilities["uptime_ms"])
             for detection in capabilities["detections"] as? [[String: Any]] ?? [] {
                 guard let radio = detection["radio"] as? String,
                       let source = ARIALogSource(rawValue: radio), source == .wifi || source == .ble,
                       let key = ARIAHistoryCodec.key(source, detection) else { continue }
                 let index = rows.firstIndex { $0.source == source && $0.key == key }
                 var fields = detection
+                if let uptime, let last = ARIAHistoryCodec.int(detection["last_seen_ms"]) {
+                    fields["age_ms"] = max(0, uptime - last)
+                }
                 if let index, let data = rows[index].json.data(using: .utf8),
                    let live = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] {
                     fields.merge(live) { _, live in live }
+                    if let age = live["age_ms"] ?? live["last_seen_ms"] { fields["age_ms"] = age }
                     if ARIAOverviewCatalog.category(detection["category"] as? String) != nil {
                         fields["category"] = detection["category"]
                     }
@@ -569,7 +575,6 @@ final class ARIAHistory {
             var age: Int?
             if row.source == .wifi || row.source == .ble {
                 age = ARIAHistoryCodec.int(fields["age_ms"] ?? fields["last_seen_ms"])
-                if fields["radio"] != nil, let uptime, let last = age { age = max(0, uptime - last) }
             } else if row.source == .uas, let uptime, let last = ARIAHistoryCodec.int(fields["last_seen_ms"]) {
                 age = max(0, uptime - last)
             }

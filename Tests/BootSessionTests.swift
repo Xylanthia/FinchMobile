@@ -68,7 +68,10 @@ enum ARIAClient {
                 ["mac": "AA:01", "band": "wifi", "category": "computer", "last_seen_ms": 70000],
                 ["mac": "BB:01", "band": "ble", "category": "phone", "last_seen_ms": 0]
             ]],
-            "capabilities": ["uptime_ms": 100000, "uas": ["observations": [
+            "capabilities": ["uptime_ms": 100000, "detections": [
+                ["radio": "wifi", "mac": "AA:01", "category": "computer", "last_seen_ms": 30000],
+                ["radio": "ble", "mac": "BB:01", "category": "phone", "last_seen_ms": 100000]
+            ], "uas": ["observations": [
                 ["uas_id": "RID", "validation": true, "classification": "VALIDATED_REMOTE_ID", "ble_address": "BB:01", "last_seen_ms": 100000]
             ]]]
         ])
