@@ -28,7 +28,7 @@ enum ARIAHistoryValue {
     case uas(ARIAUASRecord)
 }
 
-/// One decoded record ready to persist: `json` is the evidence stored and exported verbatim,
+/// One decoded record ready to persist: `json` is the evidence stored verbatim,
 /// `value` is what the UI shows.
 struct ARIAHistoryRow {
     let source: ARIALogSource
@@ -300,8 +300,8 @@ final class ARIAHistoryDB {
             buffer.append(Data(s.utf8))
             if buffer.count >= 256 * 1024 { try handle.write(contentsOf: buffer); buffer.removeAll(keepingCapacity: true) }
         }
-        func json(_ object: Any) -> String {
-            guard let d = try? JSONSerialization.data(withJSONObject: object, options: [.sortedKeys, .fragmentsAllowed]) else { return "null" }
+        func json(_ object: Any) throws -> String {
+            let d = try JSONSerialization.data(withJSONObject: ARIAExportJSON.omitEmptyFields(object), options: [.sortedKeys, .fragmentsAllowed])
             return String(decoding: d, as: UTF8.self)
         }
 
@@ -309,7 +309,7 @@ final class ARIAHistoryDB {
         defer { exec("COMMIT") }
         var counts: [ARIALogSource: Int] = [:]
         try emit("{")
-        for (k, v) in header.sorted(by: { $0.key < $1.key }) {
+        for (k, v) in ARIAExportJSON.document(header).sorted(by: { $0.key < $1.key }) {
             try emit(String(json([k]).dropFirst().dropLast()) + ":" + json(v) + ",")
         }
         for source in ARIALogSource.allCases {
@@ -319,6 +319,7 @@ final class ARIAHistoryDB {
                 throw ARIAClient.Failure(message: "export query failed: \(lastMessage)", statusCode: nil)
             }
             bind(stmt, 1, source.rawValue)
+            defer { sqlite3_finalize(stmt) }
             var n = 0
             while sqlite3_step(stmt) == SQLITE_ROW {
                 let key = text(stmt, 0)
@@ -329,25 +330,26 @@ final class ARIAHistoryDB {
                     "phone_last_received": iso.string(from: Date(timeIntervalSince1970: sqlite3_column_double(stmt, 4))),
                     "handheld_log_records": Int(sqlite3_column_int64(stmt, 5)),
                 ]
-                // Splice the stored firmware JSON in verbatim as "record" (evidence, not re-encoded).
-                let metaPrefix = String(json(meta).dropLast())
-                try emit((n == 0 ? "" : ",") + metaPrefix + ",\"record\":" + text(stmt, 1) + "}")
+                // Project one record at a time; stored evidence and UI models stay unchanged.
+                let metaPrefix = String(try json(meta).dropLast())
+                let record = try ARIAExportJSON.recordJSON(text(stmt, 1), band: source.rawValue)
+                try emit((n == 0 ? "" : ",") + metaPrefix + ",\"record\":" + record + "}")
                 n += 1
             }
-            sqlite3_finalize(stmt)
             counts[source] = n
             try emit("],")
         }
         // Every logged observation this boot, including repeated sightings of the same device.
         try emit("\"observations\":[")
         var events: OpaquePointer?
-        guard sqlite3_prepare_v2(db, "SELECT json FROM observations ORDER BY rowid", -1, &events, nil) == SQLITE_OK else {
+        guard sqlite3_prepare_v2(db, "SELECT json, source FROM observations ORDER BY rowid", -1, &events, nil) == SQLITE_OK else {
             throw ARIAClient.Failure(message: "session observations unavailable", statusCode: nil)
         }
         defer { sqlite3_finalize(events) }
         var eventCount = 0
         while sqlite3_step(events) == SQLITE_ROW {
-            try emit((eventCount == 0 ? "" : ",") + text(events, 0))
+            let record = try ARIAExportJSON.recordJSON(text(events, 0), band: text(events, 1))
+            try emit((eventCount == 0 ? "" : ",") + record)
             eventCount += 1
         }
         try emit("],\"observation_count\":\(eventCount),\"summary\":\(json(summary(counts)))}")

@@ -58,7 +58,7 @@ enum ARIAClient {
         precondition(exported["schema"] as? String == "aria.boot-session.v1")
         precondition(exported["boot_id"] as? Int == 42)
         let observations = exported["observations"] as! [[String: Any]]
-        precondition(observations.count == 3 && observations.allSatisfy { $0["boot"] as? Int == 42 })
+        precondition(observations.count == 3 && observations.allSatisfy { $0["boot_id"] as? Int == 42 })
         precondition(observations.filter { $0["mac"] as? String == "AA:01" }.count == 2, "Repeated sightings survive export without duplicate paging")
         for source in ARIALogSource.allCases {
             precondition((exported[source.rawValue] as! [Any]).count == counts[source])

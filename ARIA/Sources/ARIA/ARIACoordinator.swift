@@ -103,7 +103,7 @@ final class ARIACoordinator {
             }
             history.setHandheldStats(after)
             let fix = ObservationLocation.capture()
-            exportData = try geotagger.annotate(snapshot.raw, fix: fix)
+            exportData = try ARIAExportJSON.data(geotagger.annotate(snapshot.raw, fix: fix))
             session = snapshot
             if !snapshot.modes.isEmpty { modes = snapshot.modes }
             summary = snapshot.summary
