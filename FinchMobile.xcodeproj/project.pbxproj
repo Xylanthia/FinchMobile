@@ -6,6 +6,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A10E00000000000000000001 /* ARIAExportJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10E00000000000000000002 /* ARIAExportJSON.swift */; };
 		F66DF3D467C543AAABE95D90 /* FinchMobileApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D422AB4E5D84CD98C79742C /* FinchMobileApp.swift */; };
 		7139D80867C247A4BAFA93AA /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0608D55DED8F4E48AE3B7750 /* AppModel.swift */; };
 		B557C9FE577141AA85180EEE /* BLEDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = F81F212DEBFF4093AC985F99 /* BLEDevice.swift */; };
@@ -83,6 +84,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A10E00000000000000000002 /* ARIAExportJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIAExportJSON.swift; sourceTree = "<group>"; };
 		0FBE2F1B71E34F488067D835 /* FinchMobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FinchMobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D422AB4E5D84CD98C79742C /* FinchMobileApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinchMobileApp.swift; sourceTree = "<group>"; };
 		0608D55DED8F4E48AE3B7750 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
@@ -482,6 +484,7 @@
 				7E85BF2A4BEEB607F98C61A9 /* ARIAConnectionManager.swift */,
 				CBF525A093E0E314D29B7CAE /* ARIACoordinator.swift */,
 				AE02A41D2C2974D1A10B1B26 /* ARIAHistoryStore.swift */,
+				A10E00000000000000000002 /* ARIAExportJSON.swift */,
 				B17AA166F6754236AC561549 /* ARIAEvidence.swift */,
 				9BCEEE2367F0F09C40681A96 /* ARIANearbyDecoder.swift */,
 			);
@@ -584,6 +587,7 @@
 				4FABE7AA2FFFFCB9882F2207 /* ARIAConnectionManager.swift in Sources */,
 				4788EF84A6CA8FD8C3458633 /* ARIACoordinator.swift in Sources */,
 				8EA2082E41916512545CD7EB /* ARIAHistoryStore.swift in Sources */,
+				A10E00000000000000000001 /* ARIAExportJSON.swift in Sources */,
 				B5B091A6B37514562697F500 /* ARIAEvidence.swift in Sources */,
 				D20195241F76111A60C0C806 /* ARIANearbyDecoder.swift in Sources */,
 				4DF1C2C05764FB097895E255 /* ARIASharedViews.swift in Sources */,

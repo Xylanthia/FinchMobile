@@ -88,7 +88,7 @@ final class ARIACoordinator {
         do {
             let snapshot = try await client.fetchSessionExport()
             let fix = ObservationLocation.capture()
-            exportData = try geotagger.annotate(snapshot.raw, fix: fix)
+            exportData = try ARIAExportJSON.data(geotagger.annotate(snapshot.raw, fix: fix))
             session = snapshot
             modes = snapshot.modes
             summary = snapshot.summary
