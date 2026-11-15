@@ -127,6 +127,10 @@ enum ARIAExportJSON {
                 root[key] = array.map { value -> Any in
                     guard let row = value as? [String: Any],
                           let source = bands.contains(key) ? key : band(of: row) ?? recordBand else { return value }
+                    // Dashboard device rows already contain the normalized canonical
+                    // record under `raw`; applying per-band aliases to the projection
+                    // would remove dashboard fields such as BLE `mac` on a second pass.
+                    if key == "devices", row["observation_status"] != nil, row["raw"] != nil { return value }
                     if let stored = row["record"] as? [String: Any] {
                         var wrapper = row
                         wrapper["record"] = record(stored, band: source)
