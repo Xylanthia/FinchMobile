@@ -1,18 +1,24 @@
 import SwiftUI
 
 struct ARIASubGHzView: View {
+    @State private var query = ""
     @Environment(AppModel.self) private var app
     @State private var outcome: String?
 
     var body: some View {
-        let captures = app.aria.history.subghz
+        let captures = app.aria.history.subghz.filter { ARIAListFilter.matches(query, $0) }
         List {
             Section {
                 ARIAHistoryBanner()
                 ARIASourceCounts(source: .subghz)
+                ARIAListSearch(query: $query, wifi: false)
             }
             if captures.isEmpty {
-                ARIAEmptyRow(connected: app.aria.connection.state.isConnected)
+                if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    ARIAEmptyRow(connected: app.aria.connection.state.isConnected)
+                } else {
+                    Text("No matching results").foregroundStyle(FinchTheme.textSecondary)
+                }
             }
             ForEach(captures) { c in
                 NavigationLink {
@@ -29,6 +35,7 @@ struct ARIASubGHzView: View {
                             if let p = c.pulseCount { Text("\(p)p").font(.caption2).foregroundStyle(FinchTheme.textSecondary) }
                             if let d = c.durationUS { Text("\(d)us").font(.caption2).foregroundStyle(FinchTheme.textSecondary) }
                         }
+                        ARIARangeTag(source: .subghz, id: c.id)
                         // Honest status badge, verbatim (§3.4) — never normalize failure states away.
                         if let detail = c.detail {
                             SubGHzStatusBadge(detail: detail)
@@ -66,6 +73,33 @@ struct ARIASubGHzDetail: View {
     @Environment(AppModel.self) private var app
     let capture: ARIASubGHzCapture
     @State private var outcome: String?
+    @State private var prepared: ARIAClient.ReplayPreparation?
+    @State private var busy = false
+
+    private func prepare() async {
+        busy = true; defer { busy = false }
+        outcome = nil
+        switch await app.aria.prepareReplay(capture) {
+        case .success(let prep): prepared = prep
+        case .failure(let e): outcome = "FAILED — \(e.message)"
+        }
+    }
+
+    private func transmit(_ prep: ARIAClient.ReplayPreparation) async {
+        busy = true; defer { busy = false }
+        prepared = nil
+        // The handheld voids the token after 60 s; say so instead of sending a dead token.
+        guard Date().timeIntervalSince(prep.preparedAt) < 58 else {
+            outcome = "Preparation expired (60 s). Tap Replay capture again."
+            await app.aria.cancelReplay()
+            return
+        }
+        switch await app.aria.confirmReplay(prep) {
+        case .success: outcome = app.aria.lastFireOutput ?? "Replay sent."
+        case .unknown(let m): outcome = "UNKNOWN (connection dropped; it may have transmitted) — \(m)"
+        case .failed(let m): outcome = "FAILED — \(m)"
+        }
+    }
 
     var body: some View {
         ScrollView {
@@ -74,31 +108,58 @@ struct ARIASubGHzDetail: View {
                 ARIADecodeDetail(decode: capture.decode)
                 ARIAStoredRecordSection(source: .subghz, key: capture.id)
 
-                Button {
-                    Task {
-                        switch await app.aria.replaySubGHz(capture) {
-                        case .success: outcome = "replay sent"
-                        case .unknown(let m): outcome = "UNKNOWN — \(m)"
-                        case .failed(let m): outcome = "FAILED — \(m)"
+                if let prep = prepared {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Ready to transmit. Nothing has been sent yet.")
+                            .font(FinchTheme.mono).foregroundStyle(FinchTheme.warn)
+                        Text(prep.summary)
+                            .font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary)
+                            .textSelection(.enabled)
+                        HStack(spacing: 10) {
+                            Button {
+                                Task { await transmit(prep) }
+                            } label: {
+                                Label("Transmit once", systemImage: "dot.radiowaves.right")
+                                    .font(FinchTheme.mono).frame(maxWidth: .infinity).padding()
+                                    .background(FinchCardBackground())
+                            }
+                            Button {
+                                prepared = nil
+                                outcome = "Cancelled. Nothing transmitted."
+                                Task { await app.aria.cancelReplay() }
+                            } label: {
+                                Text("Cancel").font(FinchTheme.mono).padding()
+                                    .background(FinchCardBackground())
+                            }
                         }
+                        .disabled(busy || !app.aria.connection.state.isConnected)
                     }
-                } label: {
-                    Label("Replay capture", systemImage: "arrow.clockwise.circle")
-                        .font(FinchTheme.mono)
-                        .frame(maxWidth: .infinity).padding()
-                        .background(FinchCardBackground())
+                    .padding().background(FinchCardBackground())
+                } else {
+                    Button {
+                        Task { await prepare() }
+                    } label: {
+                        Label(busy ? "Preparing…" : "Replay capture", systemImage: "arrow.clockwise.circle")
+                            .font(FinchTheme.mono)
+                            .frame(maxWidth: .infinity).padding()
+                            .background(FinchCardBackground())
+                    }
+                    .disabled(busy || !app.aria.connection.state.isConnected)
+                    .opacity(app.aria.connection.state.isConnected ? 1 : 0.4)
                 }
-                .disabled(!app.aria.connection.state.isConnected)
-                .opacity(app.aria.connection.state.isConnected ? 1 : 0.4)
 
                 if let outcome {
                     Text(outcome).font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary)
+                        .textSelection(.enabled)
                 }
             }
             .padding()
         }
         .background(FinchTheme.background.ignoresSafeArea())
         .navigationTitle("seq \(capture.sequence)")
+        .onDisappear {
+            if prepared != nil { Task { await app.aria.cancelReplay() } }
+        }
         .navigationBarTitleDisplayMode(.inline)
     }
 }

@@ -25,8 +25,8 @@ struct ARIAHeader: View {
             }
             .foregroundStyle(.white)
             Spacer(minLength: 0)
-            NavigationLink { SettingsView() } label: { Image(systemName: "gearshape") }
-                .accessibilityLabel("Settings")
+            NavigationLink { ARIASessionExportView() } label: { Image(systemName: "square.and.arrow.up") }
+                .accessibilityLabel("Export")
         }
         .padding(.horizontal).padding(.vertical, 8)
         .sheet(isPresented: $showJoin) {
@@ -90,7 +90,7 @@ struct ARIADashboardView: View {
                                 Text("Join ARIA-Setup Wi-Fi to view live devices.")
                                     .font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary)
                             } else if let error = app.aria.lastError {
-                                Text("Last snapshot · \(error)").font(FinchTheme.monoSmall).lineLimit(2)
+                                Text("Session update · \(error)").font(FinchTheme.monoSmall).lineLimit(2)
                             }
                         }
                         .padding(.horizontal).padding(.bottom, 8)
@@ -206,7 +206,7 @@ struct ARIARadarPanel: View {
                 HStack(alignment: .firstTextBaseline) {
                     Text("ARIA HANDHELD").font(FinchTheme.monoTitle)
                     Spacer()
-                    Text("LIVE NOW · TOTAL SEEN").font(.system(size: 9, design: .monospaced))
+                    Text("CURRENT BOOT SESSION").font(.system(size: 9, design: .monospaced))
                         .foregroundStyle(FinchTheme.textSecondary)
                 }
                 if let progress = app.aria.history.progressText {
@@ -215,42 +215,56 @@ struct ARIARadarPanel: View {
                         Text(progress).font(FinchTheme.monoSmall)
                     }
                 }
-                count("Computers", "laptopcomputer", live: classified(app.aria.session.wifi, "computer", "laptop"),
-                      total: classified(app.aria.history.wifi, "computer", "laptop").map(String.init) ?? "—")
-                count("Phones", "iphone", live: classified(app.aria.session.wifi, "phone"),
-                      total: classified(app.aria.history.wifi, "phone").map(String.init) ?? "—")
-                count(.wifi, "Wi-Fi devices", "wifi")
-                count(.ble, "BLE devices", "bolt.fill")
-                count(.subghz, "Sub-GHz captures", "chart.bar.fill")
-                count(.uas, "UAS / Remote ID", "airplane")
-                Text("Live: last 60 s · Total: all stored history · ARIA handheld radios only")
+                TimelineView(.periodic(from: .now, by: 1)) { timeline in
+                    let rows = app.aria.overview.displayRows(now: timeline.date, connected: app.aria.connection.state.isConnected, scope: .total)
+                    ScrollView {
+                        VStack(spacing: 4) {
+                            if rows.isEmpty {
+                                Text(app.aria.connection.state.isConnected ? "No live devices detected." : "Join ARIA-Setup Wi-Fi to view live devices.")
+                                    .font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary)
+                            }
+                            ForEach(rows) { row in
+                                if row.priority {
+                                    NavigationLink {
+                                        ARIAWiFiDetail(overviewRecords: row.records, categoryTitle: row.title)
+                                    } label: { categoryCount(row) }
+                                    .buttonStyle(.plain)
+                                } else {
+                                    categoryCount(row)
+                                }
+                            }
+                        }
+                    }
+                    .frame(height: 6 * 28)
+                }
+                ARIABodyCamCoverageCard()
+                Text("FAA/ASTM Remote ID broadcasts only — not general drone detection.")
                     .font(.system(size: 9)).foregroundStyle(FinchTheme.textSecondary)
-                    .lineLimit(1).minimumScaleFactor(0.8)
+                if let error = app.aria.overviewError {
+                    Text(error).font(.system(size: 9)).foregroundStyle(FinchTheme.textSecondary)
+                }
+                Text("Captures from this boot. Device types use the same classification pipeline; unclassified devices remain in Wi-Fi and BLE.")
+                    .font(.system(size: 9)).foregroundStyle(FinchTheme.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }.padding(12).background(FinchCardBackground()).glowBorder(active: true, cornerRadius: 12)
         .onAppear { location.requestAndStart() }
     }
 
-    private func classified(_ devices: [ARIAWiFiDevice], _ kinds: String...) -> Int? {
-        let classes = devices.compactMap { $0.decode?.bestFingerprint?.deviceClass?.lowercased() }
-        guard !classes.isEmpty else { return nil }
-        return classes.filter { value in kinds.contains { value.contains($0) } }.count
-    }
-
-    private func count(_ source: ARIALogSource, _ label: String, _ icon: String) -> some View {
-        let history = app.aria.history
-        return count(label, icon, live: history.liveCount(source), total: history.totalText(source))
-    }
-
-    private func count(_ label: String, _ icon: String, live: Int?, total: String) -> some View {
-        HStack {
-            Image(systemName: icon).foregroundStyle(FinchTheme.cyan).frame(width: 22)
-            Text(app.aria.connection.state.isConnected ? live.map(String.init) ?? "—" : "—")
-                .font(.system(.headline, design: .monospaced)).frame(minWidth: 32, alignment: .trailing)
-            Text(label).font(.subheadline)
+    private func categoryCount(_ row: ARIAOverviewCatalog.Row) -> some View {
+        let accent = row.priority ? FinchTheme.secondaryAccent : FinchTheme.cyan
+        return HStack {
+            Image(systemName: row.icon).foregroundStyle(accent).frame(width: 22)
+            Text(row.title).font(.subheadline).foregroundStyle(row.priority ? accent : FinchTheme.textPrimary)
             Spacer()
-            Text(total).font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textPrimary)
+            Text("\(row.live) live · \(row.total) session")
+                .font(FinchTheme.monoSmall).frame(minWidth: 150, alignment: .trailing)
         }
+        .foregroundStyle(row.priority ? accent : FinchTheme.textPrimary)
+        .frame(height: 24)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(row.title), \(row.live) live, \(row.total) in session")
     }
 }
 
@@ -260,12 +274,9 @@ struct ARIAModeActionsView: View {
     @Environment(AppModel.self) private var app
     let mode: ARIAMode
 
-    @State private var pendingConfirm: ARIAAction?
-    @State private var outcome: String?
-
     var body: some View {
         List {
-            if mode.name.localizedCaseInsensitiveContains("UAS") {
+            if mode.command == "uas" || mode.name.localizedCaseInsensitiveContains("UAS") {
                 NavigationLink { ARIAUASView() } label: {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Remote ID list").font(FinchTheme.mono).foregroundStyle(FinchTheme.textPrimary)
@@ -280,61 +291,21 @@ struct ARIAModeActionsView: View {
                     .font(FinchTheme.monoSmall).foregroundStyle(FinchTheme.textSecondary)
             }
             ForEach(mode.actions) { action in
-                Button {
-                    if action.requiresConfirmation == true {
-                        pendingConfirm = action
-                    } else {
-                        fire(action)
-                    }
+                NavigationLink {
+                    ARIAActionDestination(action: action)
                 } label: {
-                    VStack(alignment: .leading, spacing: 2) {
-                        // Unmapped action → render raw name + description generically (§1.5.5).
-                        Text(action.displayLabel).font(FinchTheme.mono).foregroundStyle(FinchTheme.textPrimary)
-                        if let d = action.description, !d.isEmpty {
-                            Text(d).font(.caption2).foregroundStyle(FinchTheme.textSecondary)
-                        }
-                        if let page = action.page {
-                            Text(page).font(.caption2).foregroundStyle(FinchTheme.cyanDim)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(action.displayLabel).font(FinchTheme.mono)
+                        if let detail = action.description {
+                            Text(detail).font(.caption2).foregroundStyle(FinchTheme.textSecondary)
                         }
                     }
                 }
-                .disabled(!app.aria.connection.state.isConnected)   // connection-gated (§1.6)
                 .listRowBackground(FinchTheme.surface)
             }
         }
         .scrollContentBackground(.hidden)
         .background(FinchTheme.background)
         .navigationTitle(mode.name)
-        .confirmationDialog(
-            "Fire \(pendingConfirm?.displayLabel ?? "")?",
-            isPresented: Binding(get: { pendingConfirm != nil }, set: { if !$0 { pendingConfirm = nil } }),
-            titleVisibility: .visible
-        ) {
-            Button("Fire", role: .destructive) {
-                if let a = pendingConfirm { fire(a) }
-                pendingConfirm = nil
-            }
-            Button("Cancel", role: .cancel) { pendingConfirm = nil }
-        }
-        .overlay(alignment: .bottom) {
-            if let outcome {
-                Text(outcome)
-                    .font(FinchTheme.monoSmall).padding(10)
-                    .background(FinchCardBackground()).padding()
-            }
-        }
-    }
-
-    private func fire(_ action: ARIAAction) {
-        Task {
-            let result = await app.aria.fire(action)
-            switch result {
-            case .success(let output):
-                let text = output.trimmingCharacters(in: .whitespacesAndNewlines)
-                outcome = text.isEmpty ? "\(action.displayLabel): OK" : "\(action.displayLabel): OK — \(String(text.prefix(300)))"
-            case .unknown(let m): outcome = "\(action.displayLabel): UNKNOWN — \(m)"
-            case .failed(let m): outcome = "\(action.displayLabel): FAILED — \(m)"
-            }
-        }
     }
 }

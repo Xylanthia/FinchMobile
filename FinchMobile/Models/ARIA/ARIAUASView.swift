@@ -11,15 +11,16 @@ struct ARIAUASView: View {
                 VStack(spacing: 8) {
                     ARIAHistoryBanner()
                     ARIASourceCounts(source: .uas)
+                    Text("FAA/ASTM Remote ID broadcasts only — not general drone detection.").font(.caption).foregroundStyle(FinchTheme.textSecondary)
                 }
                 .padding().background(FinchCardBackground())
                 if records.isEmpty {
-                    // "NO VALID UAS DETECTED" is a normal, successful state — not empty/error.
+                    // "NO REMOTE ID RECEIVED" is a normal, successful state — not empty/error.
                     VStack(spacing: 6) {
                         Image(systemName: "airplane.circle").font(.largeTitle).foregroundStyle(FinchTheme.cyanDim)
-                        Text("NO VALID UAS DETECTED")
+                        Text("NO REMOTE ID RECEIVED")
                             .font(FinchTheme.mono).foregroundStyle(FinchTheme.textPrimary)
-                        Text("No validated Remote ID broadcasts in range.")
+                        Text("No validated Remote ID broadcasts received this session.")
                             .font(.caption2).foregroundStyle(FinchTheme.textSecondary)
                     }
                     .padding(.vertical, 40)
@@ -54,7 +55,7 @@ struct ARIAUASView: View {
             .padding()
         }
         .background(FinchTheme.background.ignoresSafeArea())
-        .navigationTitle("UAS / Remote ID")
+        .navigationTitle("Remote ID (UAS)")
     }
 
     private func field(_ label: String, _ value: String) -> some View {

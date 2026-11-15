@@ -58,6 +58,7 @@ struct ARIADecodeEnvelope: Codable, Hashable {
 
 struct ARIAWiFiDevice: Codable, Hashable, Identifiable {
     var mac: String
+    var category: String?       // Firmware classification; vendor alone never implies a class.
     var ssid: String?
     var vendor: String?          // OUI-resolved
     var rssi: Int?
@@ -86,7 +87,7 @@ struct ARIAWiFiDevice: Codable, Hashable, Identifiable {
     var id: String { mac }
 
     enum CodingKeys: String, CodingKey {
-        case mac, ssid, vendor, rssi, encryption
+        case mac, category, ssid, vendor, rssi, encryption
         case seenCount = "seen_count"
         case probeCount = "probe_count"
         case beaconCount = "beacon_count"
@@ -109,6 +110,7 @@ struct ARIAWiFiDevice: Codable, Hashable, Identifiable {
 
 struct ARIABLEDeviceRecord: Codable, Hashable, Identifiable {
     var address: String
+    var category: String?
     var name: String?
     var rssi: Int?
     var companyID: String?        // manufacturer company ID
@@ -132,7 +134,7 @@ struct ARIABLEDeviceRecord: Codable, Hashable, Identifiable {
     var id: String { address }
 
     enum CodingKeys: String, CodingKey {
-        case address, name, rssi
+        case address, category, name, rssi
         case companyID = "company_id"
         case seenCount = "seen_count"
         case adStructures = "ad_structures"
@@ -161,11 +163,21 @@ struct ARIASubGHzCapture: Codable, Hashable, Identifiable {
 
     var id: String { "\(sequence)-\(boot ?? 0)" }
 
+    var replayEligible: Bool?
+    var replayState: String?
+
+    var isReplayable: Bool {
+        if let replayEligible { return replayEligible }
+        return ["REPLAYABLE_FRAME", "REPLAYABLE_RAW_CAPTURE", "REPLAY_PREPARED"].contains(replayState ?? "")
+    }
+
     enum CodingKeys: String, CodingKey {
         case sequence, boot, rssi, detail, decode
         case frequencyMHz = "frequency_mhz"
         case pulseCount = "pulse_count"
         case durationUS = "duration_us"
+        case replayEligible = "replay_eligible"
+        case replayState = "replay_state"
     }
 
     /// Replay endpoint path (raw_capture_ref), per transport §1.
@@ -177,6 +189,8 @@ struct ARIASubGHzCapture: Codable, Hashable, Identifiable {
 /// Only VALIDATED Remote ID records. GENERIC_RF observations never become these (spec §3.5).
 struct ARIAUASRecord: Codable, Hashable, Identifiable {
     var uasID: String
+    var bleAddress: String?
+    var wifiAddress: String?
     var idType: String?
     var uaType: String?
     var latitude: Double?
@@ -192,6 +206,8 @@ struct ARIAUASRecord: Codable, Hashable, Identifiable {
 
     enum CodingKeys: String, CodingKey {
         case uasID = "uas_id"
+        case bleAddress = "ble_address"
+        case wifiAddress = "wifi_address"
         case idType = "id_type"
         case uaType = "ua_type"
         case latitude, longitude, altitude, speed
@@ -235,10 +251,13 @@ struct ARIAAction: Codable, Hashable, Identifiable {
     var group: String?               // GROUP column (top-level mode)
     var page: String?                // PAGE column (sub-level)
 
+    var input: Int?
+    var choices: String?
+
     var id: String { command ?? name }
 
     enum CodingKeys: String, CodingKey {
-        case name, label, description, command, group, page
+        case name, label, description, command, group, page, input, choices
         case requiresConfirmation = "requires_confirmation"
     }
 
@@ -246,8 +265,7 @@ struct ARIAAction: Codable, Hashable, Identifiable {
 
     /// The handheld's /api/tools lists the UAS Remote ID group with no `actions` array
     /// (aria_tool_outputs.cpp). Remote ID is heard by the Wi-Fi and BLE receivers, so these
-    /// are the real ./aria receiver commands that drive it. All exist in the firmware's
-    /// command handler; none transmit.
+    /// are the real ./aria receiver commands that drive it. None transmit.
     static let uasRemoteIDDefaults: [ARIAAction] = [
         ARIAAction(name: "Recon mode", description: "Wi-Fi + BLE discovery — the receivers that hear Remote ID",
                    command: "./aria mode recon", group: "uas"),
@@ -262,6 +280,15 @@ struct ARIAAction: Codable, Hashable, Identifiable {
         ARIAAction(name: "Receiver status", description: "Mode, scanning state and radio health",
                    command: "./aria status", group: "uas"),
     ]
+
+    /// Actions for a /api/tools group, filling the UAS group the handheld leaves empty.
+    static func forGroup(_ group: [String: Any]) -> [ARIAAction] {
+        let (decoded, _) = ARIASessionParser.decodeArray(group["actions"] as? [Any], as: ARIAAction.self)
+        let actions = decoded.map { item in
+            var action = item; action.group = action.group ?? group["id"] as? String; return action
+        }
+        return actions.isEmpty && (group["id"] as? String) == "uas" ? uasRemoteIDDefaults : actions
+    }
 }
 
 /// A top-level mode and the real action set discovered by walking into it.
@@ -413,7 +440,7 @@ enum ARIAJSONResponse {
         guard band == "ble" || band == "wifi" else { return nil }
         var row = device
         if band == "ble" {
-            row["address"] = device["mac"]
+            row["address"] = device["mac"] ?? device["address"]
             row["name"] = device["name"] ?? device["ssid"]
         } else {
             row["encryption"] = device["encrypt"]
@@ -467,13 +494,41 @@ enum ARIAJSONResponse {
             }
             return row
         }
-        // Generic RF observations are deliberately not promoted to drone records.
-        root["uas"] = source["uas"] as? [Any] ?? []
+        // Firmware sends a UAS object; the live poll receives it through capabilities.
+        // Keep every original field and translate only the typed app's key/value aliases.
+        let capabilities = source["capabilities"] as? [String: Any] ?? [:]
+        let uas = source["uas"] as? [String: Any] ?? capabilities["uas"] as? [String: Any]
+        if let uas {
+            root["uas"] = (uas["observations"] as? [[String: Any]] ?? []).compactMap { observation -> [String: Any]? in
+                guard observation["validation"] as? Bool == true,
+                      observation["classification"] as? String == "VALIDATED_REMOTE_ID",
+                      let id = observation["uas_id"] as? String,
+                      !id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+                var row = observation
+                for key in ["id_type", "ua_type"] {
+                    if let value = row[key] as? NSNumber { row[key] = value.stringValue }
+                }
+                row["latitude"] = observation["latitude"] ?? observation["lat"]
+                row["longitude"] = observation["longitude"] ?? observation["lon"]
+                row["altitude"] = observation["altitude"] ?? observation["alt_geo"] ?? observation["altitude_geo_m"]
+                row["speed"] = observation["speed"] ?? observation["horizontal_speed_mps"]
+                row["operator_id"] = observation["operator_id"] ?? observation["op_id"]
+                row["operator_lat"] = observation["operator_lat"] ?? observation["op_lat"] ?? observation["operator_latitude"]
+                row["operator_lon"] = observation["operator_lon"] ?? observation["op_lon"] ?? observation["operator_longitude"]
+                row["decoder_provenance"] = observation["decoder_provenance"] ?? observation["rid_transport"]
+                return row
+            }
+        } else {
+            root["uas"] = (source["uas"] as? [[String: Any]] ?? []).filter {
+                $0["validation"] as? Bool == true && $0["classification"] as? String == "VALIDATED_REMOTE_ID"
+            }
+        }
         var summary = source["summary"] as? [String: Any] ?? [:]
         if let uptime = live["uptime_ms"] as? Int { summary["uptime_s"] = uptime / 1000 }
         summary["wifi_count"] = (root["wifi"] as? [Any])?.count
         summary["ble_count"] = (root["ble"] as? [Any])?.count
         summary["subghz_count"] = (root["subghz"] as? [Any])?.count
+        summary["uas_count"] = (root["uas"] as? [Any])?.count
         root["summary"] = summary
         var parsed = ARIASessionParser.parse(try JSONSerialization.data(withJSONObject: root, options: [.sortedKeys]))
         parsed.warnings = source["poll_warnings"] as? [String] ?? []
@@ -481,11 +536,7 @@ enum ARIAJSONResponse {
         if let groups = tools["groups"] as? [[String: Any]] {
             parsed.modes = groups.compactMap { group in
                 guard let name = group["name"] as? String else { return nil }
-                var (actions, _) = ARIASessionParser.decodeArray(group["actions"] as? [Any], as: ARIAAction.self)
-                if actions.isEmpty, (group["id"] as? String) == "uas" {
-                    actions = ARIAAction.uasRemoteIDDefaults
-                }
-                return ARIAMode(name: name, command: nil, actions: actions)
+                return ARIAMode(name: name, command: nil, actions: ARIAAction.forGroup(group))
             }
         }
         return parsed

@@ -66,6 +66,7 @@ final class ARIAEvidence {
     private(set) var lastError: String?
     private(set) var refreshing = false
     private(set) var lastRefresh: Date?
+    private var generation = 0
     private var byID: [String: ARIAEvidenceFrame] = [:]
 
     func frames(for address: String) -> [ARIAEvidenceFrame] {
@@ -73,11 +74,18 @@ final class ARIAEvidence {
         return frames.filter { $0.address == key }
     }
 
+    func reset() {
+        generation += 1
+        frames = []; byID = [:]; lastError = nil; lastRefresh = nil
+    }
+
     /// Pages every evidence ring on the handheld (4 records per page, next_before cursor).
-    func refresh(using client: ARIAClient) async {
+    func refresh(using client: ARIAClient, boot: Int) async {
         guard !refreshing else { return }
         refreshing = true
         defer { refreshing = false }
+        let version = generation
+        var collected = byID
         var errors: [String] = []
         for kind in ARIAEvidenceFrame.Kind.allCases {
             var before = 0
@@ -85,7 +93,7 @@ final class ARIAEvidence {
                 do {
                     let page = try await client.omniJSON("\(kind.command) \(before) 4")
                     for record in page["frames"] as? [[String: Any]] ?? [] {
-                        if let frame = ARIAEvidenceFrame(kind: kind, record: record) { byID[frame.id] = frame }
+                        if let frame = ARIAEvidenceFrame(kind: kind, record: record) { collected[frame.id] = frame }
                     }
                     guard let next = ARIAHistoryCodec.int(page["next_before"]), next != before else { break }
                     before = next
@@ -95,6 +103,10 @@ final class ARIAEvidence {
                 }
             }
         }
+        guard version == generation,
+              let stats = try? await client.logStats(), ARIAHistoryCodec.int(stats["boot"]) == boot,
+              version == generation else { return }
+        byID = collected
         frames = byID.values.sorted { ($0.timestampMs ?? 0, $0.sequence) > ($1.timestampMs ?? 0, $1.sequence) }
         lastError = errors.isEmpty ? nil : errors.joined(separator: " · ")
         lastRefresh = Date()

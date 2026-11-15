@@ -81,6 +81,12 @@
 		D20195241F76111A60C0C806 /* ARIANearbyDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEEE2367F0F09C40681A96 /* ARIANearbyDecoder.swift */; };
 		3992AFEAC65422A00523B15B /* ARIAUASView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E51361A3AF6E7C5B5DD622A8 /* ARIAUASView.swift */; };
 		413A0EB8E70C1A68C2EC5850 /* ARIASessionExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03EF63932CC81C5C29BFBD37 /* ARIASessionExportView.swift */; };
+		A10000000000000000000001 /* ARIAActionCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000007 /* ARIAActionCommand.swift */; };
+		A10000000000000000000002 /* ARIAListFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000008 /* ARIAListFilter.swift */; };
+		A10000000000000000000003 /* ARIAOverviewCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000009 /* ARIAOverviewCatalog.swift */; };
+		A10000000000000000000004 /* ARIABodyCamRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000A /* ARIABodyCamRegistry.swift */; };
+		A10000000000000000000005 /* ARIAActionControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000B /* ARIAActionControls.swift */; };
+		A10000000000000000000006 /* ARIABodyCam.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000C /* ARIABodyCam.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -161,6 +167,12 @@
 		9BCEEE2367F0F09C40681A96 /* ARIANearbyDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIANearbyDecoder.swift; sourceTree = "<group>"; };
 		E51361A3AF6E7C5B5DD622A8 /* ARIAUASView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIAUASView.swift; sourceTree = "<group>"; };
 		03EF63932CC81C5C29BFBD37 /* ARIASessionExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIASessionExportView.swift; sourceTree = "<group>"; };
+		A10000000000000000000007 /* ARIAActionCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIAActionCommand.swift; sourceTree = "<group>"; };
+		A10000000000000000000008 /* ARIAListFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIAListFilter.swift; sourceTree = "<group>"; };
+		A10000000000000000000009 /* ARIAOverviewCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIAOverviewCatalog.swift; sourceTree = "<group>"; };
+		A1000000000000000000000A /* ARIABodyCamRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIABodyCamRegistry.swift; sourceTree = "<group>"; };
+		A1000000000000000000000B /* ARIAActionControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIAActionControls.swift; sourceTree = "<group>"; };
+		A1000000000000000000000C /* ARIABodyCam.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARIABodyCam.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -480,6 +492,10 @@
 		FD3B53D09030B7313406C1F2 /* ARIA */ = {
 			isa = PBXGroup;
 			children = (
+				A10000000000000000000007 /* ARIAActionCommand.swift */,
+				A10000000000000000000008 /* ARIAListFilter.swift */,
+				A10000000000000000000009 /* ARIAOverviewCatalog.swift */,
+				A1000000000000000000000A /* ARIABodyCamRegistry.swift */,
 				9F677FF04D8466E8978C495F /* ARIAClient.swift */,
 				7E85BF2A4BEEB607F98C61A9 /* ARIAConnectionManager.swift */,
 				CBF525A093E0E314D29B7CAE /* ARIACoordinator.swift */,
@@ -494,6 +510,8 @@
 		C37F80739DACA6A248BDB7D2 /* ARIA */ = {
 			isa = PBXGroup;
 			children = (
+				A1000000000000000000000B /* ARIAActionControls.swift */,
+				A1000000000000000000000C /* ARIABodyCam.swift */,
 				472D8FC747535FE30232A198 /* ARIASharedViews.swift */,
 				C91567EEB67275224DA104AD /* ARIADashboardView.swift */,
 				363AF6875041BAD25E8D9E09 /* ARIAWiFiView.swift */,
@@ -582,6 +600,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A10000000000000000000001 /* ARIAActionCommand.swift in Sources */,
+				A10000000000000000000002 /* ARIAListFilter.swift in Sources */,
+				A10000000000000000000003 /* ARIAOverviewCatalog.swift in Sources */,
+				A10000000000000000000004 /* ARIABodyCamRegistry.swift in Sources */,
+				A10000000000000000000005 /* ARIAActionControls.swift in Sources */,
+				A10000000000000000000006 /* ARIABodyCam.swift in Sources */,
 				CD3FEFFA22E00576DDDCB0C8 /* ARIAModels.swift in Sources */,
 				B19386E59EF14780A9CFF293 /* ARIAClient.swift in Sources */,
 				4FABE7AA2FFFFCB9882F2207 /* ARIAConnectionManager.swift in Sources */,
@@ -704,7 +728,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 35;
+				CURRENT_PROJECT_VERSION = 45;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				ENABLE_TESTABILITY = YES;
@@ -735,7 +759,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 35;
+				CURRENT_PROJECT_VERSION = 45;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
