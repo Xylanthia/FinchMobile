@@ -651,7 +651,7 @@ final class ARIAHistory {
 
     // MARK: Export
 
-    func writeExport(to url: URL, metadata: [String: Any]) async throws -> [ARIALogSource: Int] {
+    func writeExport(to url: URL, metadata: [String: Any], liveKeys: Set<String> = []) async throws -> [ARIALogSource: Int] {
         guard let bootID, storeError == nil else {
             throw ARIAClient.Failure(message: storeError ?? "Connect to ARIA to start a boot session.", statusCode: nil)
         }
@@ -674,11 +674,19 @@ final class ARIAHistory {
                 }
             }
         }.get()
+        try await Task.detached(priority: .utility) {
+            try ARIAExportJSON.rewriteHistoryExport(at: url, liveKeys: liveKeys)
+        }.value
         guard generation == version else {
             try? FileManager.default.removeItem(at: url)
             throw ARIAClient.Failure(message: "ARIA rebooted during export. Export the new session again.", statusCode: nil)
         }
         return result
+    }
+
+    func liveRecordKeys(now: Date = Date()) -> Set<String> {
+        let cutoff = now.addingTimeInterval(-Self.liveWindow)
+        return Set(liveSeen.compactMap { key, seen in seen >= cutoff ? key : nil })
     }
 
     /// Every Overview category is derived from the same current-session rows as the radio tabs.

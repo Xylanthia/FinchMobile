@@ -238,21 +238,25 @@ struct ARIAHistoryBanner: View {
 
 /// Captures remain part of this boot session after the transmitter leaves range.
 struct ARIARangeTag: View {
+    @Environment(AppModel.self) private var app
     let source: ARIALogSource
     let id: String
-    var body: some View { EmptyView() }
+    var body: some View {
+        if app.aria.connection.state.isConnected && app.aria.history.isLive(source, id) {
+            Text("LIVE NOW").font(.system(.caption2, design: .monospaced)).foregroundStyle(FinchTheme.cyan)
+        } else {
+            let last = app.aria.history.lastSeen(source, id)
+            Text("SESSION" + (last.map { " · last \($0.formatted(date: .omitted, time: .shortened))" } ?? ""))
+                .font(.system(.caption2, design: .monospaced)).foregroundStyle(FinchTheme.textSecondary)
+        }
+    }
 }
 
 struct ARIAListSearch: View {
     @Binding var query: String
-    @Binding var scope: ARIAListScope
     var wifi = false
     var body: some View {
-        VStack(spacing: 10) {
-            Picker("Display", selection: $scope) {
-                ForEach(ARIAListScope.allCases) { Text($0.rawValue).tag($0) }
-            }.pickerStyle(.segmented)
-            HStack {
+        HStack {
                 Image(systemName: "magnifyingglass")
                 TextField(wifi ? "Name, vendor, MAC/BSSID or SSID" : "Name, vendor or address", text: $query)
                     .textInputAutocapitalization(.never).autocorrectionDisabled()
@@ -261,7 +265,6 @@ struct ARIAListSearch: View {
                     Button { query = "" } label: { Image(systemName: "xmark.circle.fill") }
                         .accessibilityLabel("Clear search")
                 }
-            }.font(.subheadline)
-        }
+        }.font(.subheadline)
     }
 }

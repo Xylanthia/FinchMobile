@@ -2,20 +2,16 @@ import SwiftUI
 
 struct ARIASubGHzView: View {
     @State private var query = ""
-    @State private var scope: ARIAListScope = .total
     @Environment(AppModel.self) private var app
     @State private var outcome: String?
 
     var body: some View {
-        let captures = app.aria.history.subghz.filter {
-            (scope == .total || (app.aria.connection.state.isConnected && app.aria.history.isLive(.subghz, $0.id)))
-                && ARIAListFilter.matches(query, $0)
-        }
+        let captures = app.aria.history.subghz.filter { ARIAListFilter.matches(query, $0) }
         List {
             Section {
                 ARIAHistoryBanner()
                 ARIASourceCounts(source: .subghz)
-                ARIAListSearch(query: $query, scope: $scope, wifi: false)
+                ARIAListSearch(query: $query, wifi: false)
             }
             if captures.isEmpty {
                 if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -39,6 +35,7 @@ struct ARIASubGHzView: View {
                             if let p = c.pulseCount { Text("\(p)p").font(.caption2).foregroundStyle(FinchTheme.textSecondary) }
                             if let d = c.durationUS { Text("\(d)us").font(.caption2).foregroundStyle(FinchTheme.textSecondary) }
                         }
+                        ARIARangeTag(source: .subghz, id: c.id)
                         // Honest status badge, verbatim (§3.4) — never normalize failure states away.
                         if let detail = c.detail {
                             SubGHzStatusBadge(detail: detail)

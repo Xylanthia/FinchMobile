@@ -128,7 +128,6 @@ private struct RadarObservation: Identifiable {
 }
 
 struct ARIARadarPanel: View {
-    @State private var scope: ARIAListScope = .live
     private var location: LocationProvider { PhoneLocation.location }
     @Environment(AppModel.self) private var app
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -216,11 +215,8 @@ struct ARIARadarPanel: View {
                         Text(progress).font(FinchTheme.monoSmall)
                     }
                 }
-                Picker("Overview counts", selection: $scope) {
-                    ForEach(ARIAListScope.allCases) { Text($0.rawValue).tag($0) }
-                }.pickerStyle(.segmented)
                 TimelineView(.periodic(from: .now, by: 1)) { timeline in
-                    let rows = app.aria.overview.displayRows(now: timeline.date, connected: app.aria.connection.state.isConnected, scope: scope)
+                    let rows = app.aria.overview.displayRows(now: timeline.date, connected: app.aria.connection.state.isConnected, scope: .total)
                     ScrollView {
                         VStack(spacing: 4) {
                             if rows.isEmpty {
@@ -241,6 +237,7 @@ struct ARIARadarPanel: View {
                     }
                     .frame(height: 6 * 28)
                 }
+                ARIABodyCamCoverageCard()
                 Text("FAA/ASTM Remote ID broadcasts only — not general drone detection.")
                     .font(.system(size: 9)).foregroundStyle(FinchTheme.textSecondary)
                 if let error = app.aria.overviewError {
@@ -260,13 +257,14 @@ struct ARIARadarPanel: View {
             Image(systemName: row.icon).foregroundStyle(accent).frame(width: 22)
             Text(row.title).font(.subheadline).foregroundStyle(row.priority ? accent : FinchTheme.textPrimary)
             Spacer()
-            Text(String(scope == .live ? row.live : row.total)).font(FinchTheme.monoSmall).frame(width: 64, alignment: .trailing)
+            Text("\(row.live) live · \(row.total) session")
+                .font(FinchTheme.monoSmall).frame(minWidth: 150, alignment: .trailing)
         }
         .foregroundStyle(row.priority ? accent : FinchTheme.textPrimary)
         .frame(height: 24)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(row.title), \(scope.rawValue) \(scope == .live ? row.live : row.total)")
+        .accessibilityLabel("\(row.title), \(row.live) live, \(row.total) in session")
     }
 }
 

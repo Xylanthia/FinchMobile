@@ -343,7 +343,7 @@ final class ARIACoordinator {
             "capture_log": cut,
             "capture_scope": "All available current-boot log observations plus current device and capture state. Radio/flash loss counters remain in capture_log.",
         ]
-        let counts = try await history.writeExport(to: url, metadata: metadata)
+        let counts = try await history.writeExport(to: url, metadata: metadata, liveKeys: history.liveRecordKeys())
         return (url, counts)
     }
 
