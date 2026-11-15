@@ -140,7 +140,9 @@ enum ARIAExportJSON {
                 }
             } else if let object = value as? [String: Any],
                       ["firmware_response", "session", "capabilities", "captures", "subghz_live", "uas", "live_snapshot_at_export"].contains(key) {
-                root[key] = document(object, recordBand: key == "subghz_live" ? "subghz" : key == "uas" ? "uas" : nil)
+                root[key] = key == "live_snapshot_at_export"
+                    ? dashboardDocument(object)
+                    : document(object, recordBand: key == "subghz_live" ? "subghz" : key == "uas" ? "uas" : nil)
             }
         }
         return root
