@@ -55,7 +55,8 @@ enum ARIAClient {
         defer { try? FileManager.default.removeItem(at: url) }
         let counts = try await history.writeExport(to: url, metadata: ["through_sequence": ["wifi": 102]])
         let exported = try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as! [String: Any]
-        precondition(exported["schema"] as? String == "aria.boot-session.v1")
+        precondition(exported["schema_version"] as? Int == 4)
+        precondition(exported["source_schema"] as? String == "aria.boot-session.v1")
         precondition(exported["boot_id"] as? Int == 42)
         let observations = exported["observations"] as! [[String: Any]]
         precondition(observations.count == 3 && observations.allSatisfy { $0["boot_id"] as? Int == 42 })
