@@ -42,7 +42,13 @@ enum SentinelExporter {
             let svc = h.services.map(\.type).joined(separator: ";")
             let cves = Array(Set(h.offenseHits.flatMap { $0.cves.map(\.cve) })).sorted().joined(separator: ";")
             let summaries = h.offenseHits.map(\.summary).joined(separator: " | ")
-            lines.append([
+            let location = h.collectorLocation
+            let latitude = location?.latitude.map { String($0) } ?? ""
+            let longitude = location?.longitude.map { String($0) } ?? ""
+            let accuracy = location?.horizontalAccuracyMeters.map { String($0) } ?? ""
+            let receivedAt = location?.receivedAt ?? ""
+            let locationStatus = location?.status ?? "unavailable"
+            let fields: [String] = [
                 h.ip,
                 h.mac ?? "",
                 csvEscape(h.vendor ?? ""),
@@ -52,13 +58,14 @@ enum SentinelExporter {
                 csvEscape(svc),
                 csvEscape(cves),
                 csvEscape(summaries),
-                h.collectorLocation?.latitude.map { String($0) } ?? "",
-                h.collectorLocation?.longitude.map { String($0) } ?? "",
-                h.collectorLocation?.horizontalAccuracyMeters.map { String($0) } ?? "",
-                h.collectorLocation?.fixTimestamp ?? "",
-                h.collectorLocation?.receivedAt ?? "",
-                h.collectorLocation?.status ?? "unavailable"
-            ].joined(separator: ","))
+                latitude,
+                longitude,
+                accuracy,
+                location?.fixTimestamp ?? "",
+                receivedAt,
+                locationStatus
+            ]
+            lines.append(fields.joined(separator: ","))
         }
         return lines.joined(separator: "\n")
     }

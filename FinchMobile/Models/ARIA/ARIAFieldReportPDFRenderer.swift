@@ -427,7 +427,7 @@ private final class ReportCanvas {
         } else { y = 0 }
     }
 
-    private func finishPage() {
+    func finishPage() {
         guard pageOpen else { return }
         fill(CGRect(x: margin, y: footerY, width: bounds.width - margin * 2, height: 0.6), color: dim.withAlphaComponent(0.55))
         let pageText = "ARIA FIELD REPORT  ·  PAGE \(pageNumber)"
