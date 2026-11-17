@@ -214,8 +214,9 @@ final class OsintEngine {
                 }
                 if !duplicate { merged.findings.append(finding) }
             }
-            merged.actions.append(contentsOf: county.actions.filter { action in
-                !merged.actions.contains { $0.seed.caseInsensitiveCompare(action.seed) == .orderedSame }
+            let existingActionSeeds = Set(merged.actions.map { $0.seed.lowercased() })
+            merged.actions.append(contentsOf: county.actions.filter {
+                !existingActionSeeds.contains($0.seed.lowercased())
             })
             let returnedOwner = county.findings.contains { $0.kind == "name" }
             merged.brief.append(returnedOwner
