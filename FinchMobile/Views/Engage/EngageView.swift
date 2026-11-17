@@ -61,10 +61,13 @@ struct EngageView: View {
                         },
                         onMQTT: { ip in
                             mqttTargetIP = ip
+                            let detectedPort = app.glassPipeline.report?.hosts.first(where: { $0.ip == ip })?.mqttPorts.first ?? 1883
+                            mqttPort = String(detectedPort)
                             showMQTTSheet = true
                         },
                         onExport: exportSentinel
                     )
+                    .sheet(isPresented: $showMQTTSheet) { mqttSheet }
                     }
                 }
                 .padding(.top, 8)
@@ -75,6 +78,7 @@ struct EngageView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Persist") { preparePersist() }
                         .disabled(app.reportContainer.isEmpty && app.glassPipeline.report == nil && app.osintEngine.report == nil)
+                        .sheet(isPresented: $showPersist) { persistSheet }
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Clear") {
