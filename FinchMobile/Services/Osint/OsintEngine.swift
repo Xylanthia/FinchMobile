@@ -100,19 +100,39 @@ final class OsintEngine {
                 settings: settings
             ) {
             case .success(let backendReport):
-                report = backendReport
+                if kind == .property {
+                    report = await appendOnDeviceCountyRecords(to: backendReport, query: q)
+                } else {
+                    report = backendReport
+                }
                 isRunning = false
-                progressText = "Done · \(backendReport.findings.count) findings (Finch web parity)"
+                progressText = "Done · \(report?.findings.count ?? backendReport.findings.count) findings (Finch web parity + county records)"
                 return
             case .failure(let failure):
-                report = FinchBackendClient.failureReport(
-                    query: q,
-                    kind: kind,
-                    failure: failure,
-                    backendURL: settings.finchBackendURL
-                )
+                if kind == .property {
+                    progressText = "Finch backend unavailable · using on-device county records…"
+                    let local = await property(q)
+                    report = OsintReport(
+                        query: q,
+                        pipeline: kind,
+                        brief: local.2 + ["Finch backend unavailable; address lookup used on-device county assessor / GIS rails.", failure.message],
+                        findings: local.0,
+                        actions: local.1,
+                        startedAt: started,
+                        finishedAt: Date()
+                    )
+                } else {
+                    report = FinchBackendClient.failureReport(
+                        query: q,
+                        kind: kind,
+                        failure: failure,
+                        backendURL: settings.finchBackendURL
+                    )
+                }
                 isRunning = false
-                progressText = "Backend unreachable — set PC URL in Settings"
+                progressText = kind == .property
+                    ? "Done · \(report?.findings.count ?? 0) address findings (on-device fallback)"
+                    : "Backend unreachable — set PC URL in Settings"
                 return
             }
         }
@@ -170,6 +190,40 @@ final class OsintEngine {
         )
         isRunning = false
         progressText = "Done · \(findings.count) findings"
+    }
+
+    /// Keep FinchMobile's local county assessor/GIS owner search active even when a desktop
+    /// backend is configured. The backend remains the primary report; local county findings
+    /// fill any owner-name gap so a configured but partial dossier does not hide parcel names.
+    private func appendOnDeviceCountyRecords(to input: OsintReport, query: String) async -> OsintReport {
+        var merged = input
+        progressText = "County assessor / GIS owner lookup…"
+        let county = await CountyAssessorService.investigate(query)
+        let hasCountyOwner = merged.findings.contains { finding in
+            guard finding.kind.lowercased() == "name" else { return false }
+            let source = finding.source.lowercased()
+            let context = "\(finding.note) \(finding.source)".lowercased()
+            return source.contains("assessor") || source.contains("gis") || source.contains("county")
+                || context.contains("county") || context.contains("assessor") || context.contains("owner")
+        }
+        if !hasCountyOwner {
+            for finding in county.findings {
+                let duplicate = merged.findings.contains {
+                    $0.kind.caseInsensitiveCompare(finding.kind) == .orderedSame
+                        && $0.value.caseInsensitiveCompare(finding.value) == .orderedSame
+                }
+                if !duplicate { merged.findings.append(finding) }
+            }
+            merged.actions.append(contentsOf: county.actions.filter { action in
+                !merged.actions.contains { $0.seed.caseInsensitiveCompare(action.seed) == .orderedSame }
+            })
+            let returnedOwner = county.findings.contains { $0.kind == "name" }
+            merged.brief.append(returnedOwner
+                ? "On-device county assessor / GIS returned an owner name."
+                : "On-device county assessor / GIS lookup completed; no owner name was returned by the matched public parcel source.")
+        }
+        merged.finishedAt = Date()
+        return merged
     }
 
     // MARK: - Identity
