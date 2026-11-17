@@ -8,6 +8,7 @@ struct EngageView: View {
     @State private var showMQTTSheet = false
     @State private var mqttTargetIP: String = ""
     @State private var mqttPort: String = "1883"
+    @State private var mqttValidationError: String?
     @State private var persistTitle: String = ""
     @State private var persistPassphrase: String = ""
     @State private var showPersist = false
@@ -67,18 +68,20 @@ struct EngageView: View {
                         },
                         onExport: exportSentinel
                     )
-                    .sheet(isPresented: $showMQTTSheet) { mqttSheet }
                     }
                 }
                 .padding(.top, 8)
             }
             .navigationTitle("THE MACHINE")
             .navigationBarTitleDisplayMode(.inline)
+            // Present from the screen's NavigationStack. The Listen button can be
+            // tapped from HostDetailView, several navigation levels below here.
+            .sheet(isPresented: $showMQTTSheet) { mqttSheet }
+            .sheet(isPresented: $showPersist) { persistSheet }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Persist") { preparePersist() }
                         .disabled(app.reportContainer.isEmpty && app.glassPipeline.report == nil && app.osintEngine.report == nil)
-                        .sheet(isPresented: $showPersist) { persistSheet }
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Clear") {
@@ -305,9 +308,18 @@ struct EngageView: View {
                 Section("Broker") {
                     TextField("Host IP", text: $mqttTargetIP)
                         .font(FinchTheme.mono)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
                     TextField("Port", text: $mqttPort)
                         .font(FinchTheme.mono)
                         .keyboardType(.numberPad)
+                }
+                if let mqttValidationError {
+                    Section {
+                        Text(mqttValidationError)
+                            .font(FinchTheme.monoSmall)
+                            .foregroundStyle(FinchTheme.danger)
+                    }
                 }
                 Section("Duration (max 60s)") {
                     Slider(value: $mqttDuration, in: 5...60, step: 5)
@@ -333,11 +345,20 @@ struct EngageView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Listen") {
-                        let port = UInt16(mqttPort) ?? 1883
+                        let host = mqttTargetIP.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !host.isEmpty else {
+                            mqttValidationError = "Enter the broker host or IP address."
+                            return
+                        }
+                        guard let port = UInt16(mqttPort), port > 0 else {
+                            mqttValidationError = "Enter a valid port from 1 to 65535."
+                            return
+                        }
+                        mqttValidationError = nil
                         let user = app.settings.mqttUsername.isEmpty ? nil : app.settings.mqttUsername
                         let pass = app.settings.mqttPassword.isEmpty ? nil : app.settings.mqttPassword
                         app.glassPipeline.listenMQTT(
-                            ip: mqttTargetIP,
+                            ip: host,
                             port: port,
                             duration: mqttDuration,
                             username: user,

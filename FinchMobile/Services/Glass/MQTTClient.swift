@@ -7,7 +7,6 @@ final class MQTTClient {
     private let queue = DispatchQueue(label: "com.aetherverse.finch.mqtt")
     private var onMessage: ((MQTTMessage) -> Void)?
     private var buffer = Data()
-    private var finished = false
 
     func listen(
         host: String,
@@ -18,16 +17,18 @@ final class MQTTClient {
         durationSeconds: TimeInterval,
         onMessage: @escaping (MQTTMessage) -> Void
     ) async -> [MQTTMessage] {
+        let trimmedHost = host.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedHost.isEmpty, let nwPort = NWEndpoint.Port(rawValue: port) else { return [] }
         self.onMessage = onMessage
-        finished = false
         buffer = Data()
         var collected: [MQTTMessage] = []
         let lock = NSLock()
 
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            let completion = MQTTCompletionGate()
             let conn = NWConnection(
-                host: NWEndpoint.Host(host),
-                port: NWEndpoint.Port(rawValue: port)!,
+                host: NWEndpoint.Host(trimmedHost),
+                port: nwPort,
                 using: .tcp
             )
             self.connection = conn
@@ -51,10 +52,7 @@ final class MQTTClient {
                         })
                     })
                 case .failed, .cancelled:
-                    if !self.finished {
-                        self.finished = true
-                        continuation.resume()
-                    }
+                    completion.finish { continuation.resume() }
                 default:
                     break
                 }
@@ -62,11 +60,8 @@ final class MQTTClient {
             conn.start(queue: queue)
 
             queue.asyncAfter(deadline: .now() + durationSeconds) { [weak self] in
-                self?.connection?.cancel()
-                if let self, !self.finished {
-                    self.finished = true
-                    continuation.resume()
-                }
+                conn.cancel()
+                completion.finish { continuation.resume() }
             }
         }
 
@@ -113,6 +108,24 @@ final class MQTTClient {
                 }
             }
         }
+    }
+}
+
+/// Network state callbacks and the duration timeout can both finish a listen.
+/// Only the first one may resume its checked continuation.
+private final class MQTTCompletionGate {
+    private let lock = NSLock()
+    private var didFinish = false
+
+    func finish(_ action: () -> Void) {
+        lock.lock()
+        guard !didFinish else {
+            lock.unlock()
+            return
+        }
+        didFinish = true
+        lock.unlock()
+        action()
     }
 }
 
