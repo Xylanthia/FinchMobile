@@ -6,6 +6,8 @@ struct ARIASessionExportView: View {
     @State private var shareURL: URL?
     @State private var status: String?
     @State private var exporting = false
+    @State private var operatorID = ""
+    @State private var includeCurrentOSINT = false
 
     var body: some View {
         let session = app.aria.session
@@ -40,6 +42,16 @@ struct ARIASessionExportView: View {
             .listRowBackground(FinchTheme.surface)
 
             Section("Export") {
+                TextField("Operator ID (optional)", text: $operatorID)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                if app.osintEngine.report != nil {
+                    Toggle("Attach current Engage OSINT result", isOn: $includeCurrentOSINT)
+                    Text("OSINT is attached to this report only when enabled. The identity page is omitted when the attached result has no usable data.")
+                        .font(.caption2).foregroundStyle(FinchTheme.textSecondary)
+                }
+                Button(exporting ? "Generating field report…" : "Generate Field Report") { generateFieldReport() }
+                    .disabled(exporting || !app.aria.connection.state.isConnected)
                 Button(exporting ? "Collecting boot session…" : "Share current session JSON") { exportSession() }
                     .disabled(exporting || !app.aria.connection.state.isConnected)
                 Text("Includes available captures from handheld boot through export, including captures before the app connected. Previous boots are excluded. Nothing is saved on this phone unless you export.")
@@ -68,6 +80,40 @@ struct ARIASessionExportView: View {
                 status = "exported \(summary)"
             } catch {
                 status = "export failed: \(error.localizedDescription)"
+            }
+        }
+    }
+
+    private func generateFieldReport() {
+        exporting = true
+        let currentOSINT = app.osintEngine.report
+        let attachOSINT = includeCurrentOSINT
+        let enteredOperatorID = operatorID
+        let latitude = BLESurveyFix.latitude
+        let longitude = BLESurveyFix.longitude
+        Task {
+            defer { exporting = false }
+            do {
+                let (sourceURL, _) = try await app.aria.exportSession()
+                let sourceJSON = try Data(contentsOf: sourceURL)
+                let reportJSON = try ARIAFieldReportInput.make(
+                    source: sourceJSON,
+                    osint: currentOSINT,
+                    includeOSINT: attachOSINT,
+                    operatorID: enteredOperatorID,
+                    operatorLatitude: latitude,
+                    operatorLongitude: longitude
+                )
+                let document = try ARIAFieldReportDocument(jsonData: reportJSON)
+                let pdf = ARIAFieldReportPDFRenderer.makePDF(from: document)
+                let timestamp = ISO8601DateFormatter().string(from: Date()).replacingOccurrences(of: ":", with: "-")
+                let destination = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("ARIA-Field-Report-\(timestamp).pdf")
+                try pdf.write(to: destination, options: .atomic)
+                shareURL = destination
+                status = "Field report ready · \(document.totalRadioDevices) Wi-Fi / BLE · \(document.subGHz.count) Sub-GHz"
+            } catch {
+                status = "field report failed: \(error.localizedDescription)"
             }
         }
     }
