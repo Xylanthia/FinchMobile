@@ -21,6 +21,13 @@ enum ARIAFieldReportPDFRenderer {
 }
 
 private final class ReportCanvas {
+    private struct SubGHzSummaryRow {
+        let frequency: String
+        let modulation: String
+        let count: Int
+        let replayEligibleCount: Int
+    }
+
     private let context: UIGraphicsPDFRendererContext
     private let document: ARIAFieldReportDocument
     private let bounds: CGRect
@@ -106,24 +113,17 @@ private final class ReportCanvas {
         drawMetricCards(metrics)
 
         y += 19
-        sectionHeading("Anomalies & Unconventional Devices", subtitle: "Heuristic review flags; verify each finding against scope and onsite conditions.")
-        if document.anomalies.isEmpty {
-            drawPanelText("No configured anomaly patterns matched the observations in this export.", color: muted)
-        } else {
-            for item in document.anomalies {
-                let color = item.severity == .warning ? red : (item.severity == .review ? amber : purple)
-                let body = "•  \(item.title)\n   \(item.detail)"
-                let bodyHeight = measuredHeight(body, width: bounds.width - margin * 2 - 26, font: .systemFont(ofSize: 10)) + 18
-                ensureSpace(height: bodyHeight,
-                            continuation: "EXECUTIVE SUMMARY & ANOMALIES")
-                draw(body, in: CGRect(x: margin, y: y, width: bounds.width - margin * 2, height: bodyHeight),
-                     font: .systemFont(ofSize: 10), color: white, background: panel, border: color.withAlphaComponent(0.8), inset: 9)
-                y += bodyHeight + 2
-            }
+        sectionHeading("TSCM Threat Matrix", subtitle: "Evidence is grouped and summarized from the supplied export; verify findings onsite.")
+        let hasHighThreat = document.anomalies.contains { $0.severity == .critical || $0.severity == .high }
+        if !hasHighThreat {
+            drawPanelText("No critical surveillance or close-proximity threats detected.", color: muted)
         }
-        if !document.anomalies.isEmpty {
-            y += 5
-            drawPanelText("A proximity estimate is model-derived from the source. RSSI is not a measured distance. A body-camera maker identifier is not confirmation of a camera.", color: muted)
+        if document.anomalies.isEmpty {
+            drawPanelText("No reportable anomalies were identified in the supplied observations.", color: muted)
+        } else {
+            drawThreatMatrix(document.anomalies)
+            y += 6
+            drawPanelText("Proximity estimates are model-derived. RSSI is not a measured distance. A maker identifier does not confirm a device model or its use.", color: muted)
         }
         finishPage()
     }
@@ -185,31 +185,150 @@ private final class ReportCanvas {
 
     func subGHz() {
         openPage(title: "SUB-GHz & PHYSICAL VULNERABILITIES")
-        sectionHeading("Sub-GHz & Physical Vulnerabilities", subtitle: "Replay status is reported only when present in the source export.")
-        for signal in document.subGHz {
-            var fields: [(String, String)] = []
-            if let captureID = signal.captureID { fields.append(("CAPTURE", captureID)) }
-            if let frequency = signal.frequencyMHz { fields.append(("FREQUENCY", "\(Self.number(frequency)) MHz")) }
-            if let modulation = signal.modulation { fields.append(("MODULATION", modulation)) }
-            if let rssi = signal.rssi { fields.append(("RSSI", "\(rssi) dBm")) }
-            if let timestamp = signal.timestamp { fields.append(("TIMESTAMP", timestamp)) }
-            if let replayEligible = signal.replayEligible {
-                fields.append(("REPLAY ELIGIBLE", replayEligible ? "TRUE" : "FALSE"))
+        sectionHeading("Sub-GHz & Physical Vulnerabilities", subtitle: "Captures are summarized by frequency and modulation; raw records remain in the appendix.")
+        let replayable = document.replayEligibleSignals
+        if !replayable.isEmpty {
+            let frequencies = replayable.compactMap(\.frequencyMHz)
+                .map { Self.number($0) + " MHz" }
+            let unknownFrequencyCount = replayable.filter { $0.frequencyMHz == nil }.count
+            let distinctFrequencies = Array(Set(frequencies)).sorted { lhs, rhs in
+                let left = Double(lhs.replacingOccurrences(of: " MHz", with: "")) ?? .greatestFiniteMagnitude
+                let right = Double(rhs.replacingOccurrences(of: " MHz", with: "")) ?? .greatestFiniteMagnitude
+                return left == right ? lhs < rhs : left < right
             }
-            let height = fieldListHeight(fields) + (signal.replayEligible == true ? 47 : 14)
+            var frequencyList = distinctFrequencies
+            if unknownFrequencyCount > 0 { frequencyList.append("frequency not supplied") }
+            let warning = "WARNING: \(replayable.count) Replay-Eligible Sub-GHz Signals Captured (Frequencies: \(frequencyList.joined(separator: ", "))). Review access-control implications."
+            let height = measuredHeight(warning, width: bounds.width - margin * 2 - 20, font: .boldSystemFont(ofSize: 9)) + 20
+            draw(warning, in: CGRect(x: margin, y: y, width: bounds.width - margin * 2, height: height),
+                 font: .boldSystemFont(ofSize: 9), color: red, background: panel, border: red, inset: 10)
+            y += height + 12
+        }
+
+        drawSubheading("CAPTURE SUMMARY BY FREQUENCY · MODULATION")
+        let summaries = subGHzSummaryRows()
+        drawSubGHzTableHeader()
+        for summary in summaries {
+            let frequencyWidth: CGFloat = 112
+            let modulationWidth: CGFloat = 140
+            let countWidth: CGFloat = 82
+            let replayWidth = bounds.width - margin * 2 - frequencyWidth - modulationWidth - countWidth
+            let values = [summary.frequency, summary.modulation, String(summary.count), String(summary.replayEligibleCount)]
+            let widths = [frequencyWidth, modulationWidth, countWidth, replayWidth]
+            let fonts = values.enumerated().map { index, _ in
+                index < 2 ? UIFont.monospacedSystemFont(ofSize: 8, weight: .regular) : UIFont.systemFont(ofSize: 8)
+            }
+            let rowHeight = values.indices.map { index in
+                measuredHeight(values[index], width: widths[index] - 12, font: fonts[index])
+            }.max() ?? 14
+            let height = max(26, rowHeight + 12)
+            let pageBeforeRow = pageNumber
             ensureSpace(height: height, continuation: "SUB-GHz & PHYSICAL VULNERABILITIES")
-            fill(CGRect(x: margin, y: y, width: bounds.width - margin * 2, height: height), color: panel)
-            stroke(CGRect(x: margin, y: y, width: bounds.width - margin * 2, height: height), color: signal.replayEligible == true ? red : dim.withAlphaComponent(0.5), width: signal.replayEligible == true ? 1.4 : 0.5)
-            drawFieldList(fields, originY: y + 8, width: bounds.width - margin * 2 - 18, labelWidth: 108)
-            y += fieldListHeight(fields) + 20
-            if signal.replayEligible == true {
-                draw("WARNING: Captured signal may be replayable for physical access bypass.",
-                     at: CGPoint(x: margin + 10, y: y), width: bounds.width - margin * 2 - 20,
-                     font: .boldSystemFont(ofSize: 9), color: red)
-                y += 31
+            if pageNumber != pageBeforeRow { drawSubGHzTableHeader() }
+            var x = margin
+            for (index, value) in values.enumerated() {
+                let cell = CGRect(x: x, y: y, width: widths[index], height: height)
+                fill(cell, color: panel)
+                stroke(cell, color: dim.withAlphaComponent(0.45), width: 0.45)
+                draw(value, at: CGPoint(x: x + 6, y: y + 6), width: widths[index] - 12,
+                     font: fonts[index], color: index == 3 && summary.replayEligibleCount > 0 ? red : white)
+                x += widths[index]
             }
+            y += height
         }
         finishPage()
+    }
+
+    private func drawThreatMatrix(_ anomalies: [ARIAFieldReportDocument.Anomaly]) {
+        let widths: [CGFloat] = [78, 132, bounds.width - margin * 2 - 210]
+        func drawHeader() {
+            let labels = ["THREAT LEVEL", "DEVICE", "EVIDENCE"]
+            var x = margin
+            for index in labels.indices {
+                let rect = CGRect(x: x, y: y, width: widths[index], height: 24)
+                fill(rect, color: purple.withAlphaComponent(0.32))
+                stroke(rect, color: purple.withAlphaComponent(0.75), width: 0.6)
+                draw(labels[index], at: CGPoint(x: x + 6, y: y + 6), width: widths[index] - 12,
+                     font: .monospacedSystemFont(ofSize: 7, weight: .bold), color: white)
+                x += widths[index]
+            }
+            y += 24
+        }
+
+        drawHeader()
+        let ordered = anomalies.sorted { rank($0.severity) < rank($1.severity) }
+        for item in ordered {
+            let values = [item.threatLevelLabel, item.device, item.detail]
+            let heights = values.enumerated().map { index, value in
+                measuredHeight(value, width: widths[index] - 12,
+                               font: index == 0 ? .monospacedSystemFont(ofSize: 7.2, weight: .bold) : .systemFont(ofSize: 8))
+            }
+            let height = max(30, (heights.max() ?? 12) + 12)
+            let pageBeforeRow = pageNumber
+            ensureSpace(height: height, continuation: "EXECUTIVE SUMMARY · TSCM THREAT MATRIX")
+            if pageNumber != pageBeforeRow { drawHeader() }
+            let rowColor: UIColor = item.severity == .critical || item.severity == .high ? red : (item.severity == .review ? amber : purple)
+            var x = margin
+            for index in values.indices {
+                let rect = CGRect(x: x, y: y, width: widths[index], height: height)
+                fill(rect, color: panel)
+                stroke(rect, color: rowColor.withAlphaComponent(index == 0 ? 0.85 : 0.35), width: index == 0 ? 0.8 : 0.4)
+                draw(values[index], at: CGPoint(x: x + 6, y: y + 6), width: widths[index] - 12,
+                     font: index == 0 ? .monospacedSystemFont(ofSize: 7.2, weight: .bold) : .systemFont(ofSize: 8),
+                     color: index == 0 ? rowColor : white)
+                x += widths[index]
+            }
+            y += height
+        }
+    }
+
+    private func drawSubGHzTableHeader() {
+        let widths: [CGFloat] = [112, 140, 82, bounds.width - margin * 2 - 334]
+        let labels = ["FREQUENCY", "MODULATION", "CAPTURES", "REPLAY-ELIGIBLE"]
+        var x = margin
+        for index in labels.indices {
+            let rect = CGRect(x: x, y: y, width: widths[index], height: 24)
+            fill(rect, color: purple.withAlphaComponent(0.32))
+            stroke(rect, color: purple.withAlphaComponent(0.75), width: 0.6)
+            draw(labels[index], at: CGPoint(x: x + 6, y: y + 6), width: widths[index] - 12,
+                 font: .monospacedSystemFont(ofSize: 6.5, weight: .bold), color: white)
+            x += widths[index]
+        }
+        y += 24
+    }
+
+    private func subGHzSummaryRows() -> [SubGHzSummaryRow] {
+        let grouped = Dictionary(grouping: document.subGHz) { signal in
+            let frequency = signal.frequencyMHz.map { "\(Self.number($0)) MHz" } ?? "Frequency not supplied"
+            let modulation = signal.modulation ?? "Not supplied"
+            return "\(frequency)|\(modulation)"
+        }
+        return grouped.keys.sorted { lhs, rhs in
+            let leftParts = lhs.split(separator: "|", maxSplits: 1).map(String.init)
+            let rightParts = rhs.split(separator: "|", maxSplits: 1).map(String.init)
+            let leftFrequency = Double((leftParts.first ?? "").replacingOccurrences(of: " MHz", with: "")) ?? .greatestFiniteMagnitude
+            let rightFrequency = Double((rightParts.first ?? "").replacingOccurrences(of: " MHz", with: "")) ?? .greatestFiniteMagnitude
+            if leftFrequency != rightFrequency { return leftFrequency < rightFrequency }
+            return lhs < rhs
+        }.compactMap { key in
+            guard let signals = grouped[key] else { return nil }
+            let parts = key.split(separator: "|", maxSplits: 1).map(String.init)
+            return SubGHzSummaryRow(
+                frequency: parts.first ?? "Frequency not supplied",
+                modulation: parts.count > 1 ? parts[1] : "Not supplied",
+                count: signals.count,
+                replayEligibleCount: signals.filter { $0.replayEligible == true }.count
+            )
+        }
+    }
+
+    private func rank(_ severity: ARIAFieldReportDocument.Anomaly.Severity) -> Int {
+        switch severity {
+        case .critical: return 0
+        case .high: return 1
+        case .review: return 2
+        case .info: return 3
+        }
     }
 
     // MARK: Appendix

@@ -59,10 +59,20 @@ struct ARIAFieldReportDocument {
     struct Anomaly: Identifiable {
         let id: String
         let title: String
+        let device: String
         let detail: String
         let severity: Severity
 
-        enum Severity { case warning, review, info }
+        enum Severity { case critical, high, review, info }
+
+        var threatLevelLabel: String {
+            switch severity {
+            case .critical: return "CRITICAL"
+            case .high: return "HIGH"
+            case .review: return "REVIEW"
+            case .info: return "INFO"
+            }
+        }
     }
 
     let generatedAt: Date
@@ -79,6 +89,23 @@ struct ARIAFieldReportDocument {
     let sourceExportSHA256: String?
 
     var totalRadioDevices: Int { wifi.count + ble.count }
+
+    /// Counts distinct randomized addresses. Rows without an address remain countable
+    /// individually when the source explicitly marks them as randomized.
+    var randomizedMACCount: Int {
+        Self.randomizedAddressCount(wifi + ble)
+    }
+
+    private static func randomizedAddressCount(_ observations: [RadioObservation]) -> Int {
+        let rows = observations.filter(\.isRandomizedAddress)
+        let addresses = Set(rows.compactMap { $0.address?.uppercased() })
+        let addresslessRows = rows.filter { $0.address == nil }.count
+        return addresses.count + addresslessRows
+    }
+
+    var replayEligibleSignals: [SubGHzSignal] {
+        subGHz.filter { $0.replayEligible == true }
+    }
 
     init(jsonData: Data, operatorID overrideOperatorID: String? = nil) throws {
         let value = try JSONSerialization.jsonObject(with: jsonData, options: [.fragmentsAllowed])
@@ -249,35 +276,93 @@ struct ARIAFieldReportDocument {
         for device in wifi + ble {
             let identity = [device.vendor, device.name].compactMap { $0 }.joined(separator: " ")
             let subject = identity.isEmpty ? "device" : "\(identity) device"
+            let deviceLabel = device.name ?? device.vendor ?? device.classification ?? "Unclassified radio"
+
+            if device.isRandomizedAddress {
+                if let rssi = device.rssi, rssi > -50 {
+                    result.append(Anomaly(
+                        id: "strong-randomized-\(device.id)",
+                        title: "Close-proximity randomized address",
+                        device: deviceLabel,
+                        detail: "A locally administered address was observed at RSSI \(rssi) dBm (stronger than -50 dBm). The address is omitted because it may rotate.",
+                        severity: .high
+                    ))
+                }
+                continue
+            }
+
+            if let threat = device.threatLevel?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased(),
+               threat == "CRITICAL" || threat == "HIGH" {
+                result.append(Anomaly(
+                    id: "source-threat-\(device.id)",
+                    title: "Source threat level reported",
+                    device: deviceLabel,
+                    detail: "The JSON export labels this observation \(threat). Verify the underlying evidence and source scoring.",
+                    severity: threat == "CRITICAL" ? .critical : .high
+                ))
+            }
             if let maker = device.bodyCameraMaker {
-                result.append(Anomaly(id: "bodycam-\(device.id)", title: "Possible body-camera maker identifier",
-                                      detail: "\(maker) identifier matched \(device.address.map { "at \($0)" } ?? "in a BLE advertisement"). A maker match does not confirm a camera model or its use.", severity: .warning))
+                result.append(Anomaly(id: "bodycam-\(device.id)", title: "Possible body-camera maker identifier", device: deviceLabel,
+                                      detail: "\(maker) identifier matched \(device.address.map { "at \($0)" } ?? "in a BLE advertisement"). A maker match does not confirm a camera model or its use.", severity: .high))
             }
             if let distance = device.distanceFeet, distance <= 10, device.classification == nil {
-                result.append(Anomaly(id: "near-unclassified-\(device.id)", title: "Unclassified nearby device",
+                result.append(Anomaly(id: "near-unclassified-\(device.id)", title: "Unclassified nearby device", device: deviceLabel,
                                       detail: "\(subject.capitalized) detected at an estimated \(format(distance)) ft; the export contains no device classification.", severity: .review))
             } else if let rssi = device.rssi, rssi >= -45, device.classification == nil {
-                result.append(Anomaly(id: "strong-unclassified-\(device.id)", title: "Strong unclassified signal",
+                result.append(Anomaly(id: "strong-unclassified-\(device.id)", title: "Strong unclassified signal", device: deviceLabel,
                                       detail: "\(subject.capitalized) at RSSI \(rssi) dBm; signal strength does not establish physical distance.", severity: .review))
             }
             if let name = device.name, containsSmartDisplayName(name) {
-                result.append(Anomaly(id: "display-\(device.id)", title: "Consumer display name observed",
+                result.append(Anomaly(id: "display-\(device.id)", title: "Consumer display name observed", device: name,
                                       detail: "Broadcast name: \(name). Confirm whether this device belongs in the authorized inventory.", severity: .info))
             }
-            if device.isRandomizedAddress {
-                result.append(Anomaly(id: "private-mac-\(device.id)", title: "Locally administered address",
-                                      detail: "\(device.address ?? "The address") may be randomized; vendor attribution from the address is not reliable.", severity: .info))
-            }
         }
-        for signal in subGHz {
-            if let frequency = signal.frequencyMHz, abs(frequency - 915) < 1 {
-                result.append(Anomaly(id: "915-\(signal.id)", title: "915 MHz Sub-GHz signal",
-                                      detail: "Review expected regional band use and the configured receiver profile; frequency alone does not identify a transmitter.", severity: .review))
+
+        let randomizedCount = randomizedAddressCount(wifi + ble)
+        if randomizedCount > 0 {
+            result.append(Anomaly(
+                id: "randomized-background-summary",
+                title: "Background Noise",
+                device: "Randomized MAC addresses",
+                detail: "Background Noise: \(randomizedCount) locally administered (randomized) MAC addresses detected. Normal for modern mobile devices.",
+                severity: .info
+            ))
+        }
+
+        let signals915 = subGHz.filter { signal in
+            guard let frequency = signal.frequencyMHz else { return false }
+            return abs(frequency - 915) < 1
+        }
+        if !signals915.isEmpty {
+            result.append(Anomaly(
+                id: "915-summary",
+                title: "915 MHz Sub-GHz signals (\(signals915.count))",
+                device: "915 MHz group",
+                detail: "\(signals915.count) signal record(s) were captured near 915 MHz. Review expected regional band use and receiver profile; frequency alone does not identify a transmitter.",
+                severity: .review
+            ))
+        }
+
+        let replayable = subGHz.filter { $0.replayEligible == true }
+        if !replayable.isEmpty {
+            let grouped = Dictionary(grouping: replayable) { signal -> String in
+                signal.frequencyMHz.map { "\(format($0)) MHz" } ?? "Frequency not supplied"
             }
-            if signal.replayEligible == true {
-                result.append(Anomaly(id: "replay-\(signal.id)", title: "Replay-eligible capture reported",
-                                      detail: "The source JSON explicitly sets replay_eligible to true. Preserve the original capture and review access-control implications.", severity: .warning))
-            }
+            let frequencies = grouped.keys.sorted {
+                let lhs = Double($0.replacingOccurrences(of: " MHz", with: "")) ?? .greatestFiniteMagnitude
+                let rhs = Double($1.replacingOccurrences(of: " MHz", with: "")) ?? .greatestFiniteMagnitude
+                return lhs == rhs ? $0 < $1 : lhs < rhs
+            }.map { frequency in
+                let count = grouped[frequency]?.count ?? 0
+                return count > 1 ? "\(frequency) (\(count))" : frequency
+            }.joined(separator: ", ")
+            result.append(Anomaly(
+                id: "replay-summary",
+                title: "Replay-eligible Sub-GHz signals",
+                device: "Sub-GHz group",
+                detail: "WARNING: \(replayable.count) Replay-Eligible Sub-GHz Signals Captured (Frequencies: \(frequencies)). Review access-control implications.",
+                severity: .high
+            ))
         }
         return result
     }
