@@ -21,6 +21,14 @@ enum ARIAFieldReportPDFRenderer {
 }
 
 private final class ReportCanvas {
+    private struct CompactRFRow {
+        let id: String
+        let mac: String?
+        let vendor: String?
+        let rssi: Int?
+        let classification: String?
+    }
+
     private struct SubGHzSummaryRow {
         let frequency: String
         let modulation: String
@@ -114,16 +122,15 @@ private final class ReportCanvas {
 
         y += 19
         sectionHeading("TSCM Threat Matrix", subtitle: "Evidence is grouped and summarized from the supplied export; verify findings onsite.")
-        let hasHighThreat = document.anomalies.contains { $0.severity == .critical || $0.severity == .high }
+        let threats = deduplicatedThreatRows(document.anomalies)
+        let hasHighThreat = threats.contains { $0.severity == .critical || $0.severity == .high }
         if !hasHighThreat {
             drawPanelText("No critical surveillance or close-proximity threats detected.", color: muted)
         }
-        if document.anomalies.isEmpty {
+        if threats.isEmpty {
             drawPanelText("No reportable anomalies were identified in the supplied observations.", color: muted)
         } else {
-            drawThreatMatrix(document.anomalies)
-            y += 6
-            drawPanelText("Proximity estimates are model-derived. RSSI is not a measured distance. A maker identifier does not confirm a device model or its use.", color: muted)
+            drawThreatMatrix(threats)
         }
         finishPage()
     }
@@ -163,19 +170,39 @@ private final class ReportCanvas {
 
     func radioEnvironment() {
         openPage(title: "RF ENVIRONMENT · WI-FI & BLE")
-        sectionHeading("RF Environment · Wi-Fi & BLE", subtitle: "Only fields present on each exported observation are printed.")
-        if document.wifi.isEmpty && document.ble.isEmpty {
+        sectionHeading("RF Environment · Wi-Fi & BLE", subtitle: "Unique MAC addresses, strongest signal first. Proximity estimates are model-derived; RSSI is not a measured distance.")
+        let rows = compactRFTableRows()
+        if rows.isEmpty {
             drawPanelText("No Wi-Fi or BLE device records were present in the supplied JSON export.", color: muted)
         } else {
-            if !document.wifi.isEmpty {
-                drawSubheading("WI-FI · \(document.wifi.count) RECORDS")
-                for row in document.wifi { drawRadioRow(row) }
-            }
-            if !document.ble.isEmpty {
-                y += 8
-                ensureSpace(height: 28, continuation: "RF ENVIRONMENT · WI-FI & BLE")
-                drawSubheading("BLUETOOTH LE · \(document.ble.count) RECORDS")
-                for row in document.ble { drawRadioRow(row) }
+            drawSubheading("\(rows.count) UNIQUE RADIO IDENTITIES")
+            drawCompactRFHeader()
+            for row in rows {
+                let widths: [CGFloat] = [142, 134, 88, bounds.width - margin * 2 - 364]
+                let values = [row.mac ?? "Anonymous", row.vendor ?? "—", row.rssi.map { "\($0) dBm" } ?? "—", row.classification ?? "—"]
+                let fonts: [UIFont] = [
+                    .monospacedSystemFont(ofSize: 7.4, weight: .regular),
+                    .systemFont(ofSize: 7.7),
+                    .monospacedSystemFont(ofSize: 7.4, weight: .regular),
+                    .systemFont(ofSize: 7.5),
+                ]
+                let contentHeight = values.indices.map { index in
+                    measuredHeight(values[index], width: widths[index] - 10, font: fonts[index])
+                }.max() ?? 12
+                let rowHeight = max(23, contentHeight + 10)
+                let pageBeforeRow = pageNumber
+                ensureSpace(height: rowHeight, continuation: "RF ENVIRONMENT · WI-FI & BLE")
+                if pageNumber != pageBeforeRow { drawCompactRFHeader() }
+                var x = margin
+                for index in values.indices {
+                    let rect = CGRect(x: x, y: y, width: widths[index], height: rowHeight)
+                    fill(rect, color: panel)
+                    stroke(rect, color: dim.withAlphaComponent(0.4), width: 0.4)
+                    draw(values[index], at: CGPoint(x: x + 5, y: y + 5), width: widths[index] - 10,
+                         font: fonts[index], color: index == 2 && row.rssi.map({ $0 > -50 }) == true ? amber : white)
+                    x += widths[index]
+                }
+                y += rowHeight
             }
         }
         finishPage()
@@ -368,50 +395,70 @@ private final class ReportCanvas {
 
     // MARK: Drawing helpers
 
-    private func drawRadioRow(_ row: ARIAFieldReportDocument.RadioObservation) {
-        var pairs: [(String, String)] = []
-        if let vendor = row.vendor { pairs.append(("Vendor", vendor)) }
-        if let name = row.name { pairs.append(("Name", name)) }
-        if let distance = row.distanceFeet { pairs.append(("Estimated distance", "\(Self.number(distance)) ft")) }
-        if let rssi = row.rssi { pairs.append(("Signal", "\(rssi) dBm")) }
-        if let classification = row.classification { pairs.append(("Classification", classification)) }
-        else { pairs.append(("Classification", "Unclassified")) }
-        if let threat = row.threatLevel { pairs.append(("Threat level", threat)) }
-        if let timestamp = row.timestamp { pairs.append(("Timestamp", timestamp)) }
-        if row.isRandomizedAddress { pairs.append(("Address type", "Locally administered / possibly randomized")) }
-        if row.address == nil { pairs.append(("Address", "Anonymous; no MAC/address in export")) }
+    private func drawCompactRFHeader() {
+        let widths: [CGFloat] = [142, 134, 88, bounds.width - margin * 2 - 364]
+        let labels = ["MAC ADDRESS", "VENDOR", "SIGNAL (dBm)", "CLASSIFICATION"]
+        var x = margin
+        for index in labels.indices {
+            let rect = CGRect(x: x, y: y, width: widths[index], height: 24)
+            fill(rect, color: purple.withAlphaComponent(0.32))
+            stroke(rect, color: purple.withAlphaComponent(0.75), width: 0.6)
+            draw(labels[index], at: CGPoint(x: x + 5, y: y + 6), width: widths[index] - 10,
+                 font: .monospacedSystemFont(ofSize: 6.6, weight: .bold), color: white)
+            x += widths[index]
+        }
+        y += 24
+    }
 
-        let title = row.name.map { "\(row.band) · \($0)" } ?? "\(row.band) observation"
-        let identity = row.address.map { "MAC / address  \($0)" }
-        let detailHeight = pairs.reduce(CGFloat(0)) { partial, pair in
-            partial + measuredHeight("\(pair.0):  \(pair.1)", width: bounds.width - margin * 2 - 34, font: .systemFont(ofSize: 8.6)) + 3
+    private func compactRFTableRows() -> [CompactRFRow] {
+        let observations = (document.wifi + document.ble).filter { !$0.isSystemAccessPoint }
+        var grouped: [String: [ARIAFieldReportDocument.RadioObservation]] = [:]
+        for row in observations {
+            let key: String
+            if let address = row.address?.trimmingCharacters(in: .whitespacesAndNewlines), !address.isEmpty {
+                key = "mac:\(address.uppercased())"
+            } else {
+                key = "anonymous:\(row.band):\(row.vendor?.lowercased() ?? ""):\(row.classification?.lowercased() ?? "")"
+            }
+            grouped[key, default: []].append(row)
         }
-        let height = 28 + (identity == nil ? 0 : 14) + detailHeight + 14
-        ensureSpace(height: height, continuation: "RF ENVIRONMENT · WI-FI & BLE")
-        let rect = CGRect(x: margin, y: y, width: bounds.width - margin * 2, height: height)
-        let emphasized = row.classification == nil || row.isAnonymous || row.bodyCameraMaker != nil
-        fill(rect, color: panel)
-        stroke(rect, color: emphasized ? amber.withAlphaComponent(0.85) : dim.withAlphaComponent(0.45), width: emphasized ? 1 : 0.55)
-        draw(title, at: CGPoint(x: rect.minX + 10, y: rect.minY + 7), width: rect.width - 20,
-             font: .boldSystemFont(ofSize: 9.2), color: emphasized ? amber : white)
-        var lineY = rect.minY + 23
-        if let identity {
-            draw(identity, at: CGPoint(x: rect.minX + 10, y: lineY), width: rect.width - 20,
-                 font: .monospacedSystemFont(ofSize: 7.5, weight: .regular), color: muted)
-            lineY += 14
+
+        return grouped.map { key, records in
+            let ordered = records.sorted {
+                let lhs = $0.rssi ?? Int.min
+                let rhs = $1.rssi ?? Int.min
+                return lhs == rhs ? $0.id < $1.id : lhs > rhs
+            }
+            let strongest = ordered.first
+            return CompactRFRow(
+                id: key,
+                mac: strongest?.address,
+                vendor: ordered.compactMap(\.vendor).first,
+                rssi: strongest?.rssi,
+                classification: ordered.compactMap(\.classification).first
+            )
+        }.sorted { lhs, rhs in
+            let leftSignal = lhs.rssi ?? Int.min
+            let rightSignal = rhs.rssi ?? Int.min
+            return leftSignal == rightSignal ? lhs.id.localizedStandardCompare(rhs.id) == .orderedAscending : leftSignal > rightSignal
         }
-        for pair in pairs {
-            let text = "\(pair.0):  \(pair.1)"
-            let textHeight = measuredHeight(text, width: rect.width - 20, font: .systemFont(ofSize: 8.6))
-            draw(text, at: CGPoint(x: rect.minX + 10, y: lineY), width: rect.width - 20,
-                 font: .systemFont(ofSize: 8.6), color: white)
-            lineY += textHeight + 3
+    }
+
+    private func deduplicatedThreatRows(_ anomalies: [ARIAFieldReportDocument.Anomaly]) -> [ARIAFieldReportDocument.Anomaly] {
+        let grouped = Dictionary(grouping: anomalies) { item in
+            "\(rank(item.severity))|\(item.title)|\(item.detail)"
         }
-        if let maker = row.bodyCameraMaker {
-            draw("POSSIBLE BODY-CAMERA MAKER MATCH · \(maker)", at: CGPoint(x: rect.minX + 10, y: lineY), width: rect.width - 20,
-                 font: .boldSystemFont(ofSize: 8), color: red)
-        }
-        y += height + 7
+        return grouped.values.compactMap { matches in
+            guard let first = matches.first else { return nil }
+            guard matches.count > 1 else { return first }
+            return ARIAFieldReportDocument.Anomaly(
+                id: "deduplicated-\(first.id)",
+                title: "\(matches.count) × \(first.title)",
+                device: "\(matches.count) devices",
+                detail: first.detail,
+                severity: first.severity
+            )
+        }.sorted { rank($0.severity) == rank($1.severity) ? $0.title < $1.title : rank($0.severity) < rank($1.severity) }
     }
 
     private func drawOSINTFinding(_ finding: ARIAFieldReportDocument.OSINTFinding, alert: Bool) {

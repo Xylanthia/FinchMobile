@@ -26,6 +26,14 @@ struct ARIAFieldReportDocument {
         let bodyCameraMaker: String?
 
         var isAnonymous: Bool { address == nil || isRandomizedAddress }
+
+        /// ARIA's own setup network is part of the collection infrastructure, not
+        /// an external target. Match the advertised SSID, including hardware suffixes.
+        var isSystemAccessPoint: Bool {
+            guard band == "WIFI", let name else { return false }
+            let normalized = name.lowercased().filter { $0.isLetter || $0.isNumber }
+            return normalized == "ariasetup" || normalized.hasPrefix("ariasetup")
+        }
     }
 
     struct SubGHzSignal: Identifiable {
@@ -97,7 +105,7 @@ struct ARIAFieldReportDocument {
     }
 
     private static func randomizedAddressCount(_ observations: [RadioObservation]) -> Int {
-        let rows = observations.filter(\.isRandomizedAddress)
+        let rows = observations.filter { $0.isRandomizedAddress && !$0.isSystemAccessPoint }
         let addresses = Set(rows.compactMap { $0.address?.uppercased() })
         let addresslessRows = rows.filter { $0.address == nil }.count
         return addresses.count + addresslessRows
@@ -273,21 +281,28 @@ struct ARIAFieldReportDocument {
 
     private static func findAnomalies(wifi: [RadioObservation], ble: [RadioObservation], subGHz: [SubGHzSignal]) -> [Anomaly] {
         var result: [Anomaly] = []
+        let closeRandomized = (wifi + ble).filter {
+            $0.isRandomizedAddress && !$0.isSystemAccessPoint && ($0.rssi ?? Int.min) > -50
+        }
+        let randomizedByRSSI = Dictionary(grouping: closeRandomized) { $0.rssi ?? Int.min }
+        for rssi in randomizedByRSSI.keys.sorted(by: >) {
+            let count = randomizedByRSSI[rssi]?.count ?? 0
+            result.append(Anomaly(
+                id: "strong-randomized-\(rssi)",
+                title: "Local/private devices (Extreme Proximity)",
+                device: "\(count) local/private devices",
+                detail: "\(count) locally administered devices detected at \(rssi) dBm (Extreme Proximity). Individual addresses are omitted because they may rotate.",
+                severity: .high
+            ))
+        }
+
         for device in wifi + ble {
+            if device.isSystemAccessPoint { continue }
             let identity = [device.vendor, device.name].compactMap { $0 }.joined(separator: " ")
             let subject = identity.isEmpty ? "device" : "\(identity) device"
             let deviceLabel = device.name ?? device.vendor ?? device.classification ?? "Unclassified radio"
 
             if device.isRandomizedAddress {
-                if let rssi = device.rssi, rssi > -50 {
-                    result.append(Anomaly(
-                        id: "strong-randomized-\(device.id)",
-                        title: "Close-proximity randomized address",
-                        device: deviceLabel,
-                        detail: "A locally administered address was observed at RSSI \(rssi) dBm (stronger than -50 dBm). The address is omitted because it may rotate.",
-                        severity: .high
-                    ))
-                }
                 continue
             }
 
